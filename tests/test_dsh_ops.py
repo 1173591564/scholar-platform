@@ -556,7 +556,7 @@ def test_remote_rows_with_credential_reference():
     )
     assert "bearerTokenEnv: SCHOLAR_REMOTE_TOKEN" in row
     assert "Authorization" not in row
-    assert "failOnStartupError: true" in row
+    assert "failOnStartupError: false" in row
     import pytest
 
     with pytest.raises(ValueError, match="requires a Bearer credential reference"):
@@ -599,6 +599,7 @@ def test_write_preset_remote(tmp_path):
     scholar_seg = comp.split("scholar（由")[1]
     assert "streamable-http" in scholar_seg
     assert "stdio" not in scholar_seg
+    assert "failOnStartupError: false" in scholar_seg
     # 技能与人格插件仍本地（wheel 自带，与数据无关）
     assert "scholar-skills" in scholar_seg and "scholar-native" in scholar_seg
 
@@ -613,6 +614,7 @@ def test_build_patch_block_remote():
         token_ref="SCHOLAR_REMOTE_TOKEN",
     )
     assert "streamable-http" in block and "stdio" not in block
+    assert "failOnStartupError: false" in block
     assert block.count(dsh_ops.MARKER) == 1
     assert "name: '@deepseek-ai/dsh-scholar-native'" in block
 

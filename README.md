@@ -115,7 +115,7 @@ printf '%s\n' "$SCHOLAR_REMOTE_TOKEN" \
       --token-stdin
 ```
 
-The generated DSH composition uses `@deepseek-ai/dsh-mcp-client`, `@deepseek-ai/dsh-scholar-native`, and `@deepseek-ai/dsh-skill-filesystem`. Scholar connection and tool synchronization are mandatory. The token is stored in DSH managed credentials and the composition contains only its reference.
+The generated DSH composition uses `@deepseek-ai/dsh-mcp-client`, `@deepseek-ai/dsh-scholar-native`, and `@deepseek-ai/dsh-skill-filesystem`. Local stdio startup remains strict. Remote startup keeps the composition loaded during a temporary outage and reconnects after the service recovers or a configured replacement credential is stored. The token is stored in DSH managed credentials and the composition contains only its reference.
 
 ## CLI
 
