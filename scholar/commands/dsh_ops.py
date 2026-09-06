@@ -95,8 +95,9 @@ def _mcp_scholar_row(
     allow_insecure_http: bool = False,
 ) -> str:
     """mcp-scholar 插件行。remote_url 非空时走 streamable-http（服务器集中部署，
-    数据零分发；token_ref 由 dsh credentials 服务逐请求解析），否则 stdio 本地子进程。
-    indent 为行缩进前缀（patch 4 空格、预设 0 空格）。"""
+    数据零分发；token_ref 由 dsh credentials 服务逐请求解析；初始失败保持后台重连），
+    否则使用启动失败即报错的 stdio 本地子进程。indent 为行缩进前缀
+    （patch 4 空格、预设 0 空格）。"""
     i = indent
     if remote_url:
         if token_ref is None:
@@ -111,7 +112,7 @@ def _mcp_scholar_row(
 {i}    serverName: scholar
 {i}    transport: streamable-http
 {i}    url: "{remote_url}"
-{bearer}{insecure}{i}    failOnStartupError: true
+{bearer}{insecure}{i}    failOnStartupError: false
 """
     env_lines = [
         f"{i}    env:",

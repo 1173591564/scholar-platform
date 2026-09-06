@@ -105,7 +105,7 @@ printf '%s\n' "$SCHOLAR_REMOTE_TOKEN" \
       --token-stdin
 ```
 
-生成的 DSH composition 使用 `@deepseek-ai/dsh-mcp-client`、`@deepseek-ai/dsh-scholar-native` 与 `@deepseek-ai/dsh-skill-filesystem`。Scholar connection 与 tool synchronization 是 mandatory。Token 存入 DSH managed credential，composition 只包含其 reference。
+生成的 DSH composition 使用 `@deepseek-ai/dsh-mcp-client`、`@deepseek-ai/dsh-scholar-native` 与 `@deepseek-ai/dsh-skill-filesystem`。本地 stdio 启动仍为严格模式；远程启动在临时停机期间保持 composition 加载，并在服务恢复或保存已配置的替换 credential 后重连。Token 存入 DSH managed credential，composition 只包含其 reference。
 
 ## CLI
 
