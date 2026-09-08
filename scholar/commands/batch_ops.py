@@ -174,7 +174,7 @@ def classify(
 # ===================================================================
 @app.command()
 def bootstrap():
-    """Full initialization: parse -> year-fix -> author-fix -> graph-build -> rag-index -> auto-notes -> quality -> classify."""
+    """Full initialization: parse -> year-fix -> author-fix -> auto-notes -> quality -> classify."""
     from .. import auto_notes as an
     from .. import quality as q
     from .. import classify as cl
@@ -188,7 +188,7 @@ def bootstrap():
     )
 
     # Step 1: Parse all
-    console.print("\n[cyan][1/8] Parsing all papers...[/]")
+    console.print("\n[cyan][1/6] Parsing all papers...[/]")
     parsed_ids = dbmod.list_parsed()
     paper_dirs = [d for d in config.PAPERS_DIR.iterdir() if d.is_dir()]
     unparsed = len(paper_dirs) - len(parsed_ids)
@@ -208,14 +208,14 @@ def bootstrap():
         console.print("  All papers already parsed")
 
     # Step 2: Year fix
-    console.print("\n[cyan][2/8] Completing years (Lean4 + heuristics)...[/]")
+    console.print("\n[cyan][2/6] Completing years (Lean4 + heuristics)...[/]")
     stats, _ = yf.complete_years(dry_run=False)
     console.print(
         f"  Filled: [green]{stats['filled']}[/], Still missing: {stats['still_missing']}"
     )
 
     # Step 3: Author fix (arXiv API)
-    console.print("\n[cyan][3/8] Completing authors (arXiv API)...[/]")
+    console.print("\n[cyan][3/6] Completing authors (arXiv API)...[/]")
     try:
         a_stats = yf.complete_authors_arxiv(limit=100, dry_run=False)
         console.print(
@@ -225,65 +225,26 @@ def bootstrap():
     except Exception as e:
         console.print(f"  [yellow]Author fix skipped: {e}[/]")
 
-    # Step 4: Graph build (if Neo4j available)
-    console.print("\n[cyan][4/8] Rebuilding graph cache...[/]")
-    try:
-        from .. import graph_mem
+    # Step 4: V2 projection note
+    console.print("\n[cyan][4/6] V2 projections[/]")
+    console.print("  [dim]Use 'scholar v2 build-graph' and 'scholar v2 build-vectors' after import.[/]")
 
-        gm = graph_mem.refresh()
-        st = gm.stats()
-        console.print(
-            f"  Papers: {st['papers']}, CITES: {st['cites_edges']}, Concepts: {st['concepts']}"
-        )
-    except Exception as e:
-        console.print(f"  [yellow]Graph build skipped: {e}[/]")
-
-    # Step 4b: Sync parsed papers to PostgreSQL
-    console.print("\n[cyan][4b/8] Syncing papers to PostgreSQL...[/]")
-    try:
-        _db = dbmod.Database()
-        if _db.available:
-            sync_count = 0
-            for json_file in config.PARSED_DIR.glob("*.json"):
-                data = json.loads(json_file.read_text(encoding="utf-8"))
-                _db.ingest_paper(data)
-                sync_count += 1
-            console.print(
-                f"  Synced [green]{sync_count}[/] papers to PG (with sections/formulas/citations)"
-            )
-        else:
-            console.print("  [yellow]PostgreSQL not available, skipping[/]")
-    except Exception as e:
-        console.print(f"  [yellow]PG sync skipped: {e}[/]")
-
-    # Step 5: RAG index (if API key available)
-    console.print("\n[cyan][5/8] Building RAG index...[/]")
-    if config.EMBEDDING_API_KEY:
-        from .. import rag
-
-        rag_result = rag.index_all_papers()
-        console.print(
-            f"  Chunks: {rag_result['total_chunks']}, Embedded: {rag_result['embedded']}"
-        )
-    else:
-        console.print("  [yellow]No SCHOLAR_EMBEDDING_API_KEY, skipping[/]")
-
-    # Step 6: Auto-notes
-    console.print("\n[cyan][6/8] Generating auto-notes...[/]")
+    # Step 5: Auto-notes
+    console.print("\n[cyan][5/6] Generating auto-notes...[/]")
     notes_result = an.generate_all_notes(force=False)
     console.print(
         f"  Created: [green]{notes_result['created']}[/], Skipped: {notes_result['skipped']}"
     )
 
-    # Step 7: Quality scoring
-    console.print("\n[cyan][7/8] Scoring quality...[/]")
+    # Step 5: Quality scoring
+    console.print("\n[cyan][5/6] Scoring quality...[/]")
     q_result = q.score_all_papers()
     console.print(
         f"  Scored: [green]{q_result['scored']}[/], Grades: A={q_result['grades']['A']} B={q_result['grades']['B']} C={q_result['grades']['C']}"
     )
 
-    # Step 8: Classification
-    console.print("\n[cyan][8/8] Classifying papers...[/]")
+    # Step 6: Classification
+    console.print("\n[cyan][6/6] Classifying papers...[/]")
     cl_result = cl.classify_all_papers()
     console.print(f"  Classified: [green]{cl_result['classified']}[/]")
 
@@ -294,7 +255,7 @@ def bootstrap():
             f"Quality:    {q_result['scored']} scored\n"
             f"Classified: {cl_result['classified']}\n"
             f"\n[bold green]Bootstrap complete![/]",
-            title="[green]Bootstrap Complete[/]",
+            title="[green]Bootstrap Complete",
         )
     )
 

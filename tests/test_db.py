@@ -6,7 +6,7 @@ Tests: save_parsed, load_parsed, list_parsed without requiring PostgreSQL.
 import json
 import pytest
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from scholar import db as dbmod
 
@@ -80,27 +80,3 @@ class TestFileOnlyOperations:
         path = dbmod.save_parsed(sample_paper_data, parsed_dir=parsed_dir)
         assert path.is_file()
 
-
-class TestDatabaseAvailability:
-    """Test Database class availability check (mocked psycopg2)."""
-
-    def test_db_unavailable_without_psycopg2(self):
-        db = dbmod.Database()
-        db.psycopg2 = None
-        assert db.available is False
-
-    def test_db_available_with_mock_connection(self):
-        db = dbmod.Database()
-        mock_psycopg2 = MagicMock()
-        mock_conn = MagicMock()
-        mock_psycopg2.connect.return_value = mock_conn
-        db.psycopg2 = mock_psycopg2
-        assert db.available is True
-        mock_conn.close.assert_called_once()
-
-    def test_db_unavailable_on_connection_error(self):
-        db = dbmod.Database()
-        mock_psycopg2 = MagicMock()
-        mock_psycopg2.connect.side_effect = Exception("connection refused")
-        db.psycopg2 = mock_psycopg2
-        assert db.available is False

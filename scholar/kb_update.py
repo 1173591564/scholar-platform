@@ -220,12 +220,10 @@ def batch_ingest(
 ) -> dict:
     """批量执行 ingest 全流程。
 
-    流程（7步）:
+    流程:
     1. parse（解析 TeX → JSON）
     2. arXiv 元数据补全（单次 API 查询 → authors/year/arxiv_id/doi/venue）
-    3. graph-update（Neo4j 引用 + 概念图）
-    4. rag-index（向量索引更新）
-    5. auto-notes + quality-score + classify
+    3. auto-notes + quality-score + classify
     """
     from .tex_parser import parse_paper
     from . import metadata_enrich as me
@@ -259,166 +257,70 @@ def batch_ingest(
         "errors": [],
     }
 
-    database = dbmod.Database()
-    if database.available:
-        for paper_id in paper_ids:
-            paper_dir = config.PAPERS_DIR / paper_id
+    for paper_id in paper_ids:
+        paper_dir = config.PAPERS_DIR / paper_id
 
-            # Step 1: Parse
-            try:
-                data = parse_paper(paper_dir, paper_id)
-                out_path = dbmod.save_parsed(data)
-                data["parsed_path"] = str(out_path)
-                data["section_count"] = len(data.get("sections", []))
-                data["formula_count"] = len(data.get("formulas", []))
-                data["citation_count"] = len(data.get("citations", []))
-                database.ingest_paper(data)
-                stats["parsed"] += 1
-            except Exception as e:
-                stats["errors"].append({"paper_id": paper_id, "step": "parse", "error": str(e)})
-                continue
+        # Step 1: Parse (file-only)
+        try:
+            data = parse_paper(paper_dir, paper_id)
+            dbmod.save_parsed(data)
+            stats["parsed"] += 1
+        except Exception as e:
+            stats["errors"].append({"paper_id": paper_id, "step": "parse", "error": str(e)})
+            continue
 
-            # Step 2: Unified arXiv metadata fetch (1 API call → all fields)
-            json_path = config.PARSED_DIR / f"{paper_id}.json"
-            try:
-                paper_data = json.loads(json_path.read_text(encoding="utf-8"))
-                title = paper_data.get("title", "")
-                needs_enrich = (
-                    not paper_data.get("arxiv_id")
-                    or not paper_data.get("authors")
-                    or not paper_data.get("year")
-                    or not paper_data.get("venue")
+        json_path = config.PARSED_DIR / f"{paper_id}.json"
+
+        # Step 2: arXiv metadata best-effort (1 API call → all fields)
+        try:
+            paper_data = json.loads(json_path.read_text(encoding="utf-8"))
+            title = paper_data.get("title", "")
+            needs_enrich = (
+                not paper_data.get("arxiv_id")
+                or not paper_data.get("authors")
+                or not paper_data.get("year")
+                or not paper_data.get("venue")
+            )
+            if needs_enrich and title:
+                meta = me.fetch_arxiv_metadata(title)
+                if meta:
+                    me.apply_arxiv_metadata(paper_data, meta)
+                # 兜底：arXiv 无匹配时，有 title 就设 "Preprint"
+                if not paper_data.get("venue") and title:
+                    paper_data["venue"] = "Preprint"
+                json_path.write_text(
+                    json.dumps(paper_data, ensure_ascii=False, indent=2),
+                    encoding="utf-8",
                 )
-                if needs_enrich and title:
-                    meta = me.fetch_arxiv_metadata(title)
-                    if meta:
-                        me.apply_arxiv_metadata(paper_data, meta)
-                    # 兜底：arXiv 无匹配时，有 title 就设 "Preprint"
-                    if not paper_data.get("venue") and title:
-                        paper_data["venue"] = "Preprint"
-                    json_path.write_text(
-                        json.dumps(paper_data, ensure_ascii=False, indent=2),
-                        encoding="utf-8",
-                    )
-                    if database.available:
-                        database.upsert_paper(paper_data)
-                    if meta:
-                        stats["enriched"] += 1
-                    time.sleep(3)
+                if meta:
+                    stats["enriched"] += 1
+                time.sleep(3)
+        except Exception:
+            pass
+
+        # Step 3: Auto-notes + quality + classify
+        if not skip_notes:
+            try:
+                from . import auto_notes as an
+                an.generate_single_note(paper_id, force=True)
+                stats["noted"] += 1
             except Exception:
                 pass
 
-            # Step 5: mark graph cache stale (rebuilt wholesale from JSON)
+        if not skip_quality:
             try:
-                from . import graph_mem
-                graph_mem.reset_cache()
+                from . import quality as q
+                q.score_single_paper(paper_id)
+                stats["scored"] += 1
             except Exception:
                 pass
 
-            # Step 6: RAG reindex (best-effort)
-            if config.EMBEDDING_API_KEY:
-                try:
-                    from . import rag
-                    rag.index_single_paper(paper_id)
-                except Exception:
-                    pass
-
-            # Step 7: Auto-notes + quality + classify
-            if not skip_notes:
-                try:
-                    from . import auto_notes as an
-                    an.generate_single_note(paper_id, force=True)
-                    stats["noted"] += 1
-                except Exception:
-                    pass
-
-            if not skip_quality:
-                try:
-                    from . import quality as q
-                    q.score_single_paper(paper_id)
-                    stats["scored"] += 1
-                except Exception:
-                    pass
-
-            try:
-                from . import classify as cl
-                cl.classify_single_paper(paper_id)
-                stats["classified"] += 1
-            except Exception:
-                pass
-    else:
-        # Database unavailable — fall back to file-only mode
-        for paper_id in paper_ids:
-            paper_dir = config.PAPERS_DIR / paper_id
-
-            # Step 1: Parse (file-only)
-            try:
-                data = parse_paper(paper_dir, paper_id)
-                dbmod.save_parsed(data)
-                stats["parsed"] += 1
-            except Exception as e:
-                stats["errors"].append({"paper_id": paper_id, "step": "parse", "error": str(e)})
-                continue
-
-            json_path = config.PARSED_DIR / f"{paper_id}.json"
-
-            # Steps 2-4: Metadata best-effort (1 API call → all fields)
-            try:
-                paper_data = json.loads(json_path.read_text(encoding="utf-8"))
-                title = paper_data.get("title", "")
-                needs_enrich = (
-                    not paper_data.get("arxiv_id")
-                    or not paper_data.get("authors")
-                    or not paper_data.get("year")
-                    or not paper_data.get("venue")
-                )
-                if needs_enrich and title:
-                    meta = me.fetch_arxiv_metadata(title)
-                    if meta:
-                        me.apply_arxiv_metadata(paper_data, meta)
-                    # 兜底：arXiv 无匹配时，有 title 就设 "Preprint"
-                    if not paper_data.get("venue") and title:
-                        paper_data["venue"] = "Preprint"
-                    json_path.write_text(
-                        json.dumps(paper_data, ensure_ascii=False, indent=2),
-                        encoding="utf-8",
-                    )
-                    if meta:
-                        stats["enriched"] += 1
-                    time.sleep(3)
-            except Exception:
-                pass
-
-            # Steps 5-7: Graph/RAG/notes/quality/classify best-effort
-            if config.EMBEDDING_API_KEY:
-                try:
-                    from . import rag
-                    rag.index_single_paper(paper_id)
-                except Exception:
-                    pass
-
-            if not skip_notes:
-                try:
-                    from . import auto_notes as an
-                    an.generate_single_note(paper_id, force=True)
-                    stats["noted"] += 1
-                except Exception:
-                    pass
-
-            if not skip_quality:
-                try:
-                    from . import quality as q
-                    q.score_single_paper(paper_id)
-                    stats["scored"] += 1
-                except Exception:
-                    pass
-
-            try:
-                from . import classify as cl
-                cl.classify_single_paper(paper_id)
-                stats["classified"] += 1
-            except Exception:
-                pass
+        try:
+            from . import classify as cl
+            cl.classify_single_paper(paper_id)
+            stats["classified"] += 1
+        except Exception:
+            pass
 
     # 刷新 IDResolver 缓存
     get_resolver().refresh()

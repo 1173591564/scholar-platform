@@ -1,0 +1,2445 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?latexml searchpaths="/opt/ar5iv-bindings/supported_originals,/opt/ar5iv-bindings/bindings,/work"?>
+<?latexml class="article"?>
+<?latexml package=""?>
+<?latexml package="amsmath, algorithm, graphicx, subcaption, siunitx, float, hyperref, cleveref, amssymb"?>
+<?latexml package="algpseudocode" options="noend"?>
+<?latexml package="inputenc" options="utf8"?>
+<?latexml package="booktabs"?>
+<?latexml package="authblk" options="blocks"?>
+<?latexml package="natbib"?>
+<?latexml RelaxNGSchema="LaTeXML"?>
+<document xmlns="http://dlmf.nist.gov/LaTeXML" xmlns:m="http://www.w3.org/1998/Math/MathML" class="ltx_authors_1line" xml:id="Document">
+  <resource src="LaTeXML.css" type="text/css"/>
+  <resource src="ltx-article.css" type="text/css"/>
+  <title fontsize="144%">Training Verifiers to Solve Math Word Problems</title>
+  <creator role="author">
+    <personname>
+      <text fontsize="90%">
+</text>
+      <text font="bold" fontsize="70%">Karl Cobbe<note mark="1" role="footnote" xml:id="footnote1" fragid="footnote1"><tags><tag><text font="medium" fontsize="143%">1</text></tag><tag role="autoref"><text fontsize="143%" font="medium">footnote 1</text></tag><tag role="creftype"><text fontsize="143%" font="medium">footnote</text></tag><tag role="creftypecap"><text font="medium" fontsize="143%">Footnote</text></tag><tag role="creftypeplural"><text font="medium" fontsize="143%">footnotes</text></tag><tag role="creftypepluralcap"><text fontsize="143%" font="medium">Footnotes</text></tag><tag role="refnum"><text font="medium" fontsize="143%">1</text></tag><tag role="typerefnum"><text fontsize="143%" font="medium">footnote 1</text></tag></tags><text font="medium" fontsize="143%">Equal contribution. Correspondence to: Karl Cobbe &lt;karl@openai.com&gt;, Vineet Kosaraju &lt;vineet@openai.com&gt;</text></note>    </text>
+      <text fontsize="90%">
+</text>
+      <text font="bold" fontsize="70%">Vineet Kosaraju<note mark="1" role="footnotemark" xml:id="footnotex1" fragid="footnotex1"><tags><tag><text font="medium" fontsize="143%">1</text></tag><tag role="autoref"><text fontsize="143%" font="medium">footnote 1</text></tag><tag role="creftype"><text font="medium" fontsize="143%">footnote</text></tag><tag role="creftypecap"><text font="medium" fontsize="143%">Footnote</text></tag><tag role="creftypeplural"><text font="medium" fontsize="143%">footnotes</text></tag><tag role="creftypepluralcap"><text fontsize="143%" font="medium">Footnotes</text></tag><tag role="refnum"><text fontsize="143%" font="medium">1</text></tag><tag role="typerefnum"><text fontsize="143%" font="medium">footnote 1</text></tag></tags></note>    </text>
+      <text fontsize="90%">
+</text>
+      <text font="bold" fontsize="70%">Mohammad Bavarian    </text>
+      <text fontsize="90%">
+</text>
+      <text fontsize="70%" font="bold">Mark Chen  </text>
+      <text fontsize="90%">
+</text>
+      <text fontsize="70%" font="bold">Heewoo Jun    </text>
+      <text fontsize="90%">
+</text>
+      <text fontsize="70%" font="bold">Łukasz Kaiser    </text>
+      <text fontsize="90%">
+</text>
+      <text font="bold" fontsize="70%">Matthias Plappert    </text>
+      <text fontsize="90%">
+</text>
+      <text fontsize="70%" font="bold">Jerry Tworek    </text>
+      <text fontsize="90%">
+</text>
+      <text fontsize="70%" font="bold">Jacob Hilton  </text>
+      <text fontsize="90%">
+</text>
+      <text fontsize="70%" font="bold">Reiichiro Nakano  </text>
+      <text fontsize="90%">
+</text>
+      <text fontsize="70%" font="bold">Christopher Hesse  </text>
+      <text fontsize="90%">
+</text>
+      <text font="bold" fontsize="70%">John Schulman  </text>
+      <text fontsize="90%"></text>
+    </personname>
+    <contact role="affiliation"/>
+  </creator>
+  <abstract name="Abstract">
+    <p>
+      <text fontsize="90%">State-of-the-art language models can match human performance on many tasks, but they still struggle to robustly perform multi-step mathematical reasoning. To diagnose the failures of current models and support research, we introduce GSM8K, a dataset of 8.5K high quality linguistically diverse grade school math word problems. We find that even the largest transformer models fail to achieve high test performance, despite the conceptual simplicity of this problem distribution. To increase performance, we propose training verifiers to judge the correctness of model completions. At test time, we generate many candidate solutions and select the one ranked highest by the verifier. We demonstrate that verification significantly improves performance on GSM8K, and we provide strong empirical evidence that verification scales more effectively with increased data than a finetuning baseline.</text>
+    </p>
+  </abstract>
+  <section inlist="toc" xml:id="S1" fragid="S1">
+    <tags>
+      <tag>1</tag>
+      <tag role="autoref">section 1</tag>
+      <tag role="creftype">section</tag>
+      <tag role="creftypecap">Section</tag>
+      <tag role="creftypeplural">sections</tag>
+      <tag role="creftypepluralcap">Sections</tag>
+      <tag role="refnum">1</tag>
+      <tag role="typerefnum">§1</tag>
+    </tags>
+    <title fontsize="90%"><tag close=" ">1</tag>Introduction</title>
+    <para xml:id="S1.p1" fragid="S1.p1">
+      <p>
+        <text fontsize="90%">In recent years, large language models have demonstrated impressive skills across many diverse tasks </text>
+        <cite class="ltx_citemacro_citep"><text fontsize="90%">(</text>Wang<text class="ltx_bib_etal"> et al.</text><text fontsize="90%">, </text><ref href="#bib.bib5" idref="bib.bib5" title="Superglue: a stickier benchmark for general-purpose language understanding systems">2019</ref>, Brown<text class="ltx_bib_etal"> et al.</text><text fontsize="90%">, </text><ref href="#bib.bib4" idref="bib.bib4" title="Language models are few-shot learners">2020</ref><text fontsize="90%">)</text></cite>
+        <text fontsize="90%">. </text>
+        <cite class="ltx_citemacro_cite">Kaplan<text class="ltx_bib_etal"> et al.</text> <text fontsize="90%">(</text><ref href="#bib.bib6" idref="bib.bib6" title="Scaling laws for neural language models">2020</ref><text fontsize="90%">)</text></cite>
+        <text fontsize="90%"> describe the consistent benefits of increasing model size, characterizing scaling trends that hold across many orders of magnitude. However, even the largest models falter when required to perform multi-step mathematical reasoning </text>
+        <cite class="ltx_citemacro_citep"><text fontsize="90%">(</text>Hendrycks<text class="ltx_bib_etal"> et al.</text><text fontsize="90%">, </text><ref href="#bib.bib2" idref="bib.bib2" title="Measuring mathematical problem solving with the math dataset">2021</ref><text fontsize="90%">)</text></cite>
+        <text fontsize="90%">. Model samples frequently contain catastrophic mistakes, even after the model has been appropriately finetuned. Mathematical reasoning thus reveals a critical weakness in modern language models.</text>
+      </p>
+    </para>
+    <para xml:id="S1.p2" fragid="S1.p2">
+      <p>
+        <text fontsize="90%">One significant challenge in mathematical reasoning is the high sensitivity to individual mistakes </text>
+        <cite class="ltx_citemacro_citep"><text fontsize="90%">(</text>Shen<text class="ltx_bib_etal"> et al.</text><text fontsize="90%">, </text><ref href="#bib.bib3" idref="bib.bib3" title="Generate &amp; rank: a multi-task framework for math word problems">2021b</ref><text fontsize="90%">)</text></cite>
+        <text fontsize="90%">. When generating a solution, autoregressive models have no mechanism to correct their own errors. Solutions that veer off-course quickly become unrecoverable. If we rely purely on generative methods and extrapolate from current trends, we will require an exorbitant parameter count to achieve even moderate performance on distributions as challenging as the MATH dataset </text>
+        <cite class="ltx_citemacro_citep"><text fontsize="90%">(</text>Hendrycks<text class="ltx_bib_etal"> et al.</text><text fontsize="90%">, </text><ref href="#bib.bib2" idref="bib.bib2" title="Measuring mathematical problem solving with the math dataset">2021</ref><text fontsize="90%">)</text></cite>
+        <text fontsize="90%">. This evidence strongly motivates the search for methods with more favorable scaling laws.</text>
+      </p>
+    </para>
+    <para xml:id="S1.p3" fragid="S1.p3">
+      <p>
+        <text fontsize="90%">We propose training verifiers to evaluate the correctness of model generated solutions, similar to concurrent work by </text>
+        <cite class="ltx_citemacro_cite">Shen<text class="ltx_bib_etal"> et al.</text> <text fontsize="90%">(</text><ref href="#bib.bib3" idref="bib.bib3" title="Generate &amp; rank: a multi-task framework for math word problems">2021b</ref><text fontsize="90%">)</text></cite>
+        <text fontsize="90%">. At test time, we sample a fixed number of candidate solutions and select the solution ranked highest by the verifier. Verifiers benefit both from their inherent optionality and from verification being a simpler task than generation in general.</text>
+      </p>
+    </para>
+    <para xml:id="S1.p4" fragid="S1.p4">
+      <p>
+        <text fontsize="90%">To facilitate research, we are releasing GSM8K, a dataset of 8.5K high quality problems at the grade school math level. We designed this dataset to have high linguistic diversity while relying on relatively simple grade school math concepts. State-of-the-art language models struggle to achieve high performance on this dataset, primarily due to the high diversity among problems. At the same time, GSM8K solutions depend only on elementary concepts, so achieving high test performance is a tractable goal.</text>
+      </p>
+    </para>
+    <figure inlist="lof" xml:id="S1.F1" labels="LABEL:fig:dataset_examples" fragid="S1.F1">
+      <tags>
+        <tag>
+          <text fontsize="90%">Figure 1</text>
+        </tag>
+        <tag role="autoref">Figure 1</tag>
+        <tag role="creftype">fig.</tag>
+        <tag role="creftypecap">Figure</tag>
+        <tag role="creftypeplural">figs.</tag>
+        <tag role="creftypepluralcap">Figures</tag>
+        <tag role="refnum">1</tag>
+        <tag role="typerefnum">Figure 1</tag>
+      </tags>
+      <graphics candidates="figures/example_problems.png" graphic="figures/example_problems.png" options="width=345.0pt,keepaspectratio=true" xml:id="S1.F1.g1" class="ltx_centering" fragid="S1.F1.g1"/>
+      <toccaption class="ltx_centering">
+        <tag close=" ">
+          <text fontsize="90%">1</text>
+        </tag>
+        <text fontsize="90%">Three example problems from GSM8K. Calculation annotations are highlighted in red.</text>
+      </toccaption>
+      <caption class="ltx_centering" fontsize="90%"><tag close=": ">Figure 1</tag>Three example problems from GSM8K. Calculation annotations are highlighted in red.</caption>
+    </figure>
+    <para xml:id="S1.p5" fragid="S1.p5">
+      <p>
+        <text fontsize="90%">Our main contributions are as follows:</text>
+      </p>
+    </para>
+    <para xml:id="S1.p6" fragid="S1.p6">
+      <enumerate xml:id="S1.I1" fragid="S1.I1">
+        <item xml:id="S1.I1.i1" fragid="S1.I1.i1">
+          <tags>
+            <tag>1.</tag>
+            <tag role="autoref">item 1</tag>
+            <tag role="creftype">item</tag>
+            <tag role="creftypecap">Item</tag>
+            <tag role="creftypeplural">items</tag>
+            <tag role="creftypepluralcap">Items</tag>
+            <tag role="refnum">1</tag>
+            <tag role="typerefnum">item 1</tag>
+          </tags>
+          <para xml:id="S1.I1.i1.p1" fragid="S1.I1.i1.p1">
+            <p>
+              <text fontsize="90%">We present a curated dataset of 8.5K grade school math questions and natural language solutions, useful for probing the informal reasoning ability of large language models.</text>
+            </p>
+          </para>
+        </item>
+        <item xml:id="S1.I1.i2" fragid="S1.I1.i2">
+          <tags>
+            <tag>2.</tag>
+            <tag role="autoref">item 2</tag>
+            <tag role="creftype">item</tag>
+            <tag role="creftypecap">Item</tag>
+            <tag role="creftypeplural">items</tag>
+            <tag role="creftypepluralcap">Items</tag>
+            <tag role="refnum">2</tag>
+            <tag role="typerefnum">item 2</tag>
+          </tags>
+          <para xml:id="S1.I1.i2.p1" fragid="S1.I1.i2.p1">
+            <p>
+              <text fontsize="90%">We show that, compared to a finetuning baseline, the use of verifiers results in approximately the same performance boost as a 30x model size increase, and that verifiers scale significantly better with increased data.</text>
+            </p>
+          </para>
+        </item>
+        <item xml:id="S1.I1.i3" fragid="S1.I1.i3">
+          <tags>
+            <tag>3.</tag>
+            <tag role="autoref">item 3</tag>
+            <tag role="creftype">item</tag>
+            <tag role="creftypecap">Item</tag>
+            <tag role="creftypeplural">items</tag>
+            <tag role="creftypepluralcap">Items</tag>
+            <tag role="refnum">3</tag>
+            <tag role="typerefnum">item 3</tag>
+          </tags>
+          <para xml:id="S1.I1.i3.p1" fragid="S1.I1.i3.p1">
+            <p>
+              <text fontsize="90%">We show that dropout acts as a strong regularizer, significantly improving performance for both finetuning and verification.</text>
+            </p>
+          </para>
+        </item>
+      </enumerate>
+    </para>
+  </section>
+  <section inlist="toc" xml:id="S2" labels="LABEL:section:dataset" fragid="S2">
+    <tags>
+      <tag>2</tag>
+      <tag role="autoref">section 2</tag>
+      <tag role="creftype">section</tag>
+      <tag role="creftypecap">Section</tag>
+      <tag role="creftypeplural">sections</tag>
+      <tag role="creftypepluralcap">Sections</tag>
+      <tag role="refnum">2</tag>
+      <tag role="typerefnum">§2</tag>
+    </tags>
+    <title fontsize="90%"><tag close=" ">2</tag>Dataset</title>
+    <para xml:id="S2.p1" fragid="S2.p1">
+      <p>
+        <text fontsize="90%">GSM8K consists of 8.5K high quality grade school math problems created by human problem writers. We segmented these into 7.5K training problems and 1K test problems. These problems take between 2 and 8 steps to solve, and solutions primarily involve performing a sequence of elementary calculations using basic arithmetic operations (</text>
+        <Math mode="inline" xml:id="S2.p1.m1" tex="+-\times\div" text="list@(+, -, *, /)" fragid="S2.p1.m1">
+          <m:math alttext="+-\times\div" display="inline">
+            <m:semantics>
+              <m:mrow xml:id="S2.p1.m1.6" xref="S2.p1.m1.6.cmml">
+                <m:mo mathsize="0.900em" xml:id="S2.p1.m1.1" xref="S2.p1.m1.1.cmml">+</m:mo>
+                <m:mo lspace="0em" xml:id="S2.p1.m1.5" xref="S2.p1.m1.6.cmml">⁣</m:mo>
+                <m:mo mathsize="0.900em" xml:id="S2.p1.m1.2" xref="S2.p1.m1.2.cmml">−</m:mo>
+                <m:mo lspace="0em" xml:id="S2.p1.m1.5a" xref="S2.p1.m1.6.cmml">⁣</m:mo>
+                <m:mo mathsize="0.900em" xml:id="S2.p1.m1.3" xref="S2.p1.m1.3.cmml">×</m:mo>
+                <m:mo lspace="0em" xml:id="S2.p1.m1.5b" xref="S2.p1.m1.6.cmml">⁣</m:mo>
+                <m:mo mathsize="0.900em" xml:id="S2.p1.m1.4" xref="S2.p1.m1.4.cmml">÷</m:mo>
+              </m:mrow>
+              <m:annotation-xml encoding="MathML-Content">
+                <m:list xml:id="S2.p1.m1.6.cmml" xref="S2.p1.m1.6">
+                  <m:plus xml:id="S2.p1.m1.1.cmml" xref="S2.p1.m1.1"/>
+                  <m:minus xml:id="S2.p1.m1.2.cmml" xref="S2.p1.m1.2"/>
+                  <m:times xml:id="S2.p1.m1.3.cmml" xref="S2.p1.m1.3"/>
+                  <m:divide xml:id="S2.p1.m1.4.cmml" xref="S2.p1.m1.4"/>
+                </m:list>
+              </m:annotation-xml>
+              <m:annotation encoding="application/x-tex">+-\times\div</m:annotation>
+            </m:semantics>
+          </m:math>
+        </Math>
+        <text fontsize="90%">) to reach the final answer. A bright middle school student should be able to solve every problem.</text>
+      </p>
+    </para>
+    <para xml:id="S2.p2" fragid="S2.p2">
+      <p>
+        <text fontsize="90%">We created GSM8K based on the following design principles.</text>
+      </p>
+    </para>
+    <para xml:id="S2.p3" fragid="S2.p3">
+      <itemize xml:id="S2.I1" fragid="S2.I1">
+        <item xml:id="S2.I1.i1" fragid="S2.I1.i1">
+          <tags>
+            <tag>•</tag>
+            <tag role="autoref">item </tag>
+            <tag role="typerefnum">1st item</tag>
+          </tags>
+          <para xml:id="S2.I1.i1.p1" fragid="S2.I1.i1.p1">
+            <p>
+              <text font="bold" fontsize="90%">High Quality</text>
+              <text fontsize="90%"> We avoid error-prone scraping procedures and instead rely on human workers to create problems. After performing extensive quality control based on workers’ answer agreement, we estimate that less than 2 percent of problems contain breaking errors.</text>
+            </p>
+          </para>
+        </item>
+        <item xml:id="S2.I1.i2" fragid="S2.I1.i2">
+          <tags>
+            <tag>•</tag>
+            <tag role="autoref">item </tag>
+            <tag role="typerefnum">2nd item</tag>
+          </tags>
+          <para xml:id="S2.I1.i2.p1" fragid="S2.I1.i2.p1">
+            <p>
+              <text fontsize="90%" font="bold">High Diversity</text>
+              <text fontsize="90%"> We strive for high diversity among problems. We actively avoid designing problems that are drawn from the same linguistic template or differ only in superficial details, an issue that is prevalent among many other datasets. By creating each individual problem to be relatively unique, held-out test performance becomes a far more relevant metric.</text>
+            </p>
+          </para>
+        </item>
+        <item xml:id="S2.I1.i3" fragid="S2.I1.i3">
+          <tags>
+            <tag>•</tag>
+            <tag role="autoref">item </tag>
+            <tag role="typerefnum">3rd item</tag>
+          </tags>
+          <para xml:id="S2.I1.i3.p1" fragid="S2.I1.i3.p1">
+            <p>
+              <text fontsize="90%" font="bold">Moderate Difficulty</text>
+              <text fontsize="90%"> We choose a problem distribution that is challenging for large state-of-the-art language models, without being completely intractable. GSM8K will help us better understand the data scaling trends of different models and methods in this difficulty sweet spot. Problems require no concepts beyond the level of early Algebra, and the vast majority of problems can be solved without explicitly defining a variable.</text>
+            </p>
+          </para>
+        </item>
+        <item xml:id="S2.I1.i4" fragid="S2.I1.i4">
+          <tags>
+            <tag>•</tag>
+            <tag role="autoref">item </tag>
+            <tag role="typerefnum">4th item</tag>
+          </tags>
+          <para xml:id="S2.I1.i4.p1" fragid="S2.I1.i4.p1">
+            <p>
+              <text fontsize="90%" font="bold">Natural Language Solutions</text>
+              <text fontsize="90%"> We collect solutions in natural language rather than as pure math expressions. We believe this is the most generally useful data format, and we expect it to shed light on the properties of large language models’ internal monologues. We instructed problem writers to explain their work as much as possible, but we allowed them to write solutions in their own diverse linguistic styles.</text>
+            </p>
+          </para>
+        </item>
+      </itemize>
+    </para>
+    <para xml:id="S2.p4" fragid="S2.p4">
+      <p>
+        <text fontsize="90%">The full GSM8K dataset can be found at </text>
+        <ref class="ltx_href" href="https://github.com/openai/grade-school-math" fontsize="90%">https://github.com/openai/grade-school-math</ref>
+        <text fontsize="90%">. Example problems are shown in </text>
+        <ref labelref="LABEL:fig:dataset_examples" show="creftypecap~refnum" fontsize="90%" idref="S1.F1" href="#S1.F1" title="In 1 Introduction ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">Figure</text> <text class="ltx_ref_tag">1</text></ref>
+        <text fontsize="90%">, and we discuss additional dataset details in </text>
+        <ref labelref="LABEL:appendix:dataset_details" show="creftypecap~refnum" fontsize="90%" idref="A1" href="#A1" title="Appendix A Dataset Details ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">Appendix</text> <text class="ltx_ref_tag">A</text></ref>
+        <text fontsize="90%">.</text>
+      </p>
+    </para>
+  </section>
+  <section inlist="toc" xml:id="S3" labels="LABEL:section:related" fragid="S3">
+    <tags>
+      <tag>3</tag>
+      <tag role="autoref">section 3</tag>
+      <tag role="creftype">section</tag>
+      <tag role="creftypecap">Section</tag>
+      <tag role="creftypeplural">sections</tag>
+      <tag role="creftypepluralcap">Sections</tag>
+      <tag role="refnum">3</tag>
+      <tag role="typerefnum">§3</tag>
+    </tags>
+    <title fontsize="90%"><tag close=" ">3</tag>Related Work</title>
+    <subsection inlist="toc" xml:id="S3.SS1" fragid="S3.SS1">
+      <tags>
+        <tag>3.1</tag>
+        <tag role="autoref">subsection 3.1</tag>
+        <tag role="creftype">section</tag>
+        <tag role="creftypecap">Section</tag>
+        <tag role="creftypeplural">sections</tag>
+        <tag role="creftypepluralcap">Sections</tag>
+        <tag role="refnum">3.1</tag>
+        <tag role="typerefnum">§3.1</tag>
+      </tags>
+      <title fontsize="90%"><tag close=" ">3.1</tag>Related Datasets</title>
+      <para xml:id="S3.SS1.p1" fragid="S3.SS1.p1">
+        <p>
+          <text fontsize="90%">Early math word problem datasets </text>
+          <cite class="ltx_citemacro_citep"><text fontsize="90%">(</text>Kushman<text class="ltx_bib_etal"> et al.</text><text fontsize="90%">, </text><ref href="#bib.bib7" idref="bib.bib7" title="Learning to automatically solve algebra word problems">2014</ref>, Roy and Roth<text fontsize="90%">, </text><ref href="#bib.bib8" idref="bib.bib8" title="Solving general arithmetic word problems">2015</ref><text fontsize="90%">)</text></cite>
+          <text fontsize="90%"> are relatively small and are not well suited for testing the limits of modern language models. Dolphin18K </text>
+          <cite class="ltx_citemacro_citep"><text fontsize="90%">(</text>Huang<text class="ltx_bib_etal"> et al.</text><text fontsize="90%">, </text><ref href="#bib.bib12" idref="bib.bib12" title="How well do computers solve math word problems? large-scale dataset construction and evaluation">2016</ref><text fontsize="90%">)</text></cite>
+          <text fontsize="90%"> is a larger dataset containing 18K problems, but solutions are provided only in the form of equations or final answers. AQuA-RAT </text>
+          <cite class="ltx_citemacro_citep"><text fontsize="90%">(</text>Ling<text class="ltx_bib_etal"> et al.</text><text fontsize="90%">, </text><ref href="#bib.bib15" idref="bib.bib15" title="Program induction by rationale generation: learning to solve and explain algebraic word problems">2017</ref><text fontsize="90%">)</text></cite>
+          <text fontsize="90%"> contains 100K problems, but this dataset unfortunately suffers from both a high degree of problem templatization and poor quality control of the natural language solutions. MathQA is a recently released subset of AQuA-RAT focused on correcting these mistakes </text>
+          <cite class="ltx_citemacro_citep"><text fontsize="90%">(</text>Amini<text class="ltx_bib_etal"> et al.</text><text fontsize="90%">, </text><ref href="#bib.bib16" idref="bib.bib16" title="MathQA: towards interpretable math word problem solving with operation-based formalisms">2019</ref><text fontsize="90%">)</text></cite>
+          <text fontsize="90%">, but even the corrected dataset has data quality issues, with around 30% of the data having inconsistencies </text>
+          <cite class="ltx_citemacro_citep"><text fontsize="90%">(</text>Miao<text class="ltx_bib_etal"> et al.</text><text fontsize="90%">, </text><ref href="#bib.bib10" idref="bib.bib10" title="A diverse corpus for evaluating and developing english math word problem solvers">2021</ref><text fontsize="90%">)</text></cite>
+          <text fontsize="90%">. Ape210K </text>
+          <cite class="ltx_citemacro_citep"><text fontsize="90%">(</text>Zhao<text class="ltx_bib_etal"> et al.</text><text fontsize="90%">, </text><ref href="#bib.bib40" idref="bib.bib40" title="Ape210k: a large-scale and template-rich dataset of math word problems">2020</ref><text fontsize="90%">)</text></cite>
+          <text fontsize="90%"> is the largest publicly available dataset, consisting of 210K Chinese elementary school-level math problems. However, due to the language barrier and the lack of natural language solutions, we’re unable to evaluate our methods on this dataset.</text>
+        </p>
+      </para>
+      <para xml:id="S3.SS1.p2" fragid="S3.SS1.p2">
+        <p>
+          <text fontsize="90%">The recently developed ASDiv dataset </text>
+          <cite class="ltx_citemacro_citep"><text fontsize="90%">(</text>Miao<text class="ltx_bib_etal"> et al.</text><text fontsize="90%">, </text><ref href="#bib.bib10" idref="bib.bib10" title="A diverse corpus for evaluating and developing english math word problem solvers">2021</ref><text fontsize="90%">)</text></cite>
+          <text fontsize="90%">, which contains 2.3K math word problems, addresses common flaws in prior datasets by ensuring problems have both high diversity and high quality. We share those design principles in the creation of GSM8K. However, we note that GSM8K is larger, provides natural language solutions, and consists of problems that on average require more steps to solve. The MATH dataset </text>
+          <cite class="ltx_citemacro_citep"><text fontsize="90%">(</text>Hendrycks<text class="ltx_bib_etal"> et al.</text><text fontsize="90%">, </text><ref href="#bib.bib2" idref="bib.bib2" title="Measuring mathematical problem solving with the math dataset">2021</ref><text fontsize="90%">)</text></cite>
+          <text fontsize="90%"> is larger and significantly more complex than GSM8K, but the high difficulty makes it challenging to accurately measure progress given the current capabilities of state-of-the-art language models.</text>
+        </p>
+      </para>
+      <para xml:id="S3.SS1.p3" fragid="S3.SS1.p3">
+        <p>
+          <text fontsize="90%">Other recent reasoning-related datasets have focused on mathematical reasoning on symbolic math </text>
+          <cite class="ltx_citemacro_citep"><text fontsize="90%">(</text>Lample and Charton<text fontsize="90%">, </text><ref href="#bib.bib17" idref="bib.bib17" title="Deep learning for symbolic mathematics">2019</ref><text fontsize="90%">)</text></cite>
+          <text fontsize="90%">, reading comprehension (LogiQA) </text>
+          <cite class="ltx_citemacro_citep"><text fontsize="90%">(</text>Liu<text class="ltx_bib_etal"> et al.</text><text fontsize="90%">, </text><ref href="#bib.bib19" idref="bib.bib19" title="LogiQA: a challenge dataset for machine reading comprehension with logical reasoning">2020</ref><text fontsize="90%">)</text></cite>
+          <text fontsize="90%">, and commonsense question answering (CommonsenseQA) </text>
+          <cite class="ltx_citemacro_citep"><text fontsize="90%">(</text>Talmor<text class="ltx_bib_etal"> et al.</text><text fontsize="90%">, </text><ref href="#bib.bib20" idref="bib.bib20" title="Commonsenseqa: a question answering challenge targeting commonsense knowledge">2018</ref><text fontsize="90%">)</text></cite>
+          <text fontsize="90%">. Similar to CommonsenseQA, GSM8K includes questions that require basic background knowledge, like the number of days in a week. Similar to LogiQA, which requires a mix of reading comprehension and logical reasoning, GSM8K’s main difficulty lies in both properly interpreting a question and reasoning through the steps to solve it.</text>
+        </p>
+      </para>
+    </subsection>
+    <subsection inlist="toc" xml:id="S3.SS2" fragid="S3.SS2">
+      <tags>
+        <tag>3.2</tag>
+        <tag role="autoref">subsection 3.2</tag>
+        <tag role="creftype">section</tag>
+        <tag role="creftypecap">Section</tag>
+        <tag role="creftypeplural">sections</tag>
+        <tag role="creftypepluralcap">Sections</tag>
+        <tag role="refnum">3.2</tag>
+        <tag role="typerefnum">§3.2</tag>
+      </tags>
+      <title fontsize="90%"><tag close=" ">3.2</tag>Related Methods</title>
+      <para xml:id="S3.SS2.p1" fragid="S3.SS2.p1">
+        <p>
+          <text fontsize="90%">Previous work has attempted to solve classic math word problem benchmarks with recurrent seq2seq models </text>
+          <cite class="ltx_citemacro_citep"><text fontsize="90%">(</text>Sutskever<text class="ltx_bib_etal"> et al.</text><text fontsize="90%">, </text><ref href="#bib.bib37" idref="bib.bib37" title="Sequence to sequence learning with neural networks">2014</ref><text fontsize="90%">)</text></cite>
+          <text fontsize="90%"> and closely related variants </text>
+          <cite class="ltx_citemacro_citep"><text fontsize="90%">(</text>Wang<text class="ltx_bib_etal"> et al.</text><text fontsize="90%">, </text><ref href="#bib.bib13" idref="bib.bib13" title="Deep neural solver for math word problems">2017</ref>, Huang<text class="ltx_bib_etal"> et al.</text><text fontsize="90%">, </text><ref href="#bib.bib25" idref="bib.bib25" title="Neural math word problem solver with reinforcement learning">2018</ref><text fontsize="90%">)</text></cite>
+          <text fontsize="90%">. More recent work has improved performance by designing specialized encoder-decoder architectures </text>
+          <cite class="ltx_citemacro_citep"><text fontsize="90%">(</text>Amini<text class="ltx_bib_etal"> et al.</text><text fontsize="90%">, </text><ref href="#bib.bib16" idref="bib.bib16" title="MathQA: towards interpretable math word problem solving with operation-based formalisms">2019</ref>, Chiang and Chen<text fontsize="90%">, </text><ref href="#bib.bib26" idref="bib.bib26" title="Semantically-aligned equation generation for solving and reasoning math word problems">2018</ref>, Xie and Sun<text fontsize="90%">, </text><ref href="#bib.bib27" idref="bib.bib27" title="A goal-driven tree-structured neural model for math word problems">2019</ref>, Chen<text class="ltx_bib_etal"> et al.</text><text fontsize="90%">, </text><ref href="#bib.bib30" idref="bib.bib30" title="Mapping natural-language problems to formal-language solutions using structured neural representations">2020</ref>, Li<text class="ltx_bib_etal"> et al.</text><text fontsize="90%">, </text><ref href="#bib.bib28" idref="bib.bib28" title="Graph-to-tree neural networks for learning structured input-output translation with applications to semantic parsing and math word problem">2020</ref><text fontsize="90%">)</text></cite>
+          <text fontsize="90%">, with the strongest results often relying on large pretrained encoders from the BERT family </text>
+          <cite class="ltx_citemacro_citep"><text fontsize="90%">(</text>Chen<text class="ltx_bib_etal"> et al.</text><text fontsize="90%">, </text><ref href="#bib.bib32" idref="bib.bib32" title="Neural symbolic reader: scalable integration of distributed and symbolic representations for reading comprehension">2019</ref>, Kim<text class="ltx_bib_etal"> et al.</text><text fontsize="90%">, </text><ref href="#bib.bib31" idref="bib.bib31" title="Point to the expression: solving algebraic word problems using the expression-pointer transformer model">2020</ref>, Liang<text class="ltx_bib_etal"> et al.</text><text fontsize="90%">, </text><ref href="#bib.bib29" idref="bib.bib29" title="MWP-bert: a strong baseline for math word problems">2021</ref><text fontsize="90%">)</text></cite>
+          <text fontsize="90%">.</text>
+        </p>
+      </para>
+      <para xml:id="S3.SS2.p2" fragid="S3.SS2.p2">
+        <p>
+          <text fontsize="90%">Other recent work has recommended additional pretraining tasks to further improve the math reasoning skills of large transformer-based models. </text>
+          <cite class="ltx_citemacro_cite">Hendrycks<text class="ltx_bib_etal"> et al.</text> <text fontsize="90%">(</text><ref href="#bib.bib2" idref="bib.bib2" title="Measuring mathematical problem solving with the math dataset">2021</ref><text fontsize="90%">)</text></cite>
+          <text fontsize="90%"> propose pretraining models on a new AMPS corpus, derived from Khan Academy problems and Mathematica scripts. Similarly, </text>
+          <cite class="ltx_citemacro_cite">Shen<text class="ltx_bib_etal"> et al.</text> <text fontsize="90%">(</text><ref href="#bib.bib33" idref="bib.bib33" title="MathBERT: a pre-trained language model for general nlp tasks in mathematics education">2021a</ref><text fontsize="90%">)</text></cite>
+          <text fontsize="90%"> propose a pretrained a corpus of pre-K to college level curricula extracted from the internet, and </text>
+          <cite class="ltx_citemacro_cite">Peng<text class="ltx_bib_etal"> et al.</text> <text fontsize="90%">(</text><ref href="#bib.bib34" idref="bib.bib34" title="MathBERT: a pre-trained model for mathematical formula understanding">2021</ref><text fontsize="90%">)</text></cite>
+          <text fontsize="90%"> propose pretraining by predicting masked subexpressions from expression trees.</text>
+        </p>
+      </para>
+      <para xml:id="S3.SS2.p3" fragid="S3.SS2.p3">
+        <p>
+          <text fontsize="90%">Similar to verification, other methods have finetuned a language model to select among many model completions. </text>
+          <cite class="ltx_citemacro_cite">Nichols<text class="ltx_bib_etal"> et al.</text> <text fontsize="90%">(</text><ref href="#bib.bib39" idref="bib.bib39" title="Collaborative storytelling with large-scale neural language models">2020</ref><text fontsize="90%">)</text></cite>
+          <text fontsize="90%"> proposed a sample-and-rank approach to improve the collaborative storytelling ability of large language models, with the training signal coming from the preferences of human workers. In concurrent work closely related to our own, </text>
+          <cite class="ltx_citemacro_cite">Shen<text class="ltx_bib_etal"> et al.</text> <text fontsize="90%">(</text><ref href="#bib.bib3" idref="bib.bib3" title="Generate &amp; rank: a multi-task framework for math word problems">2021b</ref><text fontsize="90%">)</text></cite>
+          <text fontsize="90%"> applied a similar approach to solving math word problems, jointly training a model to both generate and rank solutions. Our work shares many fundamental similarities with their approach, though we differ in several key respects. First, we focus attention on the space of natural language solutions, as this is a richer and more general solution format than pure mathematical expressions. Moreover, this choice enables our models to develop verbal analytical skills and to produce solutions that are more readily interpretable by humans. Second, we provide evidence that verifiers scale far more favorably with additional data than baseline methods. Finally, we use separate generator and verifier networks, in order to prevent the generator from overfitting.</text>
+        </p>
+      </para>
+    </subsection>
+  </section>
+  <section inlist="toc" xml:id="S4" fragid="S4">
+    <tags>
+      <tag>4</tag>
+      <tag role="autoref">section 4</tag>
+      <tag role="creftype">section</tag>
+      <tag role="creftypecap">Section</tag>
+      <tag role="creftypeplural">sections</tag>
+      <tag role="creftypepluralcap">Sections</tag>
+      <tag role="refnum">4</tag>
+      <tag role="typerefnum">§4</tag>
+    </tags>
+    <title fontsize="90%"><tag close=" ">4</tag>Methods</title>
+    <figure inlist="lof" xml:id="S4.F2" labels="LABEL:fig:bc_baseline" fragid="S4.F2">
+      <tags>
+        <tag>
+          <text fontsize="90%">Figure 2</text>
+        </tag>
+        <tag role="autoref">Figure 2</tag>
+        <tag role="creftype">fig.</tag>
+        <tag role="creftypecap">Figure</tag>
+        <tag role="creftypeplural">figs.</tag>
+        <tag role="creftypepluralcap">Figures</tag>
+        <tag role="refnum">2</tag>
+        <tag role="typerefnum">Figure 2</tag>
+      </tags>
+      <graphics candidates="figures/bc.pdf" graphic="figures/bc.pdf" options="width=163.9pt,keepaspectratio=true" xml:id="S4.F2.g1" class="ltx_centering ltx_figure_panel" fragid="S4.F2.g1"/>
+      <graphics candidates="figures/bc_data.pdf" graphic="figures/bc_data.pdf" options="width=163.9pt,keepaspectratio=true" xml:id="S4.F2.g2" class="ltx_centering ltx_figure_panel" fragid="S4.F2.g2"/>
+      <toccaption class="ltx_centering">
+        <tag close=" ">
+          <text fontsize="90%">2</text>
+        </tag>
+        <text fontsize="90%">Final test performance for various GPT-3 model sizes after finetuning on training sets of different sizes. Mean and standard deviation is shown across 3 runs.</text>
+      </toccaption>
+      <caption class="ltx_centering" fontsize="90%"><tag close=": ">Figure 2</tag>Final test performance for various GPT-3 model sizes after finetuning on training sets of different sizes. Mean and standard deviation is shown across 3 runs.</caption>
+    </figure>
+    <para xml:id="S4.p1" fragid="S4.p1">
+      <p>
+        <text fontsize="90%">We investigate two methods to solve problems in GSM8K: finetuning and verification. Finetuning, our baseline method, uses the same language modeling objective as the generative pretraining in GPT-3 </text>
+        <cite class="ltx_citemacro_citep"><text fontsize="90%">(</text>Brown<text class="ltx_bib_etal"> et al.</text><text fontsize="90%">, </text><ref href="#bib.bib4" idref="bib.bib4" title="Language models are few-shot learners">2020</ref><text fontsize="90%">)</text></cite>
+        <text fontsize="90%">. At test time, we judge performance by autoregressively sampling a single low temperature solution and checking whether the final answer is correct. In contrast, verification consists of sampling multiple high temperature solutions, assigning each solution a score, and outputting the highest ranked solution. Verifiers are trained to judge the correctness of solutions, with the training signal determined solely by whether or not the solution reached the correct final answer.</text>
+      </p>
+    </para>
+    <para xml:id="S4.p2" fragid="S4.p2">
+      <p>
+        <text fontsize="90%">For both methods, we use models from the GPT-3 family as our initialization, primarily focusing on the 175B and 6B model sizes. The 175B model is the largest and produces the most impressive results, while the 6B model is significantly more convenient for research purposes. We discuss hyperparameter choices in </text>
+        <ref labelref="LABEL:appendix:hyperparameters" show="creftypecap~refnum" fontsize="90%" idref="A2" href="#A2" title="Appendix B Hyperparameters ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">Appendix</text> <text class="ltx_ref_tag">B</text></ref>
+        <text fontsize="90%">.</text>
+      </p>
+    </para>
+    <para xml:id="S4.p3" fragid="S4.p3">
+      <p>
+        <text fontsize="90%">Our models frequently fail to accurately perform calculations. Although larger models make fewer arithmetic mistakes than smaller models, this remains a common source of errors. To mitigate this issue, we train all models to use a calculator by injecting calculation annotations into the training set. At test time, a calculator will override sampling when the model chooses to use these annotations. Details can be found in </text>
+        <ref labelref="LABEL:appendix:calculator_annotations" show="creftypecap~refnum" fontsize="90%" idref="A3" href="#A3" title="Appendix C Calculator Annotations ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">Appendix</text> <text class="ltx_ref_tag">C</text></ref>
+        <text fontsize="90%">.</text>
+      </p>
+    </para>
+    <figure inlist="lof" xml:id="S4.F3" labels="LABEL:fig:bc_training" fragid="S4.F3">
+      <tags>
+        <tag>
+          <text fontsize="90%">Figure 3</text>
+        </tag>
+        <tag role="autoref">Figure 3</tag>
+        <tag role="creftype">fig.</tag>
+        <tag role="creftypecap">Figure</tag>
+        <tag role="creftypeplural">figs.</tag>
+        <tag role="creftypepluralcap">Figures</tag>
+        <tag role="refnum">3</tag>
+        <tag role="typerefnum">Figure 3</tag>
+      </tags>
+      <graphics candidates="figures/bc_training.pdf" graphic="figures/bc_training.pdf" options="width=163.9pt,keepaspectratio=true" xml:id="S4.F3.g1" class="ltx_centering ltx_figure_panel" fragid="S4.F3.g1"/>
+      <graphics candidates="figures/bc100_training.pdf" graphic="figures/bc100_training.pdf" options="width=163.9pt,keepaspectratio=true" xml:id="S4.F3.g2" class="ltx_centering ltx_figure_panel" fragid="S4.F3.g2"/>
+      <toccaption class="ltx_centering">
+        <tag close=" ">
+          <text fontsize="90%">3</text>
+        </tag>
+        <text fontsize="90%">Test solve rate after finetuning a 6B model on the full GSM8K training set, when the model is allowed to make 1 guess (left) or 100 guesses (right).</text>
+      </toccaption>
+      <caption class="ltx_centering" fontsize="90%"><tag close=": ">Figure 3</tag>Test solve rate after finetuning a 6B model on the full GSM8K training set, when the model is allowed to make 1 guess (left) or 100 guesses (right).</caption>
+    </figure>
+    <subsection inlist="toc" xml:id="S4.SS1" fragid="S4.SS1">
+      <tags>
+        <tag>4.1</tag>
+        <tag role="autoref">subsection 4.1</tag>
+        <tag role="creftype">section</tag>
+        <tag role="creftypecap">Section</tag>
+        <tag role="creftypeplural">sections</tag>
+        <tag role="creftypepluralcap">Sections</tag>
+        <tag role="refnum">4.1</tag>
+        <tag role="typerefnum">§4.1</tag>
+      </tags>
+      <title fontsize="90%"><tag close=" ">4.1</tag>Finetuning</title>
+      <para xml:id="S4.SS1.p1" fragid="S4.SS1.p1">
+        <p>
+          <text fontsize="90%">We perform finetuning by updating model parameters to minimize the cross-entropy loss over all training tokens. </text>
+          <ref labelref="LABEL:fig:bc_baseline" show="creftypecap~refnum" fontsize="90%" idref="S4.F2" href="#S4.F2" title="In 4 Methods ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">Figure</text> <text class="ltx_ref_tag">2</text></ref>
+          <text fontsize="90%"> shows test performance after finetuning on training sets of varying sizes for 20 epochs. We visualize the same data both as a function of training set size and as a function of model size. Test performance is determined by a single low temperature (</text>
+          <Math mode="inline" xml:id="S4.SS1.p1.m1" tex="T=0" text="T = 0" fragid="S4.SS1.p1.m1">
+            <m:math alttext="T=0" display="inline">
+              <m:semantics>
+                <m:mrow xml:id="S4.SS1.p1.m1.4" xref="S4.SS1.p1.m1.4.cmml">
+                  <m:mi mathsize="0.900em" xml:id="S4.SS1.p1.m1.1" xref="S4.SS1.p1.m1.1.cmml">T</m:mi>
+                  <m:mo mathsize="0.900em" xml:id="S4.SS1.p1.m1.2" xref="S4.SS1.p1.m1.2.cmml">=</m:mo>
+                  <m:mn mathsize="0.900em" xml:id="S4.SS1.p1.m1.3" xref="S4.SS1.p1.m1.3.cmml">0</m:mn>
+                </m:mrow>
+                <m:annotation-xml encoding="MathML-Content">
+                  <m:apply xml:id="S4.SS1.p1.m1.4.cmml" xref="S4.SS1.p1.m1.4">
+                    <m:eq xml:id="S4.SS1.p1.m1.2.cmml" xref="S4.SS1.p1.m1.2"/>
+                    <m:ci xml:id="S4.SS1.p1.m1.1.cmml" xref="S4.SS1.p1.m1.1">𝑇</m:ci>
+                    <m:cn type="integer" xml:id="S4.SS1.p1.m1.3.cmml" xref="S4.SS1.p1.m1.3">0</m:cn>
+                  </m:apply>
+                </m:annotation-xml>
+                <m:annotation encoding="application/x-tex">T=0</m:annotation>
+              </m:semantics>
+            </m:math>
+          </Math>
+          <text fontsize="90%">) sample for each test problem. Unsurprisingly, we see that the 175B model significantly outperforms the smaller models. Assuming a log-linear trend, we can naively extrapolate these results to estimate that a model with </text>
+          <Math mode="inline" xml:id="S4.SS1.p1.m2" tex="10^{16}" text="10 ^ 16" fragid="S4.SS1.p1.m2">
+            <m:math alttext="10^{16}" display="inline">
+              <m:semantics>
+                <m:msup xml:id="S4.SS1.p1.m2.3" xref="S4.SS1.p1.m2.3.cmml">
+                  <m:mn mathsize="0.900em" xml:id="S4.SS1.p1.m2.1" xref="S4.SS1.p1.m2.1.cmml">10</m:mn>
+                  <m:mn mathsize="0.900em" xml:id="S4.SS1.p1.m2.2" xref="S4.SS1.p1.m2.2.cmml">16</m:mn>
+                </m:msup>
+                <m:annotation-xml encoding="MathML-Content">
+                  <m:apply xml:id="S4.SS1.p1.m2.3.cmml" xref="S4.SS1.p1.m2.3">
+                    <m:csymbol cd="ambiguous" xml:id="S4.SS1.p1.m2.3.1.cmml" xref="S4.SS1.p1.m2.3">superscript</m:csymbol>
+                    <m:cn type="integer" xml:id="S4.SS1.p1.m2.1.cmml" xref="S4.SS1.p1.m2.1">10</m:cn>
+                    <m:cn type="integer" xml:id="S4.SS1.p1.m2.2.cmml" xref="S4.SS1.p1.m2.2">16</m:cn>
+                  </m:apply>
+                </m:annotation-xml>
+                <m:annotation encoding="application/x-tex">10^{16}</m:annotation>
+              </m:semantics>
+            </m:math>
+          </Math>
+          <text fontsize="90%"> parameters would be required to reach an </text>
+          <Math mode="inline" xml:id="S4.SS1.p1.m3" tex="80\%" text="80percent" fragid="S4.SS1.p1.m3">
+            <m:math alttext="80\%" display="inline">
+              <m:semantics>
+                <m:mrow xml:id="S4.SS1.p1.m3.3" xref="S4.SS1.p1.m3.3.cmml">
+                  <m:mn mathsize="0.900em" xml:id="S4.SS1.p1.m3.1" xref="S4.SS1.p1.m3.1.cmml">80</m:mn>
+                  <m:mo mathsize="0.900em" xml:id="S4.SS1.p1.m3.2" xref="S4.SS1.p1.m3.2.cmml">%</m:mo>
+                </m:mrow>
+                <m:annotation-xml encoding="MathML-Content">
+                  <m:apply xml:id="S4.SS1.p1.m3.3.cmml" xref="S4.SS1.p1.m3.3">
+                    <m:csymbol cd="latexml" xml:id="S4.SS1.p1.m3.2.cmml" xref="S4.SS1.p1.m3.2">percent</m:csymbol>
+                    <m:cn type="integer" xml:id="S4.SS1.p1.m3.1.cmml" xref="S4.SS1.p1.m3.1">80</m:cn>
+                  </m:apply>
+                </m:annotation-xml>
+                <m:annotation encoding="application/x-tex">80\%</m:annotation>
+              </m:semantics>
+            </m:math>
+          </Math>
+          <text fontsize="90%"> solve rate, when using the full GSM8K training set. It is even harder to extrapolate along the data dimension, since performance does not appear to follow a log-linear trend. Nevertheless, it appears likely that the 175B model would require at least two additional orders of magnitude of training data to reach an </text>
+          <Math mode="inline" xml:id="S4.SS1.p1.m4" tex="80\%" text="80percent" fragid="S4.SS1.p1.m4">
+            <m:math alttext="80\%" display="inline">
+              <m:semantics>
+                <m:mrow xml:id="S4.SS1.p1.m4.3" xref="S4.SS1.p1.m4.3.cmml">
+                  <m:mn mathsize="0.900em" xml:id="S4.SS1.p1.m4.1" xref="S4.SS1.p1.m4.1.cmml">80</m:mn>
+                  <m:mo mathsize="0.900em" xml:id="S4.SS1.p1.m4.2" xref="S4.SS1.p1.m4.2.cmml">%</m:mo>
+                </m:mrow>
+                <m:annotation-xml encoding="MathML-Content">
+                  <m:apply xml:id="S4.SS1.p1.m4.3.cmml" xref="S4.SS1.p1.m4.3">
+                    <m:csymbol cd="latexml" xml:id="S4.SS1.p1.m4.2.cmml" xref="S4.SS1.p1.m4.2">percent</m:csymbol>
+                    <m:cn type="integer" xml:id="S4.SS1.p1.m4.1.cmml" xref="S4.SS1.p1.m4.1">80</m:cn>
+                  </m:apply>
+                </m:annotation-xml>
+                <m:annotation encoding="application/x-tex">80\%</m:annotation>
+              </m:semantics>
+            </m:math>
+          </Math>
+          <text fontsize="90%"> solve rate.</text>
+        </p>
+      </para>
+      <para xml:id="S4.SS1.p2" fragid="S4.SS1.p2">
+        <p>
+          <text fontsize="90%">In </text>
+          <ref labelref="LABEL:fig:bc_training" show="creftypecap~refnum" fontsize="90%" idref="S4.F3" href="#S4.F3" title="In 4 Methods ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">Figure</text> <text class="ltx_ref_tag">3</text></ref>
+          <text fontsize="90%">, we show how 6B test performance varies over the course of 100 training epochs. We use test@N to denote the percentage of problems solved correctly at least once when allowing the model to make N separate guesses for each problem. We use a low temperature (</text>
+          <Math mode="inline" xml:id="S4.SS1.p2.m1" tex="T=0" text="T = 0" fragid="S4.SS1.p2.m1">
+            <m:math alttext="T=0" display="inline">
+              <m:semantics>
+                <m:mrow xml:id="S4.SS1.p2.m1.4" xref="S4.SS1.p2.m1.4.cmml">
+                  <m:mi mathsize="0.900em" xml:id="S4.SS1.p2.m1.1" xref="S4.SS1.p2.m1.1.cmml">T</m:mi>
+                  <m:mo mathsize="0.900em" xml:id="S4.SS1.p2.m1.2" xref="S4.SS1.p2.m1.2.cmml">=</m:mo>
+                  <m:mn mathsize="0.900em" xml:id="S4.SS1.p2.m1.3" xref="S4.SS1.p2.m1.3.cmml">0</m:mn>
+                </m:mrow>
+                <m:annotation-xml encoding="MathML-Content">
+                  <m:apply xml:id="S4.SS1.p2.m1.4.cmml" xref="S4.SS1.p2.m1.4">
+                    <m:eq xml:id="S4.SS1.p2.m1.2.cmml" xref="S4.SS1.p2.m1.2"/>
+                    <m:ci xml:id="S4.SS1.p2.m1.1.cmml" xref="S4.SS1.p2.m1.1">𝑇</m:ci>
+                    <m:cn type="integer" xml:id="S4.SS1.p2.m1.3.cmml" xref="S4.SS1.p2.m1.3">0</m:cn>
+                  </m:apply>
+                </m:annotation-xml>
+                <m:annotation encoding="application/x-tex">T=0</m:annotation>
+              </m:semantics>
+            </m:math>
+          </Math>
+          <text fontsize="90%">) to generate test@1 samples and we use a higher temperature (</text>
+          <Math mode="inline" xml:id="S4.SS1.p2.m2" tex="T=0.7" text="T = 0.7" fragid="S4.SS1.p2.m2">
+            <m:math alttext="T=0.7" display="inline">
+              <m:semantics>
+                <m:mrow xml:id="S4.SS1.p2.m2.4" xref="S4.SS1.p2.m2.4.cmml">
+                  <m:mi mathsize="0.900em" xml:id="S4.SS1.p2.m2.1" xref="S4.SS1.p2.m2.1.cmml">T</m:mi>
+                  <m:mo mathsize="0.900em" xml:id="S4.SS1.p2.m2.2" xref="S4.SS1.p2.m2.2.cmml">=</m:mo>
+                  <m:mn mathsize="0.900em" xml:id="S4.SS1.p2.m2.3" xref="S4.SS1.p2.m2.3.cmml">0.7</m:mn>
+                </m:mrow>
+                <m:annotation-xml encoding="MathML-Content">
+                  <m:apply xml:id="S4.SS1.p2.m2.4.cmml" xref="S4.SS1.p2.m2.4">
+                    <m:eq xml:id="S4.SS1.p2.m2.2.cmml" xref="S4.SS1.p2.m2.2"/>
+                    <m:ci xml:id="S4.SS1.p2.m2.1.cmml" xref="S4.SS1.p2.m2.1">𝑇</m:ci>
+                    <m:cn type="float" xml:id="S4.SS1.p2.m2.3.cmml" xref="S4.SS1.p2.m2.3">0.7</m:cn>
+                  </m:apply>
+                </m:annotation-xml>
+                <m:annotation encoding="application/x-tex">T=0.7</m:annotation>
+              </m:semantics>
+            </m:math>
+          </Math>
+          <text fontsize="90%">) to generate test@100 samples. Both temperature values were chosen empirically to produce the best results. Test@1 performance improves approximately monotonically, even though we quickly begin overfitting on test loss. Unfortunately, test@100 performance degrades much more sharply than test@1 as we increase the number of epochs. This is to be expected: as the model repeatedly encounters the same data, it becomes increasingly uncalibrated and overconfident in its predictions. At test time, this overconfidence leads to poor coverage of the solution space, an effect which only becomes noticeable when we are considering multiple samples at test time.</text>
+        </p>
+      </para>
+      <para xml:id="S4.SS1.p3" fragid="S4.SS1.p3">
+        <p>
+          <text fontsize="90%">Choosing a model with good coverage is critical to successfully train verifiers. Empirically, we see that test@100 performance peaks within the first few epochs. For this reason, we use models trained for 2 epochs to generate samples for training verifiers. We provide several example solutions from 6B and 175B models in </text>
+          <ref labelref="LABEL:appendix:example_solutions" show="creftypecap~refnum" fontsize="90%" idref="A4" href="#A4" title="Appendix D Example Model Solutions ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">Appendix</text> <text class="ltx_ref_tag">D</text></ref>
+          <text fontsize="90%">. We also note that it is important to allow the model to generate the full natural language solution before outputting a final answer. If we instead finetune a 6B model to directly output the final answer without any intermediate steps, performance drops drastically from 20.6% to 5.2%.</text>
+        </p>
+      </para>
+      <figure inlist="lof" xml:id="S4.F4" labels="LABEL:fig:verifier_diagram" align="center" fragid="S4.F4">
+        <tags>
+          <tag>
+            <text fontsize="90%">Figure 4</text>
+          </tag>
+          <tag role="autoref">Figure 4</tag>
+          <tag role="creftype">fig.</tag>
+          <tag role="creftypecap">Figure</tag>
+          <tag role="creftypeplural">figs.</tag>
+          <tag role="creftypepluralcap">Figures</tag>
+          <tag role="refnum">4</tag>
+          <tag role="typerefnum">Figure 4</tag>
+        </tags>
+        <graphics candidates="figures/verifier_diagram.png" graphic="figures/verifier_diagram.png" options="width=345.0pt,keepaspectratio=true" xml:id="S4.F4.g1" fragid="S4.F4.g1"/>
+        <toccaption class="ltx_centering">
+          <tag close=" ">
+            <text fontsize="90%">4</text>
+          </tag>
+          <text fontsize="90%">A diagram of the verification training pipeline.</text>
+        </toccaption>
+        <caption class="ltx_centering" fontsize="90%"><tag close=": ">Figure 4</tag>A diagram of the verification training pipeline.</caption>
+      </figure>
+    </subsection>
+    <subsection inlist="toc" xml:id="S4.SS2" labels="LABEL:section:verification" fragid="S4.SS2">
+      <tags>
+        <tag>4.2</tag>
+        <tag role="autoref">subsection 4.2</tag>
+        <tag role="creftype">section</tag>
+        <tag role="creftypecap">Section</tag>
+        <tag role="creftypeplural">sections</tag>
+        <tag role="creftypepluralcap">Sections</tag>
+        <tag role="refnum">4.2</tag>
+        <tag role="typerefnum">§4.2</tag>
+      </tags>
+      <title fontsize="90%"><tag close=" ">4.2</tag>Verification</title>
+      <para xml:id="S4.SS2.p1" fragid="S4.SS2.p1">
+        <p>
+          <text fontsize="90%">To improve upon the finetuning baseline, we train verifiers to judge the correctness of model-generated solutions and search against these verifiers at test time. Conditioned on the problem and a candidate solution, the verifier outputs the probability that the solution is correct. Training solutions are labeled as correct or incorrect based solely on whether they reach the correct final answer. In practice, some solutions will reach the correct final answer using flawed reasoning, leading to false positives.</text>
+        </p>
+      </para>
+      <para xml:id="S4.SS2.p2" fragid="S4.SS2.p2">
+        <p>
+          <text fontsize="90%">As shown in </text>
+          <ref labelref="LABEL:fig:verifier_diagram" show="creftypecap~refnum" fontsize="90%" idref="S4.F4" href="#S4.F4" title="In 4.1 Finetuning ‣ 4 Methods ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">Figure</text> <text class="ltx_ref_tag">4</text></ref>
+          <text fontsize="90%">, we train the verifier as follows:</text>
+        </p>
+      </para>
+      <para xml:id="S4.SS2.p3" fragid="S4.SS2.p3">
+        <enumerate xml:id="S4.I1" fragid="S4.I1">
+          <item xml:id="S4.I1.i1" fragid="S4.I1.i1">
+            <tags>
+              <tag>1.</tag>
+              <tag role="autoref">item 1</tag>
+              <tag role="creftype">item</tag>
+              <tag role="creftypecap">Item</tag>
+              <tag role="creftypeplural">items</tag>
+              <tag role="creftypepluralcap">Items</tag>
+              <tag role="refnum">1</tag>
+              <tag role="typerefnum">item 1</tag>
+            </tags>
+            <para xml:id="S4.I1.i1.p1" fragid="S4.I1.i1.p1">
+              <p>
+                <text fontsize="90%">Finetune a model (the “generator”) for 2 epochs on the training set.</text>
+              </p>
+            </para>
+          </item>
+          <item xml:id="S4.I1.i2" fragid="S4.I1.i2">
+            <tags>
+              <tag>2.</tag>
+              <tag role="autoref">item 2</tag>
+              <tag role="creftype">item</tag>
+              <tag role="creftypecap">Item</tag>
+              <tag role="creftypeplural">items</tag>
+              <tag role="creftypepluralcap">Items</tag>
+              <tag role="refnum">2</tag>
+              <tag role="typerefnum">item 2</tag>
+            </tags>
+            <para xml:id="S4.I1.i2.p1" fragid="S4.I1.i2.p1">
+              <p>
+                <text fontsize="90%">Sample 100 completions from the generator for each training problem and label each solution as correct or incorrect.</text>
+              </p>
+            </para>
+          </item>
+          <item xml:id="S4.I1.i3" fragid="S4.I1.i3">
+            <tags>
+              <tag>3.</tag>
+              <tag role="autoref">item 3</tag>
+              <tag role="creftype">item</tag>
+              <tag role="creftypecap">Item</tag>
+              <tag role="creftypeplural">items</tag>
+              <tag role="creftypepluralcap">Items</tag>
+              <tag role="refnum">3</tag>
+              <tag role="typerefnum">item 3</tag>
+            </tags>
+            <para xml:id="S4.I1.i3.p1" fragid="S4.I1.i3.p1">
+              <p>
+                <text fontsize="90%">Train a verifier for a single epoch on this dataset.</text>
+              </p>
+            </para>
+          </item>
+        </enumerate>
+      </para>
+      <para xml:id="S4.SS2.p4" fragid="S4.SS2.p4">
+        <p>
+          <text fontsize="90%">Training for 2 epochs is enough for the generator to learn basic skills in this domain. We choose not to train for longer, since the diversity of generated solutions begins to collapse after this point, as shown in </text>
+          <ref labelref="LABEL:fig:bc_training" show="creftypecap~refnum" fontsize="90%" idref="S4.F3" href="#S4.F3" title="In 4 Methods ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">Figure</text> <text class="ltx_ref_tag">3</text></ref>
+          <text fontsize="90%">. We train separate generator and verifier models to limit the generator’s training and prevent overfitting, but in principle, it should be possible to combine these models. Unless otherwise specified, we use the same model size for the generator and the verifier. In addition to predicting solution correctness, we also train the verifier with the same language modeling objective as the generator. This serves as a valuable auxiliary objective for the verifier. We discuss additional verifier training details in </text>
+          <ref labelref="LABEL:appendix:verifier_details" show="creftypecap~refnum" fontsize="90%" idref="A5" href="#A5" title="Appendix E Verifier Details ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">Appendix</text> <text class="ltx_ref_tag">E</text></ref>
+          <text fontsize="90%">.</text>
+        </p>
+      </para>
+      <figure inlist="lof" xml:id="S4.F5" labels="LABEL:fig:full_completion_vf" fragid="S4.F5">
+        <tags>
+          <tag>
+            <text fontsize="90%">Figure 5</text>
+          </tag>
+          <tag role="autoref">Figure 5</tag>
+          <tag role="creftype">fig.</tag>
+          <tag role="creftypecap">Figure</tag>
+          <tag role="creftypeplural">figs.</tag>
+          <tag role="creftypepluralcap">Figures</tag>
+          <tag role="refnum">5</tag>
+          <tag role="typerefnum">Figure 5</tag>
+        </tags>
+        <figure xml:id="S4.F5.fig1" align="center" class="ltx_figure_panel" fragid="S4.F5.fig1">
+          <graphics candidates="figures/full_completion_vf_6b.pdf" graphic="figures/full_completion_vf_6b.pdf" options="width=345.0pt,keepaspectratio=true" xml:id="S4.F5.g1" fragid="S4.F5.g1"/>
+        </figure>
+        <figure xml:id="S4.F5.fig2" align="center" class="ltx_figure_panel" fragid="S4.F5.fig2">
+          <graphics candidates="figures/full_completion_vf_175b.pdf" graphic="figures/full_completion_vf_175b.pdf" options="width=345.0pt,keepaspectratio=true" xml:id="S4.F5.g2" fragid="S4.F5.g2"/>
+        </figure>
+        <toccaption class="ltx_centering">
+          <tag close=" ">
+            <text fontsize="90%">5</text>
+          </tag>
+          <text fontsize="90%">A comparison between finetuning and verification using 6B and 175B model sizes. Verification considers 100 solutions per problem. Mean and standard deviation is shown across 3 runs, except for 175B verification which shows only a single run.</text>
+        </toccaption>
+        <caption class="ltx_centering" fontsize="90%"><tag close=": ">Figure 5</tag>A comparison between finetuning and verification using 6B and 175B model sizes. Verification considers 100 solutions per problem. Mean and standard deviation is shown across 3 runs, except for 175B verification which shows only a single run.</caption>
+      </figure>
+      <para xml:id="S4.SS2.p5" fragid="S4.SS2.p5">
+        <p>
+          <text fontsize="90%">At test time, we sample 100 completions to each test problem, rank them with the verifier, and then return the one with the highest verifier score. A comparison between verification and finetuning is shown in </text>
+          <ref labelref="LABEL:fig:full_completion_vf" show="creftypecap~refnum" fontsize="90%" idref="S4.F5" href="#S4.F5" title="In 4.2 Verification ‣ 4 Methods ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">Figure</text> <text class="ltx_ref_tag">5</text></ref>
+          <text fontsize="90%"> for both the 6B and 175B model sizes. We find that it is not beneficial to use verification at low dataset sizes. We believe this is due to the pressure to overfit to the correct answer: with small datasets, overfitting to the correct answer happens faster than learning more generalizable properties of correct reasoning. However, once we use a sufficiently large dataset, we see a strong boost from verifiers. It’s interesting to note that the 175B verifiers “take off” earlier than the 6B verifiers, requiring fewer training problems to surpass the finetuning baseline. See </text>
+          <ref labelref="LABEL:appendix:example_solutions" show="creftypecap~refnum" fontsize="90%" idref="A4" href="#A4" title="Appendix D Example Model Solutions ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">Appendix</text> <text class="ltx_ref_tag">D</text></ref>
+          <text fontsize="90%"> for example solutions found by verifiers and </text>
+          <ref labelref="LABEL:appendix:verifier_visualization" show="creftypecap~refnum" fontsize="90%" idref="A6" href="#A6" title="Appendix F Verifier Visualization ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">Appendix</text> <text class="ltx_ref_tag">F</text></ref>
+          <text fontsize="90%"> for a visualization of verifier confidence.</text>
+        </p>
+      </para>
+      <figure inlist="lof" xml:id="S4.F6" labels="LABEL:fig:fc_verifier_ablations" fragid="S4.F6">
+        <tags>
+          <tag>
+            <text fontsize="90%">Figure 6</text>
+          </tag>
+          <tag role="autoref">Figure 6</tag>
+          <tag role="creftype">fig.</tag>
+          <tag role="creftypecap">Figure</tag>
+          <tag role="creftypeplural">figs.</tag>
+          <tag role="creftypepluralcap">Figures</tag>
+          <tag role="refnum">6</tag>
+          <tag role="typerefnum">Figure 6</tag>
+        </tags>
+        <figure inlist="lof" xml:id="S4.F6.sf1" labels="LABEL:fig:fc_verifier_token_ablation" align="center" class="ltx_figure_panel" fragid="S4.F6.sf1">
+          <tags>
+            <tag>
+              <text fontsize="90%">(a)</text>
+            </tag>
+            <tag role="autoref">6(a)</tag>
+            <tag role="creftype">fig.</tag>
+            <tag role="creftypecap">Figure</tag>
+            <tag role="creftypeplural">figs.</tag>
+            <tag role="creftypepluralcap">Figures</tag>
+            <tag role="refnum">6(a)</tag>
+          </tags>
+          <graphics candidates="figures/fc_verifier_token_ablation.pdf" graphic="figures/fc_verifier_token_ablation.pdf" options="width=345.0pt,keepaspectratio=true" xml:id="S4.F6.sf1.g1" fragid="S4.F6.sf1.g1"/>
+          <toccaption>
+            <tag close=" ">
+              <text fontsize="90%">(a)</text>
+            </tag>
+            <text fontsize="90%">Comparison between a verifier trained to predict correctness after every token (token-level) and one trained to predict correctness after only the final token (solution-level)</text>
+          </toccaption>
+          <caption fontsize="90%"><tag close=" ">(a)</tag>Comparison between a verifier trained to predict correctness after every token (token-level) and one trained to predict correctness after only the final token (solution-level)</caption>
+        </figure>
+        <figure inlist="lof" xml:id="S4.F6.sf2" labels="LABEL:fig:fc_verifier_loss_ablation" align="center" class="ltx_figure_panel" fragid="S4.F6.sf2">
+          <tags>
+            <tag>
+              <text fontsize="90%">(b)</text>
+            </tag>
+            <tag role="autoref">6(b)</tag>
+            <tag role="creftype">fig.</tag>
+            <tag role="creftypecap">Figure</tag>
+            <tag role="creftypeplural">figs.</tag>
+            <tag role="creftypepluralcap">Figures</tag>
+            <tag role="refnum">6(b)</tag>
+          </tags>
+          <graphics candidates="figures/fc_verifier_loss_ablation.pdf" graphic="figures/fc_verifier_loss_ablation.pdf" options="width=345.0pt,keepaspectratio=true" xml:id="S4.F6.sf2.g1" fragid="S4.F6.sf2.g1"/>
+          <toccaption>
+            <tag close=" ">
+              <text fontsize="90%">(b)</text>
+            </tag>
+            <text fontsize="90%">Comparison between a verifier trained jointly to predict correctness and perform language modeling (joint) and one trained only to predict correctness (verification-only)</text>
+          </toccaption>
+          <caption fontsize="90%"><tag close=" ">(b)</tag>Comparison between a verifier trained jointly to predict correctness and perform language modeling (joint) and one trained only to predict correctness (verification-only)</caption>
+        </figure>
+        <figure inlist="lof" xml:id="S4.F6.sf3" labels="LABEL:fig:gen_vf_ablate_size" align="center" class="ltx_figure_panel" fragid="S4.F6.sf3">
+          <tags>
+            <tag>
+              <text fontsize="90%">(c)</text>
+            </tag>
+            <tag role="autoref">6(c)</tag>
+            <tag role="creftype">fig.</tag>
+            <tag role="creftypecap">Figure</tag>
+            <tag role="creftypeplural">figs.</tag>
+            <tag role="creftypepluralcap">Figures</tag>
+            <tag role="refnum">6(c)</tag>
+          </tags>
+          <graphics candidates="figures/gen_vf_ablate_size.pdf" graphic="figures/gen_vf_ablate_size.pdf" options="width=345.0pt,keepaspectratio=true" xml:id="S4.F6.sf3.g1" fragid="S4.F6.sf3.g1"/>
+          <toccaption>
+            <tag close=" ">
+              <text fontsize="90%">(c)</text>
+            </tag>
+            <text fontsize="90%">Performance when varying the size of the generator and the verifier in isolation. Increasing the size of the generator has a larger impact than increasing the size of the verifier.</text>
+          </toccaption>
+          <caption fontsize="90%"><tag close=" ">(c)</tag>Performance when varying the size of the generator and the verifier in isolation. Increasing the size of the generator has a larger impact than increasing the size of the verifier.</caption>
+        </figure>
+        <toccaption class="ltx_centering">
+          <tag close=" ">
+            <text fontsize="90%">6</text>
+          </tag>
+          <text fontsize="90%">Verification ablations</text>
+        </toccaption>
+        <caption class="ltx_centering" fontsize="90%"><tag close=": ">Figure 6</tag>Verification ablations</caption>
+      </figure>
+    </subsection>
+    <subsection inlist="toc" xml:id="S4.SS3" labels="LABEL:section:verifier_ablations" fragid="S4.SS3">
+      <tags>
+        <tag>4.3</tag>
+        <tag role="autoref">subsection 4.3</tag>
+        <tag role="creftype">section</tag>
+        <tag role="creftypecap">Section</tag>
+        <tag role="creftypeplural">sections</tag>
+        <tag role="creftypepluralcap">Sections</tag>
+        <tag role="refnum">4.3</tag>
+        <tag role="typerefnum">§4.3</tag>
+      </tags>
+      <title fontsize="90%"><tag close=" ">4.3</tag>Verification Ablations</title>
+      <para xml:id="S4.SS3.p1" fragid="S4.SS3.p1">
+        <p>
+          <text fontsize="90%">We can either train verifiers to make a single scalar prediction conditioned on the entire generated solution, or to make a scalar prediction after each token in the solution. By default, we choose the latter, training verifiers to make predictions after each token. This can be viewed as a token-level value function. We compare these two methods in </text>
+          <ref labelref="LABEL:fig:fc_verifier_token_ablation" show="creftypecap~refnum" fontsize="90%" idref="S4.F6.sf1" href="#S4.F6.sf1" title="In Figure 6 ‣ 4.2 Verification ‣ 4 Methods ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">Figure</text> <text class="ltx_ref_tag">6(a)</text></ref>
+          <text fontsize="90%">, respectively labeled “solution-level” and “token-level”.</text>
+        </p>
+      </para>
+      <para xml:id="S4.SS3.p2" fragid="S4.SS3.p2">
+        <p>
+          <text fontsize="90%">Predicting the value function at every token is a more challenging and noisier task than judging only the full completion. However, despite the initially slower training, the token-level verifier ultimately outperforms the solution-level verifier. Moreover, the token-level verifier is still improving late in training, whereas the solution-level verifier quickly shows signs of overfitting. We hypothesize that the full value function provides a useful auxiliary signal that encourages the model to judge the reasoning throughout solutions, rather than merely memorizing the correct final answer.</text>
+        </p>
+      </para>
+      <para xml:id="S4.SS3.p3" fragid="S4.SS3.p3">
+        <p>
+          <text fontsize="90%">In </text>
+          <ref labelref="LABEL:fig:fc_verifier_loss_ablation" show="creftypecap~refnum" fontsize="90%" idref="S4.F6.sf2" href="#S4.F6.sf2" title="In Figure 6 ‣ 4.2 Verification ‣ 4 Methods ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">Figure</text> <text class="ltx_ref_tag">6(b)</text></ref>
+          <text fontsize="90%">, we ablate the objective used when training verifiers. As discussed in </text>
+          <ref labelref="LABEL:section:verification" show="creftypecap~refnum" fontsize="90%" idref="S4.SS2" href="#S4.SS2" title="4.2 Verification ‣ 4 Methods ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">Section</text> <text class="ltx_ref_tag">4.2</text></ref>
+          <text fontsize="90%">, we can optionally include a language modeling objective alongside the verification objective. We compare using both objectives to using only the verification objective. Although both are reasonable choices, including the language modeling objective is a strict improvement. This makes intuitive sense: better understanding this language distribution should only aid the verifier in discriminating between samples.</text>
+        </p>
+      </para>
+      <para xml:id="S4.SS3.p4" fragid="S4.SS3.p4">
+        <p>
+          <text fontsize="90%">In </text>
+          <ref labelref="LABEL:fig:gen_vf_ablate_size" show="creftypecap~refnum" fontsize="90%" idref="S4.F6.sf3" href="#S4.F6.sf3" title="In Figure 6 ‣ 4.2 Verification ‣ 4 Methods ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">Figure</text> <text class="ltx_ref_tag">6(c)</text></ref>
+          <text fontsize="90%">, we separately ablate the model size of the generator and the verifier. We find that using a large generator with a small verifier performs significantly better than using a small generator with a large verifier. Verification is still remarkably effective, even when the verifier is much smaller than the generator. This suggests that the verifier may often be relying on relatively coarse heuristics to discriminate between solutions from a given generator, rather than attempting a more thorough form of verification.</text>
+        </p>
+      </para>
+      <figure inlist="lof" xml:id="S4.F7" labels="LABEL:fig:test_time_compute_trends" fragid="S4.F7">
+        <tags>
+          <tag>
+            <text fontsize="90%">Figure 7</text>
+          </tag>
+          <tag role="autoref">Figure 7</tag>
+          <tag role="creftype">fig.</tag>
+          <tag role="creftypecap">Figure</tag>
+          <tag role="creftypeplural">figs.</tag>
+          <tag role="creftypepluralcap">Figures</tag>
+          <tag role="refnum">7</tag>
+          <tag role="typerefnum">Figure 7</tag>
+        </tags>
+        <figure inlist="lof" xml:id="S4.F7.sf1" labels="LABEL:fig:completions" align="center" class="ltx_figure_panel" fragid="S4.F7.sf1">
+          <tags>
+            <tag>
+              <text fontsize="90%">(a)</text>
+            </tag>
+            <tag role="autoref">7(a)</tag>
+            <tag role="creftype">fig.</tag>
+            <tag role="creftypecap">Figure</tag>
+            <tag role="creftypeplural">figs.</tag>
+            <tag role="creftypepluralcap">Figures</tag>
+            <tag role="refnum">7(a)</tag>
+          </tags>
+          <graphics candidates="figures/completions.pdf" graphic="figures/completions.pdf" options="width=345.0pt,keepaspectratio=true" xml:id="S4.F7.sf1.g1" fragid="S4.F7.sf1.g1"/>
+          <toccaption>
+            <tag close=" ">
+              <text fontsize="90%">(a)</text>
+            </tag>
+            <text fontsize="90%">6B verification test performance when given varying numbers of completions per problem to rank.</text>
+          </toccaption>
+          <caption fontsize="90%"><tag close=" ">(a)</tag>6B verification test performance when given varying numbers of completions per problem to rank.</caption>
+        </figure>
+        <figure inlist="lof" xml:id="S4.F7.sf2" labels="LABEL:fig:vote" align="center" class="ltx_figure_panel" fragid="S4.F7.sf2">
+          <tags>
+            <tag>
+              <text fontsize="90%">(b)</text>
+            </tag>
+            <tag role="autoref">7(b)</tag>
+            <tag role="creftype">fig.</tag>
+            <tag role="creftypecap">Figure</tag>
+            <tag role="creftypeplural">figs.</tag>
+            <tag role="creftypepluralcap">Figures</tag>
+            <tag role="refnum">7(b)</tag>
+          </tags>
+          <graphics candidates="figures/vote.pdf" graphic="figures/vote.pdf" options="width=345.0pt,keepaspectratio=true" xml:id="S4.F7.sf2.g1" fragid="S4.F7.sf2.g1"/>
+          <toccaption>
+            <tag close=" ">
+              <text fontsize="90%">(b)</text>
+            </tag>
+            <text fontsize="90%">6B verification test performance when varying the number of top ranked samples allowed to vote on the answer.</text>
+          </toccaption>
+          <caption fontsize="90%"><tag close=" ">(b)</tag>6B verification test performance when varying the number of top ranked samples allowed to vote on the answer.</caption>
+        </figure>
+        <toccaption class="ltx_centering">
+          <tag close=" ">
+            <text fontsize="90%">7</text>
+          </tag>
+          <text fontsize="90%">Performance as the amount of test time compute varies.</text>
+        </toccaption>
+        <caption class="ltx_centering" fontsize="90%"><tag close=": ">Figure 7</tag>Performance as the amount of test time compute varies.</caption>
+      </figure>
+    </subsection>
+  </section>
+  <section inlist="toc" xml:id="S5" fragid="S5">
+    <tags>
+      <tag>5</tag>
+      <tag role="autoref">section 5</tag>
+      <tag role="creftype">section</tag>
+      <tag role="creftypecap">Section</tag>
+      <tag role="creftypeplural">sections</tag>
+      <tag role="creftypepluralcap">Sections</tag>
+      <tag role="refnum">5</tag>
+      <tag role="typerefnum">§5</tag>
+    </tags>
+    <title fontsize="90%"><tag close=" ">5</tag>Additional Experiments</title>
+    <subsection inlist="toc" xml:id="S5.SS1" fragid="S5.SS1">
+      <tags>
+        <tag>5.1</tag>
+        <tag role="autoref">subsection 5.1</tag>
+        <tag role="creftype">section</tag>
+        <tag role="creftypecap">Section</tag>
+        <tag role="creftypeplural">sections</tag>
+        <tag role="creftypepluralcap">Sections</tag>
+        <tag role="refnum">5.1</tag>
+        <tag role="typerefnum">§5.1</tag>
+      </tags>
+      <title fontsize="90%"><tag close=" ">5.1</tag>Test Time Compute</title>
+      <para xml:id="S5.SS1.p1" fragid="S5.SS1.p1">
+        <p>
+          <text fontsize="90%">At test time, we can choose to generate arbitrarily many solutions to be judged by the verifier before selecting the highest ranked completion. </text>
+          <ref labelref="LABEL:fig:completions" show="creftypecap~refnum" fontsize="90%" idref="S4.F7.sf1" href="#S4.F7.sf1" title="In Figure 7 ‣ 4.3 Verification Ablations ‣ 4 Methods ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">Figure</text> <text class="ltx_ref_tag">7(a)</text></ref>
+          <text fontsize="90%"> shows how 6B verifier performance varies with the number of completions per test problem. At this scale, performance improves as we increase the number of completions up to 400. Beyond this point, performance start to decrease. This suggests that the benefits of search are eventually outweighed by the risk of finding adversarial solutions that fool the verifier. In general, we evaluate verifier test performance using 100 completions, since this captures most of the benefits of verification with a relatively modest compute cost.</text>
+        </p>
+      </para>
+      <para xml:id="S5.SS1.p2" fragid="S5.SS1.p2">
+        <p>
+          <text fontsize="90%">To further increase performance, we can take a majority vote among the top verifier-ranked solutions instead of selecting only the single top solution. This voting process considers only the final answer reached by the individual solutions: the final answer selected is the one with the most votes. </text>
+          <ref labelref="LABEL:fig:vote" show="creftypecap~refnum" fontsize="90%" idref="S4.F7.sf2" href="#S4.F7.sf2" title="In Figure 7 ‣ 4.3 Verification Ablations ‣ 4 Methods ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">Figure</text> <text class="ltx_ref_tag">7(b)</text></ref>
+          <text fontsize="90%"> shows how performance varies as we allow a greater number of top samples to cast a vote. Unsurprisingly, when starting with a greater number of samples, we can afford to allow a greater number of samples to cast a vote. When we have only 100 samples, it is optimal to allow only the top 3-5 samples to cast a vote. When we have 3200 samples, it is approximately optimal to allow the top 30 to cast a vote.</text>
+        </p>
+      </para>
+    </subsection>
+    <subsection inlist="toc" xml:id="S5.SS2" fragid="S5.SS2">
+      <tags>
+        <tag>5.2</tag>
+        <tag role="autoref">subsection 5.2</tag>
+        <tag role="creftype">section</tag>
+        <tag role="creftypecap">Section</tag>
+        <tag role="creftypeplural">sections</tag>
+        <tag role="creftypepluralcap">Sections</tag>
+        <tag role="refnum">5.2</tag>
+        <tag role="typerefnum">§5.2</tag>
+      </tags>
+      <title fontsize="90%"><tag close=" ">5.2</tag>Regularization</title>
+      <figure inlist="lof" xml:id="S5.F8" labels="LABEL:fig:dropout_ablations" fragid="S5.F8">
+        <tags>
+          <tag>
+            <text fontsize="90%">Figure 8</text>
+          </tag>
+          <tag role="autoref">Figure 8</tag>
+          <tag role="creftype">fig.</tag>
+          <tag role="creftypecap">Figure</tag>
+          <tag role="creftypeplural">figs.</tag>
+          <tag role="creftypepluralcap">Figures</tag>
+          <tag role="refnum">8</tag>
+          <tag role="typerefnum">Figure 8</tag>
+        </tags>
+        <figure inlist="lof" xml:id="S5.F8.sf1" labels="LABEL:fig:bc_dropout" align="center" class="ltx_figure_panel" fragid="S5.F8.sf1">
+          <tags>
+            <tag>
+              <text fontsize="90%">(a)</text>
+            </tag>
+            <tag role="autoref">8(a)</tag>
+            <tag role="creftype">fig.</tag>
+            <tag role="creftypecap">Figure</tag>
+            <tag role="creftypeplural">figs.</tag>
+            <tag role="creftypepluralcap">Figures</tag>
+            <tag role="refnum">8(a)</tag>
+          </tags>
+          <graphics candidates="figures/bc_dropout.pdf" graphic="figures/bc_dropout.pdf" options="width=345.0pt,keepaspectratio=true" xml:id="S5.F8.sf1.g1" fragid="S5.F8.sf1.g1"/>
+          <toccaption>
+            <tag close=" ">
+              <text fontsize="90%">(a)</text>
+            </tag>
+            <text fontsize="90%">Finetuning</text>
+          </toccaption>
+          <caption fontsize="90%"><tag close=" ">(a)</tag>Finetuning</caption>
+        </figure>
+        <figure inlist="lof" xml:id="S5.F8.sf2" labels="LABEL:fig:single_token_dropout" align="center" class="ltx_figure_panel" fragid="S5.F8.sf2">
+          <tags>
+            <tag>
+              <text fontsize="90%">(b)</text>
+            </tag>
+            <tag role="autoref">8(b)</tag>
+            <tag role="creftype">fig.</tag>
+            <tag role="creftypecap">Figure</tag>
+            <tag role="creftypeplural">figs.</tag>
+            <tag role="creftypepluralcap">Figures</tag>
+            <tag role="refnum">8(b)</tag>
+          </tags>
+          <graphics candidates="figures/single_token_dropout.pdf" graphic="figures/single_token_dropout.pdf" options="width=345.0pt,keepaspectratio=true" xml:id="S5.F8.sf2.g1" fragid="S5.F8.sf2.g1"/>
+          <toccaption>
+            <tag close=" ">
+              <text fontsize="90%">(b)</text>
+            </tag>
+            <text fontsize="90%">Solution-level verifiers</text>
+          </toccaption>
+          <caption fontsize="90%"><tag close=" ">(b)</tag>Solution-level verifiers</caption>
+        </figure>
+        <figure inlist="lof" xml:id="S5.F8.sf3" labels="LABEL:fig:all_token_dropout" align="center" class="ltx_figure_panel" fragid="S5.F8.sf3">
+          <tags>
+            <tag>
+              <text fontsize="90%">(c)</text>
+            </tag>
+            <tag role="autoref">8(c)</tag>
+            <tag role="creftype">fig.</tag>
+            <tag role="creftypecap">Figure</tag>
+            <tag role="creftypeplural">figs.</tag>
+            <tag role="creftypepluralcap">Figures</tag>
+            <tag role="refnum">8(c)</tag>
+          </tags>
+          <graphics candidates="figures/all_token_dropout.pdf" graphic="figures/all_token_dropout.pdf" options="width=345.0pt,keepaspectratio=true" xml:id="S5.F8.sf3.g1" fragid="S5.F8.sf3.g1"/>
+          <toccaption>
+            <tag close=" ">
+              <text fontsize="90%">(c)</text>
+            </tag>
+            <text fontsize="90%">Token-level verifiers</text>
+          </toccaption>
+          <caption fontsize="90%"><tag close=" ">(c)</tag>Token-level verifiers</caption>
+        </figure>
+        <toccaption class="ltx_centering">
+          <tag close=" ">
+            <text fontsize="90%">8</text>
+          </tag>
+          <text fontsize="90%">6B finetuning and verification dropout ablations.</text>
+        </toccaption>
+        <caption class="ltx_centering" fontsize="90%"><tag close=": ">Figure 8</tag>6B finetuning and verification dropout ablations.</caption>
+      </figure>
+      <para xml:id="S5.SS2.p1" fragid="S5.SS2.p1">
+        <p>
+          <text fontsize="90%">We find that both finetuning and verification strongly benefit from the use of dropout as a regularizer. Specifically, we apply residual dropout </text>
+          <cite class="ltx_citemacro_citep"><text fontsize="90%">(</text>Vaswani<text class="ltx_bib_etal"> et al.</text><text fontsize="90%">, </text><ref href="#bib.bib38" idref="bib.bib38" title="Attention is all you need">2017</ref><text fontsize="90%">)</text></cite>
+          <text fontsize="90%"> along the residual paths of each layer in the network. We use 20% dropout for all dropout experiments, chosen based on the results of a hyperparameters sweep. We note that GPT-3 models are not pretrained with dropout. For experiments involving dropout, we therefore perform additional pretraining with dropout before subsequently finetuning the models. This mitigates the distribution shift the model experiences during finetuning.</text>
+        </p>
+      </para>
+      <para xml:id="S5.SS2.p2" fragid="S5.SS2.p2">
+        <p>
+          <text fontsize="90%">We first investigate the effect of dropout on finetuning across various training set sizes. </text>
+          <ref labelref="LABEL:fig:bc_dropout" show="creftypecap~refnum" fontsize="90%" idref="S5.F8.sf1" href="#S5.F8.sf1" title="In Figure 8 ‣ 5.2 Regularization ‣ 5 Additional Experiments ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">Figure</text> <text class="ltx_ref_tag">8(a)</text></ref>
+          <text fontsize="90%"> shows that dropout leads to a significant improvement over baseline. We next investigate the effect of dropout on verifiers, considering both the solution-level and token-level variants. In </text>
+          <ref labelref="LABEL:fig:single_token_dropout" show="creftypecap~refnum" fontsize="90%" idref="S5.F8.sf2" href="#S5.F8.sf2" title="In Figure 8 ‣ 5.2 Regularization ‣ 5 Additional Experiments ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">Figure</text> <text class="ltx_ref_tag">8(b)</text></ref>
+          <text fontsize="90%">, we see that dropout significantly improves solution-level verifiers, mitigating the overfitting that occurs in the unregularized baseline. Notably, using dropout with solution-level verifiers reaches a similar level of performance as token-level verifiers. In </text>
+          <ref labelref="LABEL:fig:all_token_dropout" show="creftypecap~refnum" fontsize="90%" idref="S5.F8.sf3" href="#S5.F8.sf3" title="In Figure 8 ‣ 5.2 Regularization ‣ 5 Additional Experiments ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">Figure</text> <text class="ltx_ref_tag">8(c)</text></ref>
+          <text fontsize="90%">, we apply dropout to token-level verifiers. Since token-level verifiers are already less susceptible to overfitting, it is no surprise that the impact of dropout is less significant. Nevertheless, we do still see a slight gain from training token-level verifiers with dropout. Note that we increase the batch size for token-level verifiers by a factor of 4, to better handle the more difficult objective and the noise from dropout.</text>
+        </p>
+      </para>
+    </subsection>
+  </section>
+  <section inlist="toc" xml:id="S6" fragid="S6">
+    <tags>
+      <tag>6</tag>
+      <tag role="autoref">section 6</tag>
+      <tag role="creftype">section</tag>
+      <tag role="creftypecap">Section</tag>
+      <tag role="creftypeplural">sections</tag>
+      <tag role="creftypepluralcap">Sections</tag>
+      <tag role="refnum">6</tag>
+      <tag role="typerefnum">§6</tag>
+    </tags>
+    <title fontsize="90%"><tag close=" ">6</tag>Conclusion</title>
+    <para xml:id="S6.p1" fragid="S6.p1">
+      <p>
+        <text fontsize="90%">We have seen that verification provides a significant performance boost relative to a finetuning baseline. On the full dataset, 6B verification slightly outperforms a finetuned 175B model, thereby offering a boost approximately equivalent to a 30x model size increase. We have also seen that token-level verifiers are less prone to overfitting than solution-level verifiers, and that all methods benefit from regularization with residual dropout. We expect verification to scale well to problem distributions that require more complex mathematical reasoning, and we hope GSM8K supports the development of new methods that scale even better.</text>
+      </p>
+    </para>
+  </section>
+  <section xml:id="Sx1" fragid="Sx1">
+    <title fontsize="90%">Acknowledgements</title>
+    <para xml:id="Sx1.p1" fragid="Sx1.p1">
+      <p>
+        <text fontsize="90%">We thank Dan Hendrycks, Leo Gao, Alec Radford, and Giambattista Parascandolo for their valuable feedback on this paper; Harri Edwards, Yura Burda, Michael Wu, and Nick Ryder for many insightful conversations; Michael Petrov, Alethea Power, and Jacob Jackson for their technical assistance; the OpenAI Supercomputing team for the infrastructure that made these experiments possible; and the team at Surge AI for performing the GSM8K data collection.</text>
+      </p>
+    </para>
+  </section>
+  <bibliography citestyle="authoryear" files="grade_school_math" xml:id="bib" fragid="bib">
+    <title fontsize="90%">References</title>
+    <biblist xml:id="bib.L1" fragid="bib.L1">
+      <bibitem class="ltx_bib_article" key="amini2019mathqa" type="article" xml:id="bib.bib16" fragid="bib.bib16">
+        <tags>
+          <tag class="ltx_bib_number" role="number">1</tag>
+          <tag class="ltx_bib_author" role="authors">Amini<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Amini, Gabriel, Lin, Koncel-Kedziorski, Choi,  and Hajishirzi</tag>
+          <tag class="ltx_bib_year" role="year">2019</tag>
+          <tag class="ltx_bib_title" role="title">MathQA: towards interpretable math word problem solving with operation-based formalisms</tag>
+          <tag class="ltx_bib_author-year" role="refnum">A. Amini, S. Gabriel, P. Lin, R. Koncel-Kedziorski, Y. Choi, and H. Hajishirzi (2019)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>MathQA: towards interpretable math word problem solving with operation-based formalisms</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>arXiv preprint arXiv:1905.13319</bib-title></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S3.SS1.p1" show="typerefnum" href="#S3.SS1.p1" title="3.1 Related Datasets ‣ 3 Related Work ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§3.1</text></ref>,
+<ref idref="S3.SS2.p1" show="typerefnum" href="#S3.SS2.p1" title="3.2 Related Methods ‣ 3 Related Work ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§3.2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="brown2020language" type="article" xml:id="bib.bib4" fragid="bib.bib4">
+        <tags>
+          <tag class="ltx_bib_number" role="number">2</tag>
+          <tag class="ltx_bib_author" role="authors">Brown<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Brown, Mann, Ryder, Subbiah, Kaplan, Dhariwal, Neelakantan, Shyam, Sastry, Askell,  and others</tag>
+          <tag class="ltx_bib_year" role="year">2020</tag>
+          <tag class="ltx_bib_title" role="title">Language models are few-shot learners</tag>
+          <tag class="ltx_bib_author-year" role="refnum">T. B. Brown, B. Mann, N. Ryder, M. Subbiah, J. Kaplan, P. Dhariwal, A. Neelakantan, P. Shyam, G. Sastry, A. Askell, <text class="ltx_bib_etal">et al.</text> (2020)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Language models are few-shot learners</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>arXiv preprint arXiv:2005.14165</bib-title></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p1" show="typerefnum" href="#S1.p1" title="1 Introduction ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S4.p1" show="typerefnum" href="#S4.p1" title="4 Methods ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§4</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="Chen2020MappingNP" type="inproceedings" xml:id="bib.bib30" fragid="bib.bib30">
+        <tags>
+          <tag class="ltx_bib_number" role="number">3</tag>
+          <tag class="ltx_bib_author" role="authors">Chen<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Chen, Huang, Palangi, Smolensky, Forbus,  and Gao</tag>
+          <tag class="ltx_bib_year" role="year">2020</tag>
+          <tag class="ltx_bib_title" role="title">Mapping natural-language problems to formal-language solutions using structured neural representations</tag>
+          <tag class="ltx_bib_author-year" role="refnum">K. Chen, Q. Huang, H. Palangi, P. Smolensky, K. D. Forbus, and J. Gao (2020)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Mapping natural-language problems to formal-language solutions using structured neural representations</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>ICML</bib-title></text>,</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S3.SS2.p1" show="typerefnum" href="#S3.SS2.p1" title="3.2 Related Methods ‣ 3 Related Work ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§3.2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="chen2019neural" type="inproceedings" xml:id="bib.bib32" fragid="bib.bib32">
+        <tags>
+          <tag class="ltx_bib_number" role="number">4</tag>
+          <tag class="ltx_bib_author" role="authors">Chen<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Chen, Liang, Yu, Zhou, Song,  and Le</tag>
+          <tag class="ltx_bib_year" role="year">2019</tag>
+          <tag class="ltx_bib_title" role="title">Neural symbolic reader: scalable integration of distributed and symbolic representations for reading comprehension</tag>
+          <tag class="ltx_bib_author-year" role="refnum">X. Chen, C. Liang, A. W. Yu, D. Zhou, D. Song, and Q. V. Le (2019)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Neural symbolic reader: scalable integration of distributed and symbolic representations for reading comprehension</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>International Conference on Learning Representations</bib-title></text>,</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S3.SS2.p1" show="typerefnum" href="#S3.SS2.p1" title="3.2 Related Methods ‣ 3 Related Work ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§3.2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="chiang2018semantically" type="article" xml:id="bib.bib26" fragid="bib.bib26">
+        <tags>
+          <tag class="ltx_bib_number" role="number">5</tag>
+          <tag class="ltx_bib_author" role="authors">Chiang and Chen</tag>
+          <tag class="ltx_bib_year" role="year">2018</tag>
+          <tag class="ltx_bib_title" role="title">Semantically-aligned equation generation for solving and reasoning math word problems</tag>
+          <tag class="ltx_bib_author-year" role="refnum">T. Chiang and Y. Chen (2018)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Semantically-aligned equation generation for solving and reasoning math word problems</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>arXiv preprint arXiv:1811.00720</bib-title></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S3.SS2.p1" show="typerefnum" href="#S3.SS2.p1" title="3.2 Related Methods ‣ 3 Related Work ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§3.2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="hendrycks2021measuring" type="article" xml:id="bib.bib2" fragid="bib.bib2">
+        <tags>
+          <tag class="ltx_bib_number" role="number">6</tag>
+          <tag class="ltx_bib_author" role="authors">Hendrycks<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Hendrycks, Burns, Kadavath, Arora, Basart, Tang, Song,  and Steinhardt</tag>
+          <tag class="ltx_bib_year" role="year">2021</tag>
+          <tag class="ltx_bib_title" role="title">Measuring mathematical problem solving with the math dataset</tag>
+          <tag class="ltx_bib_author-year" role="refnum">D. Hendrycks, C. Burns, S. Kadavath, A. Arora, S. Basart, E. Tang, D. Song, and J. Steinhardt (2021)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Measuring mathematical problem solving with the math dataset</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>arXiv preprint arXiv:2103.03874</bib-title></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p1" show="typerefnum" href="#S1.p1" title="1 Introduction ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S1.p2" show="typerefnum" href="#S1.p2" title="1 Introduction ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S3.SS1.p2" show="typerefnum" href="#S3.SS1.p2" title="3.1 Related Datasets ‣ 3 Related Work ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§3.1</text></ref>,
+<ref idref="S3.SS2.p2" show="typerefnum" href="#S3.SS2.p2" title="3.2 Related Methods ‣ 3 Related Work ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§3.2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="huang2018neural" type="inproceedings" xml:id="bib.bib25" fragid="bib.bib25">
+        <tags>
+          <tag class="ltx_bib_number" role="number">7</tag>
+          <tag class="ltx_bib_author" role="authors">Huang<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Huang, Liu, Lin,  and Yin</tag>
+          <tag class="ltx_bib_year" role="year">2018</tag>
+          <tag class="ltx_bib_title" role="title">Neural math word problem solver with reinforcement learning</tag>
+          <tag class="ltx_bib_author-year" role="refnum">D. Huang, J. Liu, C. Lin, and J. Yin (2018)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Neural math word problem solver with reinforcement learning</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Proceedings of the 27th International Conference on Computational Linguistics</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_pages"> pp. <bib-part role="pages">213–223</bib-part></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S3.SS2.p1" show="typerefnum" href="#S3.SS2.p1" title="3.2 Related Methods ‣ 3 Related Work ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§3.2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="huang2016well" type="inproceedings" xml:id="bib.bib12" fragid="bib.bib12">
+        <tags>
+          <tag class="ltx_bib_number" role="number">8</tag>
+          <tag class="ltx_bib_author" role="authors">Huang<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Huang, Shi, Lin, Yin,  and Ma</tag>
+          <tag class="ltx_bib_year" role="year">2016</tag>
+          <tag class="ltx_bib_title" role="title">How well do computers solve math word problems? large-scale dataset construction and evaluation</tag>
+          <tag class="ltx_bib_author-year" role="refnum">D. Huang, S. Shi, C. Lin, J. Yin, and W. Ma (2016)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>How well do computers solve math word problems? large-scale dataset construction and evaluation</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Proceedings of the 54th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_pages"> pp. <bib-part role="pages">887–896</bib-part></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S3.SS1.p1" show="typerefnum" href="#S3.SS1.p1" title="3.1 Related Datasets ‣ 3 Related Work ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§3.1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="kaplan2020scaling" type="article" xml:id="bib.bib6" fragid="bib.bib6">
+        <tags>
+          <tag class="ltx_bib_number" role="number">9</tag>
+          <tag class="ltx_bib_author" role="authors">Kaplan<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Kaplan, McCandlish, Henighan, Brown, Chess, Child, Gray, Radford, Wu,  and Amodei</tag>
+          <tag class="ltx_bib_year" role="year">2020</tag>
+          <tag class="ltx_bib_title" role="title">Scaling laws for neural language models</tag>
+          <tag class="ltx_bib_author-year" role="refnum">J. Kaplan, S. McCandlish, T. Henighan, T. B. Brown, B. Chess, R. Child, S. Gray, A. Radford, J. Wu, and D. Amodei (2020)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Scaling laws for neural language models</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>arXiv preprint arXiv:2001.08361</bib-title></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p1" show="typerefnum" href="#S1.p1" title="1 Introduction ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="kim2020point" type="inproceedings" xml:id="bib.bib31" fragid="bib.bib31">
+        <tags>
+          <tag class="ltx_bib_number" role="number">10</tag>
+          <tag class="ltx_bib_author" role="authors">Kim<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Kim, Ki, Lee,  and Gweon</tag>
+          <tag class="ltx_bib_year" role="year">2020</tag>
+          <tag class="ltx_bib_title" role="title">Point to the expression: solving algebraic word problems using the expression-pointer transformer model</tag>
+          <tag class="ltx_bib_author-year" role="refnum">B. Kim, K. S. Ki, D. Lee, and G. Gweon (2020)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Point to the expression: solving algebraic word problems using the expression-pointer transformer model</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_pages"> pp. <bib-part role="pages">3768–3779</bib-part></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S3.SS2.p1" show="typerefnum" href="#S3.SS2.p1" title="3.2 Related Methods ‣ 3 Related Work ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§3.2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="kushman2014learning" type="inproceedings" xml:id="bib.bib7" fragid="bib.bib7">
+        <tags>
+          <tag class="ltx_bib_number" role="number">11</tag>
+          <tag class="ltx_bib_author" role="authors">Kushman<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Kushman, Artzi, Zettlemoyer,  and Barzilay</tag>
+          <tag class="ltx_bib_year" role="year">2014</tag>
+          <tag class="ltx_bib_title" role="title">Learning to automatically solve algebra word problems</tag>
+          <tag class="ltx_bib_author-year" role="refnum">N. Kushman, Y. Artzi, L. Zettlemoyer, and R. Barzilay (2014)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Learning to automatically solve algebra word problems</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Proceedings of the 52nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_pages"> pp. <bib-part role="pages">271–281</bib-part></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S3.SS1.p1" show="typerefnum" href="#S3.SS1.p1" title="3.1 Related Datasets ‣ 3 Related Work ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§3.1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="lample2019deep" type="article" xml:id="bib.bib17" fragid="bib.bib17">
+        <tags>
+          <tag class="ltx_bib_number" role="number">12</tag>
+          <tag class="ltx_bib_author" role="authors">Lample and Charton</tag>
+          <tag class="ltx_bib_year" role="year">2019</tag>
+          <tag class="ltx_bib_title" role="title">Deep learning for symbolic mathematics</tag>
+          <tag class="ltx_bib_author-year" role="refnum">G. Lample and F. Charton (2019)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Deep learning for symbolic mathematics</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>arXiv preprint arXiv:1912.01412</bib-title></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S3.SS1.p3" show="typerefnum" href="#S3.SS1.p3" title="3.1 Related Datasets ‣ 3 Related Work ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§3.1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="li2020graph" type="article" xml:id="bib.bib28" fragid="bib.bib28">
+        <tags>
+          <tag class="ltx_bib_number" role="number">13</tag>
+          <tag class="ltx_bib_author" role="authors">Li<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Li, Wu, Feng, Xu, Xu,  and Zhong</tag>
+          <tag class="ltx_bib_year" role="year">2020</tag>
+          <tag class="ltx_bib_title" role="title">Graph-to-tree neural networks for learning structured input-output translation with applications to semantic parsing and math word problem</tag>
+          <tag class="ltx_bib_author-year" role="refnum">S. Li, L. Wu, S. Feng, F. Xu, F. Xu, and S. Zhong (2020)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Graph-to-tree neural networks for learning structured input-output translation with applications to semantic parsing and math word problem</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>EMNLP</bib-title></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S3.SS2.p1" show="typerefnum" href="#S3.SS2.p1" title="3.2 Related Methods ‣ 3 Related Work ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§3.2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_misc" key="mwpbert" type="misc" xml:id="bib.bib29" fragid="bib.bib29">
+        <tags>
+          <tag class="ltx_bib_number" role="number">14</tag>
+          <tag class="ltx_bib_author" role="authors">Liang<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Liang, Zhang, Shao,  and Zhang</tag>
+          <tag class="ltx_bib_year" role="year">2021</tag>
+          <tag class="ltx_bib_title" role="title">MWP-bert: a strong baseline for math word problems</tag>
+          <tag class="ltx_bib_author-year" role="refnum">Z. Liang, J. Zhang, J. Shao, and X. Zhang (2021)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>MWP-bert: a strong baseline for math word problems</bib-title></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S3.SS2.p1" show="typerefnum" href="#S3.SS2.p1" title="3.2 Related Methods ‣ 3 Related Work ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§3.2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="ling2017program" type="article" xml:id="bib.bib15" fragid="bib.bib15">
+        <tags>
+          <tag class="ltx_bib_number" role="number">15</tag>
+          <tag class="ltx_bib_author" role="authors">Ling<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Ling, Yogatama, Dyer,  and Blunsom</tag>
+          <tag class="ltx_bib_year" role="year">2017</tag>
+          <tag class="ltx_bib_title" role="title">Program induction by rationale generation: learning to solve and explain algebraic word problems</tag>
+          <tag class="ltx_bib_author-year" role="refnum">W. Ling, D. Yogatama, C. Dyer, and P. Blunsom (2017)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Program induction by rationale generation: learning to solve and explain algebraic word problems</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>arXiv preprint arXiv:1705.04146</bib-title></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S3.SS1.p1" show="typerefnum" href="#S3.SS1.p1" title="3.1 Related Datasets ‣ 3 Related Work ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§3.1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="Liu2020LogiQAAC" type="inproceedings" xml:id="bib.bib19" fragid="bib.bib19">
+        <tags>
+          <tag class="ltx_bib_number" role="number">16</tag>
+          <tag class="ltx_bib_author" role="authors">Liu<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Liu, Cui, Liu, Huang, Wang,  and Zhang</tag>
+          <tag class="ltx_bib_year" role="year">2020</tag>
+          <tag class="ltx_bib_title" role="title">LogiQA: a challenge dataset for machine reading comprehension with logical reasoning</tag>
+          <tag class="ltx_bib_author-year" role="refnum">J. Liu, L. Cui, H. Liu, D. Huang, Y. Wang, and Y. Zhang (2020)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>LogiQA: a challenge dataset for machine reading comprehension with logical reasoning</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>IJCAI</bib-title></text>,</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S3.SS1.p3" show="typerefnum" href="#S3.SS1.p3" title="3.1 Related Datasets ‣ 3 Related Work ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§3.1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="miao2021diverse" type="article" xml:id="bib.bib10" fragid="bib.bib10">
+        <tags>
+          <tag class="ltx_bib_number" role="number">17</tag>
+          <tag class="ltx_bib_author" role="authors">Miao<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Miao, Liang,  and Su</tag>
+          <tag class="ltx_bib_year" role="year">2021</tag>
+          <tag class="ltx_bib_title" role="title">A diverse corpus for evaluating and developing english math word problem solvers</tag>
+          <tag class="ltx_bib_author-year" role="refnum">S. Miao, C. Liang, and K. Su (2021)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>A diverse corpus for evaluating and developing english math word problem solvers</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>arXiv preprint arXiv:2106.15772</bib-title></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S3.SS1.p1" show="typerefnum" href="#S3.SS1.p1" title="3.1 Related Datasets ‣ 3 Related Work ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§3.1</text></ref>,
+<ref idref="S3.SS1.p2" show="typerefnum" href="#S3.SS1.p2" title="3.1 Related Datasets ‣ 3 Related Work ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§3.1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="nichols2020collaborative" type="article" xml:id="bib.bib39" fragid="bib.bib39">
+        <tags>
+          <tag class="ltx_bib_number" role="number">18</tag>
+          <tag class="ltx_bib_author" role="authors">Nichols<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Nichols, Gao,  and Gomez</tag>
+          <tag class="ltx_bib_year" role="year">2020</tag>
+          <tag class="ltx_bib_title" role="title">Collaborative storytelling with large-scale neural language models</tag>
+          <tag class="ltx_bib_author-year" role="refnum">E. Nichols, L. Gao, and R. Gomez (2020)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Collaborative storytelling with large-scale neural language models</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>arXiv preprint arXiv:2011.10208</bib-title></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S3.SS2.p3" show="typerefnum" href="#S3.SS2.p3" title="3.2 Related Methods ‣ 3 Related Work ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§3.2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="Peng2021MathBERTAP" type="article" xml:id="bib.bib34" fragid="bib.bib34">
+        <tags>
+          <tag class="ltx_bib_number" role="number">19</tag>
+          <tag class="ltx_bib_author" role="authors">Peng<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Peng, Yuan, Gao,  and Tang</tag>
+          <tag class="ltx_bib_year" role="year">2021</tag>
+          <tag class="ltx_bib_title" role="title">MathBERT: a pre-trained model for mathematical formula understanding</tag>
+          <tag class="ltx_bib_author-year" role="refnum">S. Peng, K. Yuan, L. Gao, and Z. Tang (2021)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>MathBERT: a pre-trained model for mathematical formula understanding</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>ArXiv</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">abs/2105.00377</bib-part></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S3.SS2.p2" show="typerefnum" href="#S3.SS2.p2" title="3.2 Related Methods ‣ 3 Related Work ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§3.2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="roy-roth-2015-solving" type="inproceedings" xml:id="bib.bib8" fragid="bib.bib8">
+        <tags>
+          <tag class="ltx_bib_number" role="number">20</tag>
+          <tag class="ltx_bib_author" role="authors">Roy and Roth</tag>
+          <tag class="ltx_bib_year" role="year">2015</tag>
+          <tag class="ltx_bib_title" role="title">Solving general arithmetic word problems</tag>
+          <tag class="ltx_bib_author-year" role="refnum">S. Roy and D. Roth (2015)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Solving general arithmetic word problems</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Proceedings of the 2015 Conference on Empirical Methods in Natural Language Processing</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_place"><bib-place>Lisbon, Portugal</bib-place></text>, <text class="ltx_bib_pages"> pp. <bib-part role="pages">1743–1752</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://aclanthology.org/D15-1202">Link</ref>,
+<ref class="doi ltx_bib_external" href="https://dx.doi.org/10.18653/v1/D15-1202">Document</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S3.SS1.p1" show="typerefnum" href="#S3.SS1.p1" title="3.1 Related Datasets ‣ 3 Related Work ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§3.1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_misc" key="shen2021mathbert" type="misc" xml:id="bib.bib33" fragid="bib.bib33">
+        <tags>
+          <tag class="ltx_bib_number" role="number">21</tag>
+          <tag class="ltx_bib_author" role="authors">Shen<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Shen, Yamashita, Prihar, Heffernan, Wu, Graff,  and Lee</tag>
+          <tag class="ltx_bib_year" role="year">2021a</tag>
+          <tag class="ltx_bib_title" role="title">MathBERT: a pre-trained language model for general nlp tasks in mathematics education</tag>
+          <tag class="ltx_bib_author-year" role="refnum">J. T. Shen, M. Yamashita, E. Prihar, N. Heffernan, X. Wu, B. Graff, and D. Lee (2021a)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>MathBERT: a pre-trained language model for general nlp tasks in mathematics education</bib-title></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S3.SS2.p2" show="typerefnum" href="#S3.SS2.p2" title="3.2 Related Methods ‣ 3 Related Work ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§3.2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="shen2021generate" type="article" xml:id="bib.bib3" fragid="bib.bib3">
+        <tags>
+          <tag class="ltx_bib_number" role="number">22</tag>
+          <tag class="ltx_bib_author" role="authors">Shen<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Shen, Yin, Li, Shang, Jiang, Zhang,  and Liu</tag>
+          <tag class="ltx_bib_year" role="year">2021b</tag>
+          <tag class="ltx_bib_title" role="title">Generate &amp; rank: a multi-task framework for math word problems</tag>
+          <tag class="ltx_bib_author-year" role="refnum">J. Shen, Y. Yin, L. Li, L. Shang, X. Jiang, M. Zhang, and Q. Liu (2021b)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Generate &amp; rank: a multi-task framework for math word problems</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>arXiv preprint arXiv:2109.03034</bib-title></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p2" show="typerefnum" href="#S1.p2" title="1 Introduction ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S1.p3" show="typerefnum" href="#S1.p3" title="1 Introduction ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S3.SS2.p3" show="typerefnum" href="#S3.SS2.p3" title="3.2 Related Methods ‣ 3 Related Work ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§3.2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="sutskever2014sequence" type="inproceedings" xml:id="bib.bib37" fragid="bib.bib37">
+        <tags>
+          <tag class="ltx_bib_number" role="number">23</tag>
+          <tag class="ltx_bib_author" role="authors">Sutskever<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Sutskever, Vinyals,  and Le</tag>
+          <tag class="ltx_bib_year" role="year">2014</tag>
+          <tag class="ltx_bib_title" role="title">Sequence to sequence learning with neural networks</tag>
+          <tag class="ltx_bib_author-year" role="refnum">I. Sutskever, O. Vinyals, and Q. V. Le (2014)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Sequence to sequence learning with neural networks</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Advances in neural information processing systems</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_pages"> pp. <bib-part role="pages">3104–3112</bib-part></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S3.SS2.p1" show="typerefnum" href="#S3.SS2.p1" title="3.2 Related Methods ‣ 3 Related Work ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§3.2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="talmor2018commonsenseqa" type="article" xml:id="bib.bib20" fragid="bib.bib20">
+        <tags>
+          <tag class="ltx_bib_number" role="number">24</tag>
+          <tag class="ltx_bib_author" role="authors">Talmor<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Talmor, Herzig, Lourie,  and Berant</tag>
+          <tag class="ltx_bib_year" role="year">2018</tag>
+          <tag class="ltx_bib_title" role="title">Commonsenseqa: a question answering challenge targeting commonsense knowledge</tag>
+          <tag class="ltx_bib_author-year" role="refnum">A. Talmor, J. Herzig, N. Lourie, and J. Berant (2018)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Commonsenseqa: a question answering challenge targeting commonsense knowledge</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>arXiv preprint arXiv:1811.00937</bib-title></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S3.SS1.p3" show="typerefnum" href="#S3.SS1.p3" title="3.1 Related Datasets ‣ 3 Related Work ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§3.1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="vaswani2017attention" type="inproceedings" xml:id="bib.bib38" fragid="bib.bib38">
+        <tags>
+          <tag class="ltx_bib_number" role="number">25</tag>
+          <tag class="ltx_bib_author" role="authors">Vaswani<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Vaswani, Shazeer, Parmar, Uszkoreit, Jones, Gomez, Kaiser,  and Polosukhin</tag>
+          <tag class="ltx_bib_year" role="year">2017</tag>
+          <tag class="ltx_bib_title" role="title">Attention is all you need</tag>
+          <tag class="ltx_bib_author-year" role="refnum">A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, Ł. Kaiser, and I. Polosukhin (2017)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Attention is all you need</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Advances in neural information processing systems</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_pages"> pp. <bib-part role="pages">5998–6008</bib-part></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S5.SS2.p1" show="typerefnum" href="#S5.SS2.p1" title="5.2 Regularization ‣ 5 Additional Experiments ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§5.2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="wang2019superglue" type="article" xml:id="bib.bib5" fragid="bib.bib5">
+        <tags>
+          <tag class="ltx_bib_number" role="number">26</tag>
+          <tag class="ltx_bib_author" role="authors">Wang<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Wang, Pruksachatkun, Nangia, Singh, Michael, Hill, Levy,  and Bowman</tag>
+          <tag class="ltx_bib_year" role="year">2019</tag>
+          <tag class="ltx_bib_title" role="title">Superglue: a stickier benchmark for general-purpose language understanding systems</tag>
+          <tag class="ltx_bib_author-year" role="refnum">A. Wang, Y. Pruksachatkun, N. Nangia, A. Singh, J. Michael, F. Hill, O. Levy, and S. R. Bowman (2019)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Superglue: a stickier benchmark for general-purpose language understanding systems</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>arXiv preprint arXiv:1905.00537</bib-title></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p1" show="typerefnum" href="#S1.p1" title="1 Introduction ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="wang-etal-2017-deep" type="inproceedings" xml:id="bib.bib13" fragid="bib.bib13">
+        <tags>
+          <tag class="ltx_bib_number" role="number">27</tag>
+          <tag class="ltx_bib_author" role="authors">Wang<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Wang, Liu,  and Shi</tag>
+          <tag class="ltx_bib_year" role="year">2017</tag>
+          <tag class="ltx_bib_title" role="title">Deep neural solver for math word problems</tag>
+          <tag class="ltx_bib_author-year" role="refnum">Y. Wang, X. Liu, and S. Shi (2017)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Deep neural solver for math word problems</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Proceedings of the 2017 Conference on Empirical Methods in Natural Language Processing</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_place"><bib-place>Copenhagen, Denmark</bib-place></text>, <text class="ltx_bib_pages"> pp. <bib-part role="pages">845–854</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://aclanthology.org/D17-1088">Link</ref>,
+<ref class="doi ltx_bib_external" href="https://dx.doi.org/10.18653/v1/D17-1088">Document</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S3.SS2.p1" show="typerefnum" href="#S3.SS2.p1" title="3.2 Related Methods ‣ 3 Related Work ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§3.2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="Xie2019AGT" type="inproceedings" xml:id="bib.bib27" fragid="bib.bib27">
+        <tags>
+          <tag class="ltx_bib_number" role="number">28</tag>
+          <tag class="ltx_bib_author" role="authors">Xie and Sun</tag>
+          <tag class="ltx_bib_year" role="year">2019</tag>
+          <tag class="ltx_bib_title" role="title">A goal-driven tree-structured neural model for math word problems</tag>
+          <tag class="ltx_bib_author-year" role="refnum">Z. Xie and S. Sun (2019)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>A goal-driven tree-structured neural model for math word problems</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>IJCAI</bib-title></text>,</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S3.SS2.p1" show="typerefnum" href="#S3.SS2.p1" title="3.2 Related Methods ‣ 3 Related Work ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§3.2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="zhao2020ape210k" type="article" xml:id="bib.bib40" fragid="bib.bib40">
+        <tags>
+          <tag class="ltx_bib_number" role="number">29</tag>
+          <tag class="ltx_bib_author" role="authors">Zhao<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Zhao, Shang, Liu, Wang,  and Liu</tag>
+          <tag class="ltx_bib_year" role="year">2020</tag>
+          <tag class="ltx_bib_title" role="title">Ape210k: a large-scale and template-rich dataset of math word problems</tag>
+          <tag class="ltx_bib_author-year" role="refnum">W. Zhao, M. Shang, Y. Liu, L. Wang, and J. Liu (2020)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Ape210k: a large-scale and template-rich dataset of math word problems</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>arXiv preprint arXiv:2009.11506</bib-title></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S3.SS1.p1" show="typerefnum" href="#S3.SS1.p1" title="3.1 Related Datasets ‣ 3 Related Work ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">§3.1</text></ref>.</bibblock>
+      </bibitem>
+    </biblist>
+  </bibliography>
+  <pagination role="newpage"/>
+  <appendix inlist="toc" xml:id="A1" labels="LABEL:appendix:dataset_details" fragid="A1">
+    <tags>
+      <tag>Appendix A</tag>
+      <tag role="autoref">Appendix A</tag>
+      <tag role="creftype">appendix</tag>
+      <tag role="creftypecap">Appendix</tag>
+      <tag role="creftypeplural">appendices</tag>
+      <tag role="creftypepluralcap">Appendices</tag>
+      <tag role="refnum">A</tag>
+      <tag role="typerefnum">Appendix A</tag>
+    </tags>
+    <title fontsize="90%"><tag close=" ">Appendix A</tag>Dataset Details</title>
+    <toctitle>
+      <tag close=" ">
+        <text fontsize="90%">A</text>
+      </tag>
+      <text fontsize="90%">Dataset Details</text>
+    </toctitle>
+    <para xml:id="A1.p1" fragid="A1.p1">
+      <p>
+        <text fontsize="90%">We initially collected a starting set of a thousand problems and natural language solutions by hiring freelance contractors on Upwork (</text>
+        <ref class="ltx_url" href="upwork.com" fontsize="90%" font="typewriter">upwork.com</ref>
+        <text fontsize="90%">). We then worked with Surge AI (</text>
+        <ref class="ltx_url" href="surgehq.ai" font="typewriter" fontsize="90%">surgehq.ai</ref>
+        <text fontsize="90%">), an NLP data labeling platform, to scale up our data collection. After collecting the full dataset, we asked workers to re-solve all problems, with no workers re-solving problems they originally wrote. We checked whether their final answers agreed with the original solutions, and any problems that produced disagreements were either repaired or discarded. We then performed another round of agreement checks on a smaller subset of problems, finding that 1.7% of problems still produce disagreements among contractors. We estimate this to be the fraction of problems that contain breaking errors or ambiguities. It is possible that a larger percentage of problems contain subtle errors.</text>
+      </p>
+    </para>
+    <para xml:id="A1.p2" fragid="A1.p2">
+      <p>
+        <text fontsize="90%">To assist contractors with writing questions, we provided seed questions automatically generated from a few-shot prompted 175B GPT-3 model. Contractors were allowed to use those seed questions directly, to use them as inspiration and make modifications, or to come up with their own questions entirely. We instructed contractors to be as descriptive as possible in their solutions, and to not re-use problem settings or templates between different questions. To ensure contractors were not re-using problem templates, we computed pairwise similarity scores between problems and used this to provide feedback to contractors.</text>
+      </p>
+    </para>
+    <pagination role="newpage"/>
+  </appendix>
+  <appendix inlist="toc" xml:id="A2" labels="LABEL:appendix:hyperparameters" fragid="A2">
+    <tags>
+      <tag>Appendix B</tag>
+      <tag role="autoref">Appendix B</tag>
+      <tag role="creftype">appendix</tag>
+      <tag role="creftypecap">Appendix</tag>
+      <tag role="creftypeplural">appendices</tag>
+      <tag role="creftypepluralcap">Appendices</tag>
+      <tag role="refnum">B</tag>
+      <tag role="typerefnum">Appendix B</tag>
+    </tags>
+    <title fontsize="90%"><tag close=" ">Appendix B</tag>Hyperparameters</title>
+    <toctitle>
+      <tag close=" ">
+        <text fontsize="90%">B</text>
+      </tag>
+      <text fontsize="90%">Hyperparameters</text>
+    </toctitle>
+    <para xml:id="A2.p1" fragid="A2.p1">
+      <p>
+        <text fontsize="90%">We include a table of important hyperparameters below. We performed sweeps of the learning rate and batch size by an order of magnitude in both directions from the values in the table and were unable to find any significant improvements. Other reasonable choices for both the verifier temperature (eg: 1.0 instead of 0.7) and objective (cross-entropy instead of mean squared error) also had negligible effect in our ablations.</text>
+      </p>
+    </para>
+    <table inlist="lot" placement="h!" xml:id="A2.T1" labels="LABEL:table:all_hparams" fragid="A2.T1">
+      <tags>
+        <tag>
+          <text fontsize="90%">Table 1</text>
+        </tag>
+        <tag role="autoref">Table 1</tag>
+        <tag role="creftype">table</tag>
+        <tag role="creftypecap">Table</tag>
+        <tag role="creftypeplural">tables</tag>
+        <tag role="creftypepluralcap">Tables</tag>
+        <tag role="refnum">1</tag>
+        <tag role="typerefnum">Table 1</tag>
+      </tags>
+      <tabular rowsep="2.6pt" vattach="middle" class="ltx_centering ltx_guessed_headers">
+        <tbody>
+          <tr>
+            <td align="left" border="tt" thead="row">
+              <text fontsize="80%" font="bold">General Hyperparameters</text>
+            </td>
+            <td align="left" border="tt" class="ltx_nopad_r">
+              <text font="bold" fontsize="80%">Value</text>
+            </td>
+          </tr>
+          <tr>
+            <td align="left" border="t" thead="row">
+              <text fontsize="80%">Batch Size</text>
+            </td>
+            <td align="left" border="t" class="ltx_nopad_r">
+              <Math mode="inline" xml:id="A2.T1.m1" tex="3.2\times 10^{4}" text="3.2 * 10 ^ 4" fragid="A2.T1.m1">
+                <m:math alttext="3.2\times 10^{4}" display="inline">
+                  <m:semantics>
+                    <m:mrow xml:id="A2.T1.m1.6" xref="A2.T1.m1.6.cmml">
+                      <m:mn mathsize="0.800em" xml:id="A2.T1.m1.1" xref="A2.T1.m1.1.cmml">3.2</m:mn>
+                      <m:mo lspace="0.222em" mathsize="0.800em" rspace="0.222em" xml:id="A2.T1.m1.2" xref="A2.T1.m1.2.cmml">×</m:mo>
+                      <m:msup xml:id="A2.T1.m1.5" xref="A2.T1.m1.5.cmml">
+                        <m:mn mathsize="0.800em" xml:id="A2.T1.m1.3" xref="A2.T1.m1.3.cmml">10</m:mn>
+                        <m:mn mathsize="0.800em" xml:id="A2.T1.m1.4" xref="A2.T1.m1.4.cmml">4</m:mn>
+                      </m:msup>
+                    </m:mrow>
+                    <m:annotation-xml encoding="MathML-Content">
+                      <m:apply xml:id="A2.T1.m1.6.cmml" xref="A2.T1.m1.6">
+                        <m:times xml:id="A2.T1.m1.2.cmml" xref="A2.T1.m1.2"/>
+                        <m:cn type="float" xml:id="A2.T1.m1.1.cmml" xref="A2.T1.m1.1">3.2</m:cn>
+                        <m:apply xml:id="A2.T1.m1.5.cmml" xref="A2.T1.m1.5">
+                          <m:csymbol cd="ambiguous" xml:id="A2.T1.m1.5.1.cmml" xref="A2.T1.m1.5">superscript</m:csymbol>
+                          <m:cn type="integer" xml:id="A2.T1.m1.3.cmml" xref="A2.T1.m1.3">10</m:cn>
+                          <m:cn type="integer" xml:id="A2.T1.m1.4.cmml" xref="A2.T1.m1.4">4</m:cn>
+                        </m:apply>
+                      </m:apply>
+                    </m:annotation-xml>
+                    <m:annotation encoding="application/x-tex">3.2\times 10^{4}</m:annotation>
+                  </m:semantics>
+                </m:math>
+              </Math>
+              <text fontsize="80%"> tokens</text>
+            </td>
+          </tr>
+          <tr>
+            <td align="left" thead="row">
+              <text fontsize="80%">Max Sample Length</text>
+            </td>
+            <td align="left" class="ltx_nopad_r">
+              <text fontsize="80%">400 tokens</text>
+            </td>
+          </tr>
+          <tr>
+            <td align="left" thead="row">
+              <text fontsize="80%">Tokenization</text>
+            </td>
+            <td align="left" class="ltx_nopad_r">
+              <text fontsize="80%">reversible_50000</text>
+            </td>
+          </tr>
+          <tr>
+            <td align="left" thead="row">
+              <text fontsize="80%">Optimizer</text>
+            </td>
+            <td align="left" class="ltx_nopad_r">
+              <text fontsize="80%">Adam, </text>
+              <Math mode="inline" xml:id="A2.T1.m2" tex="\beta_{1}=0.9" text="beta _ 1 = 0.9" fragid="A2.T1.m2">
+                <m:math alttext="\beta_{1}=0.9" display="inline">
+                  <m:semantics>
+                    <m:mrow xml:id="A2.T1.m2.6" xref="A2.T1.m2.6.cmml">
+                      <m:msub xml:id="A2.T1.m2.3" xref="A2.T1.m2.3.cmml">
+                        <m:mi mathsize="0.800em" xml:id="A2.T1.m2.1" xref="A2.T1.m2.1.cmml">β</m:mi>
+                        <m:mn mathsize="0.800em" xml:id="A2.T1.m2.2" xref="A2.T1.m2.2.cmml">1</m:mn>
+                      </m:msub>
+                      <m:mo mathsize="0.800em" xml:id="A2.T1.m2.4" xref="A2.T1.m2.4.cmml">=</m:mo>
+                      <m:mn mathsize="0.800em" xml:id="A2.T1.m2.5" xref="A2.T1.m2.5.cmml">0.9</m:mn>
+                    </m:mrow>
+                    <m:annotation-xml encoding="MathML-Content">
+                      <m:apply xml:id="A2.T1.m2.6.cmml" xref="A2.T1.m2.6">
+                        <m:eq xml:id="A2.T1.m2.4.cmml" xref="A2.T1.m2.4"/>
+                        <m:apply xml:id="A2.T1.m2.3.cmml" xref="A2.T1.m2.3">
+                          <m:csymbol cd="ambiguous" xml:id="A2.T1.m2.3.1.cmml" xref="A2.T1.m2.3">subscript</m:csymbol>
+                          <m:ci xml:id="A2.T1.m2.1.cmml" xref="A2.T1.m2.1">𝛽</m:ci>
+                          <m:cn type="integer" xml:id="A2.T1.m2.2.cmml" xref="A2.T1.m2.2">1</m:cn>
+                        </m:apply>
+                        <m:cn type="float" xml:id="A2.T1.m2.5.cmml" xref="A2.T1.m2.5">0.9</m:cn>
+                      </m:apply>
+                    </m:annotation-xml>
+                    <m:annotation encoding="application/x-tex">\beta_{1}=0.9</m:annotation>
+                  </m:semantics>
+                </m:math>
+              </Math>
+              <text fontsize="80%">, </text>
+              <Math mode="inline" xml:id="A2.T1.m3" tex="\beta_{2}=0.95" text="beta _ 2 = 0.95" fragid="A2.T1.m3">
+                <m:math alttext="\beta_{2}=0.95" display="inline">
+                  <m:semantics>
+                    <m:mrow xml:id="A2.T1.m3.6" xref="A2.T1.m3.6.cmml">
+                      <m:msub xml:id="A2.T1.m3.3" xref="A2.T1.m3.3.cmml">
+                        <m:mi mathsize="0.800em" xml:id="A2.T1.m3.1" xref="A2.T1.m3.1.cmml">β</m:mi>
+                        <m:mn mathsize="0.800em" xml:id="A2.T1.m3.2" xref="A2.T1.m3.2.cmml">2</m:mn>
+                      </m:msub>
+                      <m:mo mathsize="0.800em" xml:id="A2.T1.m3.4" xref="A2.T1.m3.4.cmml">=</m:mo>
+                      <m:mn mathsize="0.800em" xml:id="A2.T1.m3.5" xref="A2.T1.m3.5.cmml">0.95</m:mn>
+                    </m:mrow>
+                    <m:annotation-xml encoding="MathML-Content">
+                      <m:apply xml:id="A2.T1.m3.6.cmml" xref="A2.T1.m3.6">
+                        <m:eq xml:id="A2.T1.m3.4.cmml" xref="A2.T1.m3.4"/>
+                        <m:apply xml:id="A2.T1.m3.3.cmml" xref="A2.T1.m3.3">
+                          <m:csymbol cd="ambiguous" xml:id="A2.T1.m3.3.1.cmml" xref="A2.T1.m3.3">subscript</m:csymbol>
+                          <m:ci xml:id="A2.T1.m3.1.cmml" xref="A2.T1.m3.1">𝛽</m:ci>
+                          <m:cn type="integer" xml:id="A2.T1.m3.2.cmml" xref="A2.T1.m3.2">2</m:cn>
+                        </m:apply>
+                        <m:cn type="float" xml:id="A2.T1.m3.5.cmml" xref="A2.T1.m3.5">0.95</m:cn>
+                      </m:apply>
+                    </m:annotation-xml>
+                    <m:annotation encoding="application/x-tex">\beta_{2}=0.95</m:annotation>
+                  </m:semantics>
+                </m:math>
+              </Math>
+            </td>
+          </tr>
+          <tr>
+            <td align="left" thead="row">
+              <text fontsize="80%">Dropout</text>
+            </td>
+            <td align="left" class="ltx_nopad_r">
+              <Math mode="inline" xml:id="A2.T1.m4" tex="0.0" text="0.0" fragid="A2.T1.m4">
+                <m:math alttext="0.0" display="inline">
+                  <m:semantics>
+                    <m:mn mathsize="0.800em" xml:id="A2.T1.m4.1" xref="A2.T1.m4.1.cmml">0.0</m:mn>
+                    <m:annotation-xml encoding="MathML-Content">
+                      <m:cn type="float" xml:id="A2.T1.m4.1.cmml" xref="A2.T1.m4.1">0.0</m:cn>
+                    </m:annotation-xml>
+                    <m:annotation encoding="application/x-tex">0.0</m:annotation>
+                  </m:semantics>
+                </m:math>
+              </Math>
+            </td>
+          </tr>
+          <tr>
+            <td align="left" thead="row">
+              <text fontsize="80%">Learning Rate Schedule</text>
+            </td>
+            <td align="left" class="ltx_nopad_r">
+              <text fontsize="80%">Linear decay to 0</text>
+            </td>
+          </tr>
+          <tr>
+            <td align="left" border="t" thead="row">
+              <text fontsize="80%" font="bold">Finetuning Hyperparameters</text>
+            </td>
+            <td align="left" border="t" class="ltx_nopad_r">
+              <text font="bold" fontsize="80%">Value</text>
+            </td>
+          </tr>
+          <tr>
+            <td align="left" border="t" thead="row">
+              <text fontsize="80%">Epochs</text>
+            </td>
+            <td align="left" border="t" class="ltx_nopad_r">
+              <text fontsize="80%">20</text>
+            </td>
+          </tr>
+          <tr>
+            <td align="left" thead="row">
+              <text fontsize="80%">Sampling Temperature</text>
+            </td>
+            <td align="left" class="ltx_nopad_r">
+              <text fontsize="80%">0 (argmax)</text>
+            </td>
+          </tr>
+          <tr>
+            <td align="left" thead="row">
+              <text fontsize="80%">Base Learning Rate (</text>
+              <Math mode="inline" xml:id="A2.T1.m5" tex="\alpha" text="alpha" fragid="A2.T1.m5">
+                <m:math alttext="\alpha" display="inline">
+                  <m:semantics>
+                    <m:mi mathsize="0.800em" xml:id="A2.T1.m5.1" xref="A2.T1.m5.1.cmml">α</m:mi>
+                    <m:annotation-xml encoding="MathML-Content">
+                      <m:ci xml:id="A2.T1.m5.1.cmml" xref="A2.T1.m5.1">𝛼</m:ci>
+                    </m:annotation-xml>
+                    <m:annotation encoding="application/x-tex">\alpha</m:annotation>
+                  </m:semantics>
+                </m:math>
+              </Math>
+              <text fontsize="80%">)</text>
+            </td>
+            <td align="left" class="ltx_nopad_r">
+              <Math mode="inline" xml:id="A2.T1.m6" tex="1.6\times 10^{-5}" text="1.6 * 10 ^ (- 5)" fragid="A2.T1.m6">
+                <m:math alttext="1.6\times 10^{-5}" display="inline">
+                  <m:semantics>
+                    <m:mrow xml:id="A2.T1.m6.7" xref="A2.T1.m6.7.cmml">
+                      <m:mn mathsize="0.800em" xml:id="A2.T1.m6.1" xref="A2.T1.m6.1.cmml">1.6</m:mn>
+                      <m:mo lspace="0.222em" mathsize="0.800em" rspace="0.222em" xml:id="A2.T1.m6.2" xref="A2.T1.m6.2.cmml">×</m:mo>
+                      <m:msup xml:id="A2.T1.m6.6" xref="A2.T1.m6.6.cmml">
+                        <m:mn mathsize="0.800em" xml:id="A2.T1.m6.3" xref="A2.T1.m6.3.cmml">10</m:mn>
+                        <m:mrow xml:id="A2.T1.m6.5" xref="A2.T1.m6.5.cmml">
+                          <m:mo mathsize="0.800em" xml:id="A2.T1.m6.5a" xref="A2.T1.m6.5.cmml">−</m:mo>
+                          <m:mn mathsize="0.800em" xml:id="A2.T1.m6.4" xref="A2.T1.m6.4.cmml">5</m:mn>
+                        </m:mrow>
+                      </m:msup>
+                    </m:mrow>
+                    <m:annotation-xml encoding="MathML-Content">
+                      <m:apply xml:id="A2.T1.m6.7.cmml" xref="A2.T1.m6.7">
+                        <m:times xml:id="A2.T1.m6.2.cmml" xref="A2.T1.m6.2"/>
+                        <m:cn type="float" xml:id="A2.T1.m6.1.cmml" xref="A2.T1.m6.1">1.6</m:cn>
+                        <m:apply xml:id="A2.T1.m6.6.cmml" xref="A2.T1.m6.6">
+                          <m:csymbol cd="ambiguous" xml:id="A2.T1.m6.6.1.cmml" xref="A2.T1.m6.6">superscript</m:csymbol>
+                          <m:cn type="integer" xml:id="A2.T1.m6.3.cmml" xref="A2.T1.m6.3">10</m:cn>
+                          <m:apply xml:id="A2.T1.m6.5.cmml" xref="A2.T1.m6.5">
+                            <m:minus xml:id="A2.T1.m6.5.1.cmml" xref="A2.T1.m6.5"/>
+                            <m:cn type="integer" xml:id="A2.T1.m6.4.cmml" xref="A2.T1.m6.4">5</m:cn>
+                          </m:apply>
+                        </m:apply>
+                      </m:apply>
+                    </m:annotation-xml>
+                    <m:annotation encoding="application/x-tex">1.6\times 10^{-5}</m:annotation>
+                  </m:semantics>
+                </m:math>
+              </Math>
+              <text fontsize="80%"> (3B)</text>
+            </td>
+          </tr>
+          <tr>
+            <td thead="row"/>
+            <td align="left" class="ltx_nopad_r">
+              <Math mode="inline" xml:id="A2.T1.m7" tex="1.2\times 10^{-5}" text="1.2 * 10 ^ (- 5)" fragid="A2.T1.m7">
+                <m:math alttext="1.2\times 10^{-5}" display="inline">
+                  <m:semantics>
+                    <m:mrow xml:id="A2.T1.m7.7" xref="A2.T1.m7.7.cmml">
+                      <m:mn mathsize="0.800em" xml:id="A2.T1.m7.1" xref="A2.T1.m7.1.cmml">1.2</m:mn>
+                      <m:mo lspace="0.222em" mathsize="0.800em" rspace="0.222em" xml:id="A2.T1.m7.2" xref="A2.T1.m7.2.cmml">×</m:mo>
+                      <m:msup xml:id="A2.T1.m7.6" xref="A2.T1.m7.6.cmml">
+                        <m:mn mathsize="0.800em" xml:id="A2.T1.m7.3" xref="A2.T1.m7.3.cmml">10</m:mn>
+                        <m:mrow xml:id="A2.T1.m7.5" xref="A2.T1.m7.5.cmml">
+                          <m:mo mathsize="0.800em" xml:id="A2.T1.m7.5a" xref="A2.T1.m7.5.cmml">−</m:mo>
+                          <m:mn mathsize="0.800em" xml:id="A2.T1.m7.4" xref="A2.T1.m7.4.cmml">5</m:mn>
+                        </m:mrow>
+                      </m:msup>
+                    </m:mrow>
+                    <m:annotation-xml encoding="MathML-Content">
+                      <m:apply xml:id="A2.T1.m7.7.cmml" xref="A2.T1.m7.7">
+                        <m:times xml:id="A2.T1.m7.2.cmml" xref="A2.T1.m7.2"/>
+                        <m:cn type="float" xml:id="A2.T1.m7.1.cmml" xref="A2.T1.m7.1">1.2</m:cn>
+                        <m:apply xml:id="A2.T1.m7.6.cmml" xref="A2.T1.m7.6">
+                          <m:csymbol cd="ambiguous" xml:id="A2.T1.m7.6.1.cmml" xref="A2.T1.m7.6">superscript</m:csymbol>
+                          <m:cn type="integer" xml:id="A2.T1.m7.3.cmml" xref="A2.T1.m7.3">10</m:cn>
+                          <m:apply xml:id="A2.T1.m7.5.cmml" xref="A2.T1.m7.5">
+                            <m:minus xml:id="A2.T1.m7.5.1.cmml" xref="A2.T1.m7.5"/>
+                            <m:cn type="integer" xml:id="A2.T1.m7.4.cmml" xref="A2.T1.m7.4">5</m:cn>
+                          </m:apply>
+                        </m:apply>
+                      </m:apply>
+                    </m:annotation-xml>
+                    <m:annotation encoding="application/x-tex">1.2\times 10^{-5}</m:annotation>
+                  </m:semantics>
+                </m:math>
+              </Math>
+              <text fontsize="80%"> (6B)</text>
+            </td>
+          </tr>
+          <tr>
+            <td thead="row"/>
+            <td align="left" class="ltx_nopad_r">
+              <Math mode="inline" xml:id="A2.T1.m8" tex="1.0\times 10^{-5}" text="1.0 * 10 ^ (- 5)" fragid="A2.T1.m8">
+                <m:math alttext="1.0\times 10^{-5}" display="inline">
+                  <m:semantics>
+                    <m:mrow xml:id="A2.T1.m8.7" xref="A2.T1.m8.7.cmml">
+                      <m:mn mathsize="0.800em" xml:id="A2.T1.m8.1" xref="A2.T1.m8.1.cmml">1.0</m:mn>
+                      <m:mo lspace="0.222em" mathsize="0.800em" rspace="0.222em" xml:id="A2.T1.m8.2" xref="A2.T1.m8.2.cmml">×</m:mo>
+                      <m:msup xml:id="A2.T1.m8.6" xref="A2.T1.m8.6.cmml">
+                        <m:mn mathsize="0.800em" xml:id="A2.T1.m8.3" xref="A2.T1.m8.3.cmml">10</m:mn>
+                        <m:mrow xml:id="A2.T1.m8.5" xref="A2.T1.m8.5.cmml">
+                          <m:mo mathsize="0.800em" xml:id="A2.T1.m8.5a" xref="A2.T1.m8.5.cmml">−</m:mo>
+                          <m:mn mathsize="0.800em" xml:id="A2.T1.m8.4" xref="A2.T1.m8.4.cmml">5</m:mn>
+                        </m:mrow>
+                      </m:msup>
+                    </m:mrow>
+                    <m:annotation-xml encoding="MathML-Content">
+                      <m:apply xml:id="A2.T1.m8.7.cmml" xref="A2.T1.m8.7">
+                        <m:times xml:id="A2.T1.m8.2.cmml" xref="A2.T1.m8.2"/>
+                        <m:cn type="float" xml:id="A2.T1.m8.1.cmml" xref="A2.T1.m8.1">1.0</m:cn>
+                        <m:apply xml:id="A2.T1.m8.6.cmml" xref="A2.T1.m8.6">
+                          <m:csymbol cd="ambiguous" xml:id="A2.T1.m8.6.1.cmml" xref="A2.T1.m8.6">superscript</m:csymbol>
+                          <m:cn type="integer" xml:id="A2.T1.m8.3.cmml" xref="A2.T1.m8.3">10</m:cn>
+                          <m:apply xml:id="A2.T1.m8.5.cmml" xref="A2.T1.m8.5">
+                            <m:minus xml:id="A2.T1.m8.5.1.cmml" xref="A2.T1.m8.5"/>
+                            <m:cn type="integer" xml:id="A2.T1.m8.4.cmml" xref="A2.T1.m8.4">5</m:cn>
+                          </m:apply>
+                        </m:apply>
+                      </m:apply>
+                    </m:annotation-xml>
+                    <m:annotation encoding="application/x-tex">1.0\times 10^{-5}</m:annotation>
+                  </m:semantics>
+                </m:math>
+              </Math>
+              <text fontsize="80%"> (12B)</text>
+            </td>
+          </tr>
+          <tr>
+            <td thead="row"/>
+            <td align="left" class="ltx_nopad_r">
+              <Math mode="inline" xml:id="A2.T1.m9" tex="6.0\times 10^{-6}" text="6.0 * 10 ^ (- 6)" fragid="A2.T1.m9">
+                <m:math alttext="6.0\times 10^{-6}" display="inline">
+                  <m:semantics>
+                    <m:mrow xml:id="A2.T1.m9.7" xref="A2.T1.m9.7.cmml">
+                      <m:mn mathsize="0.800em" xml:id="A2.T1.m9.1" xref="A2.T1.m9.1.cmml">6.0</m:mn>
+                      <m:mo lspace="0.222em" mathsize="0.800em" rspace="0.222em" xml:id="A2.T1.m9.2" xref="A2.T1.m9.2.cmml">×</m:mo>
+                      <m:msup xml:id="A2.T1.m9.6" xref="A2.T1.m9.6.cmml">
+                        <m:mn mathsize="0.800em" xml:id="A2.T1.m9.3" xref="A2.T1.m9.3.cmml">10</m:mn>
+                        <m:mrow xml:id="A2.T1.m9.5" xref="A2.T1.m9.5.cmml">
+                          <m:mo mathsize="0.800em" xml:id="A2.T1.m9.5a" xref="A2.T1.m9.5.cmml">−</m:mo>
+                          <m:mn mathsize="0.800em" xml:id="A2.T1.m9.4" xref="A2.T1.m9.4.cmml">6</m:mn>
+                        </m:mrow>
+                      </m:msup>
+                    </m:mrow>
+                    <m:annotation-xml encoding="MathML-Content">
+                      <m:apply xml:id="A2.T1.m9.7.cmml" xref="A2.T1.m9.7">
+                        <m:times xml:id="A2.T1.m9.2.cmml" xref="A2.T1.m9.2"/>
+                        <m:cn type="float" xml:id="A2.T1.m9.1.cmml" xref="A2.T1.m9.1">6.0</m:cn>
+                        <m:apply xml:id="A2.T1.m9.6.cmml" xref="A2.T1.m9.6">
+                          <m:csymbol cd="ambiguous" xml:id="A2.T1.m9.6.1.cmml" xref="A2.T1.m9.6">superscript</m:csymbol>
+                          <m:cn type="integer" xml:id="A2.T1.m9.3.cmml" xref="A2.T1.m9.3">10</m:cn>
+                          <m:apply xml:id="A2.T1.m9.5.cmml" xref="A2.T1.m9.5">
+                            <m:minus xml:id="A2.T1.m9.5.1.cmml" xref="A2.T1.m9.5"/>
+                            <m:cn type="integer" xml:id="A2.T1.m9.4.cmml" xref="A2.T1.m9.4">6</m:cn>
+                          </m:apply>
+                        </m:apply>
+                      </m:apply>
+                    </m:annotation-xml>
+                    <m:annotation encoding="application/x-tex">6.0\times 10^{-6}</m:annotation>
+                  </m:semantics>
+                </m:math>
+              </Math>
+              <text fontsize="80%"> (175B)</text>
+            </td>
+          </tr>
+          <tr>
+            <td align="left" thead="row">
+              <text fontsize="80%">Learning Rate</text>
+            </td>
+            <td align="left" class="ltx_nopad_r">
+              <Math mode="inline" xml:id="A2.T1.m10" tex="0.1\times\alpha" text="0.1 * alpha" fragid="A2.T1.m10">
+                <m:math alttext="0.1\times\alpha" display="inline">
+                  <m:semantics>
+                    <m:mrow xml:id="A2.T1.m10.4" xref="A2.T1.m10.4.cmml">
+                      <m:mn mathsize="0.800em" xml:id="A2.T1.m10.1" xref="A2.T1.m10.1.cmml">0.1</m:mn>
+                      <m:mo lspace="0.222em" mathsize="0.800em" rspace="0.222em" xml:id="A2.T1.m10.2" xref="A2.T1.m10.2.cmml">×</m:mo>
+                      <m:mi mathsize="0.800em" xml:id="A2.T1.m10.3" xref="A2.T1.m10.3.cmml">α</m:mi>
+                    </m:mrow>
+                    <m:annotation-xml encoding="MathML-Content">
+                      <m:apply xml:id="A2.T1.m10.4.cmml" xref="A2.T1.m10.4">
+                        <m:times xml:id="A2.T1.m10.2.cmml" xref="A2.T1.m10.2"/>
+                        <m:cn type="float" xml:id="A2.T1.m10.1.cmml" xref="A2.T1.m10.1">0.1</m:cn>
+                        <m:ci xml:id="A2.T1.m10.3.cmml" xref="A2.T1.m10.3">𝛼</m:ci>
+                      </m:apply>
+                    </m:annotation-xml>
+                    <m:annotation encoding="application/x-tex">0.1\times\alpha</m:annotation>
+                  </m:semantics>
+                </m:math>
+              </Math>
+            </td>
+          </tr>
+          <tr>
+            <td align="left" border="t" thead="row">
+              <text font="bold" fontsize="80%">Verification Hyperparameters</text>
+            </td>
+            <td align="left" border="t" class="ltx_nopad_r">
+              <text font="bold" fontsize="80%">Value</text>
+            </td>
+          </tr>
+          <tr>
+            <td align="left" border="t" thead="row">
+              <text fontsize="80%">Epochs</text>
+            </td>
+            <td align="left" border="t" class="ltx_nopad_r">
+              <text fontsize="80%">2 for generator, 1 for verifier</text>
+            </td>
+          </tr>
+          <tr>
+            <td align="left" thead="row">
+              <text fontsize="80%">Sampling Temperature</text>
+            </td>
+            <td align="left" class="ltx_nopad_r">
+              <Math mode="inline" xml:id="A2.T1.m11" tex="0.7" text="0.7" fragid="A2.T1.m11">
+                <m:math alttext="0.7" display="inline">
+                  <m:semantics>
+                    <m:mn mathsize="0.800em" xml:id="A2.T1.m11.1" xref="A2.T1.m11.1.cmml">0.7</m:mn>
+                    <m:annotation-xml encoding="MathML-Content">
+                      <m:cn type="float" xml:id="A2.T1.m11.1.cmml" xref="A2.T1.m11.1">0.7</m:cn>
+                    </m:annotation-xml>
+                    <m:annotation encoding="application/x-tex">0.7</m:annotation>
+                  </m:semantics>
+                </m:math>
+              </Math>
+            </td>
+          </tr>
+          <tr>
+            <td align="left" thead="row">
+              <text fontsize="80%">Learning Rate</text>
+            </td>
+            <td align="left" class="ltx_nopad_r">
+              <Math mode="inline" xml:id="A2.T1.m12" tex="1.0\times 10^{-5}" text="1.0 * 10 ^ (- 5)" fragid="A2.T1.m12">
+                <m:math alttext="1.0\times 10^{-5}" display="inline">
+                  <m:semantics>
+                    <m:mrow xml:id="A2.T1.m12.7" xref="A2.T1.m12.7.cmml">
+                      <m:mn mathsize="0.800em" xml:id="A2.T1.m12.1" xref="A2.T1.m12.1.cmml">1.0</m:mn>
+                      <m:mo lspace="0.222em" mathsize="0.800em" rspace="0.222em" xml:id="A2.T1.m12.2" xref="A2.T1.m12.2.cmml">×</m:mo>
+                      <m:msup xml:id="A2.T1.m12.6" xref="A2.T1.m12.6.cmml">
+                        <m:mn mathsize="0.800em" xml:id="A2.T1.m12.3" xref="A2.T1.m12.3.cmml">10</m:mn>
+                        <m:mrow xml:id="A2.T1.m12.5" xref="A2.T1.m12.5.cmml">
+                          <m:mo mathsize="0.800em" xml:id="A2.T1.m12.5a" xref="A2.T1.m12.5.cmml">−</m:mo>
+                          <m:mn mathsize="0.800em" xml:id="A2.T1.m12.4" xref="A2.T1.m12.4.cmml">5</m:mn>
+                        </m:mrow>
+                      </m:msup>
+                    </m:mrow>
+                    <m:annotation-xml encoding="MathML-Content">
+                      <m:apply xml:id="A2.T1.m12.7.cmml" xref="A2.T1.m12.7">
+                        <m:times xml:id="A2.T1.m12.2.cmml" xref="A2.T1.m12.2"/>
+                        <m:cn type="float" xml:id="A2.T1.m12.1.cmml" xref="A2.T1.m12.1">1.0</m:cn>
+                        <m:apply xml:id="A2.T1.m12.6.cmml" xref="A2.T1.m12.6">
+                          <m:csymbol cd="ambiguous" xml:id="A2.T1.m12.6.1.cmml" xref="A2.T1.m12.6">superscript</m:csymbol>
+                          <m:cn type="integer" xml:id="A2.T1.m12.3.cmml" xref="A2.T1.m12.3">10</m:cn>
+                          <m:apply xml:id="A2.T1.m12.5.cmml" xref="A2.T1.m12.5">
+                            <m:minus xml:id="A2.T1.m12.5.1.cmml" xref="A2.T1.m12.5"/>
+                            <m:cn type="integer" xml:id="A2.T1.m12.4.cmml" xref="A2.T1.m12.4">5</m:cn>
+                          </m:apply>
+                        </m:apply>
+                      </m:apply>
+                    </m:annotation-xml>
+                    <m:annotation encoding="application/x-tex">1.0\times 10^{-5}</m:annotation>
+                  </m:semantics>
+                </m:math>
+              </Math>
+            </td>
+          </tr>
+          <tr>
+            <td align="left" thead="row">
+              <text fontsize="80%">Loss weight</text>
+            </td>
+            <td align="left" class="ltx_nopad_r">
+              <Math mode="inline" xml:id="A2.T1.m13" tex="1.0" text="1.0" fragid="A2.T1.m13">
+                <m:math alttext="1.0" display="inline">
+                  <m:semantics>
+                    <m:mn mathsize="0.800em" xml:id="A2.T1.m13.1" xref="A2.T1.m13.1.cmml">1.0</m:mn>
+                    <m:annotation-xml encoding="MathML-Content">
+                      <m:cn type="float" xml:id="A2.T1.m13.1.cmml" xref="A2.T1.m13.1">1.0</m:cn>
+                    </m:annotation-xml>
+                    <m:annotation encoding="application/x-tex">1.0</m:annotation>
+                  </m:semantics>
+                </m:math>
+              </Math>
+            </td>
+          </tr>
+          <tr>
+            <td align="left" thead="row">
+              <text fontsize="80%">Verifier loss</text>
+            </td>
+            <td align="left" class="ltx_nopad_r">
+              <text fontsize="80%">MSE</text>
+            </td>
+          </tr>
+          <tr>
+            <td align="left" thead="row">
+              <text fontsize="80%">Completions per train problem</text>
+            </td>
+            <td align="left" class="ltx_nopad_r">
+              <text fontsize="80%">100</text>
+            </td>
+          </tr>
+          <tr>
+            <td align="left" border="bb" thead="row">
+              <text fontsize="80%">Completions per test problem</text>
+            </td>
+            <td align="left" border="bb" class="ltx_nopad_r">
+              <text fontsize="80%">100</text>
+            </td>
+          </tr>
+        </tbody>
+      </tabular>
+      <toccaption class="ltx_centering">
+        <tag close=" ">
+          <text fontsize="80%">1</text>
+        </tag>
+        <text fontsize="80%">Hyperparameters used for all experiments, unless explicitly said otherwise. Notable exceptions include Figure </text>
+        <ref labelref="LABEL:fig:all_token_dropout" fontsize="80%" idref="S5.F8.sf3" href="#S5.F8.sf3" title="Figure 8(c) ‣ Figure 8 ‣ 5.2 Regularization ‣ 5 Additional Experiments ‣ Training Verifiers to Solve Math Word Problems">
+          <text class="ltx_ref_tag">8(c)</text>
+        </ref>
+        <text fontsize="80%">, which uses 4x more tokens per batch and 300 completions at both training and test time. All dropout experiments in Figure </text>
+        <ref labelref="LABEL:fig:dropout_ablations" fontsize="80%" idref="S5.F8" href="#S5.F8" title="Figure 8 ‣ 5.2 Regularization ‣ 5 Additional Experiments ‣ Training Verifiers to Solve Math Word Problems">
+          <text class="ltx_ref_tag">8</text>
+        </ref>
+        <text fontsize="80%"> use 20% dropout. Figure </text>
+        <ref labelref="LABEL:fig:completions" fontsize="80%" idref="S4.F7.sf1" href="#S4.F7.sf1" title="Figure 7(a) ‣ Figure 7 ‣ 4.3 Verification Ablations ‣ 4 Methods ‣ Training Verifiers to Solve Math Word Problems">
+          <text class="ltx_ref_tag">7(a)</text>
+        </ref>
+        <text fontsize="80%"> uses verifiers trained on 100 completions, but searching over more completions at test time.</text>
+      </toccaption>
+      <caption class="ltx_centering" fontsize="80%">
+        <tag close=": ">
+          <text fontsize="113%">Table 1</text>
+        </tag>
+        <text fontsize="113%">Hyperparameters used for all experiments, unless explicitly said otherwise. Notable exceptions include Figure <ref labelref="LABEL:fig:all_token_dropout" idref="S5.F8.sf3" href="#S5.F8.sf3" title="Figure 8(c) ‣ Figure 8 ‣ 5.2 Regularization ‣ 5 Additional Experiments ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">8(c)</text></ref>, which uses 4x more tokens per batch and 300 completions at both training and test time. All dropout experiments in Figure <ref labelref="LABEL:fig:dropout_ablations" idref="S5.F8" href="#S5.F8" title="Figure 8 ‣ 5.2 Regularization ‣ 5 Additional Experiments ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">8</text></ref> use 20% dropout. Figure <ref labelref="LABEL:fig:completions" idref="S4.F7.sf1" href="#S4.F7.sf1" title="Figure 7(a) ‣ Figure 7 ‣ 4.3 Verification Ablations ‣ 4 Methods ‣ Training Verifiers to Solve Math Word Problems"><text class="ltx_ref_tag">7(a)</text></ref> uses verifiers trained on 100 completions, but searching over more completions at test time.</text>
+      </caption>
+    </table>
+  </appendix>
+  <appendix inlist="toc" xml:id="A3" labels="LABEL:appendix:calculator_annotations" fragid="A3">
+    <tags>
+      <tag>Appendix C</tag>
+      <tag role="autoref">Appendix C</tag>
+      <tag role="creftype">appendix</tag>
+      <tag role="creftypecap">Appendix</tag>
+      <tag role="creftypeplural">appendices</tag>
+      <tag role="creftypepluralcap">Appendices</tag>
+      <tag role="refnum">C</tag>
+      <tag role="typerefnum">Appendix C</tag>
+    </tags>
+    <title fontsize="90%"><tag close=" ">Appendix C</tag>Calculator Annotations</title>
+    <toctitle>
+      <tag close=" ">
+        <text fontsize="90%">C</text>
+      </tag>
+      <text fontsize="90%">Calculator Annotations</text>
+    </toctitle>
+    <para xml:id="A3.p1" fragid="A3.p1">
+      <p>
+        <text fontsize="90%">The calculator annotations were not provided by human contractors: they were generated by a combination of hard-coded logic and a finetuned language model. The logic for auto-generating calculator annotations is imperfect. It is highly unlikely to generate any incorrect annotations, but it is not uncommon for it to ignore some lines that could be annotated.</text>
+      </p>
+    </para>
+    <para xml:id="A3.p2" fragid="A3.p2">
+      <p>
+        <text fontsize="90%">During training, there is no special distinction between the annotated tokens and the rest of the solution: they are all just tokens. During testing, we override model sampling when a well-formatted annotation exists, specifically overwriting the token(s) directly following “=” and within &lt;&lt;…&gt;&gt;.</text>
+      </p>
+    </para>
+    <para xml:id="A3.p3" fragid="A3.p3">
+      <p>
+        <text fontsize="90%">To simulate the calculator, we simply use the python </text>
+        <text font="typewriter" fontsize="90%">eval</text>
+        <text fontsize="90%"> function to evaluate the tokens in the expression (Figure </text>
+        <ref labelref="LABEL:fig:calculator_sampling" fontsize="90%" idref="A3.F9" href="#A3.F9" title="Figure 9 ‣ Appendix C Calculator Annotations ‣ Training Verifiers to Solve Math Word Problems">
+          <text class="ltx_ref_tag">9</text>
+        </ref>
+        <text fontsize="90%">). Evaluations that time out or throw an error result in the annotations being skipped and the model being sampled from as usual.</text>
+      </p>
+    </para>
+    <para xml:id="A3.p4" fragid="A3.p4">
+      <p>
+        <text fontsize="90%">We note that the original version of our calculator, used for all results in this paper, had some minor implementation bugs. Our reported test performance is therefore a slight underestimate, though the magnitude of this discrepancy is less than 1% in most experiments. Fixing the calculator improves verification test performance by about 1% when using the full GSM8K training set.</text>
+      </p>
+    </para>
+    <figure inlist="lof" placement="h" xml:id="A3.F9" labels="LABEL:fig:calculator_sampling" align="center" fragid="A3.F9">
+      <tags>
+        <tag>
+          <text fontsize="90%">Figure 9</text>
+        </tag>
+        <tag role="autoref">Figure 9</tag>
+        <tag role="creftype">fig.</tag>
+        <tag role="creftypecap">Figure</tag>
+        <tag role="creftypeplural">figs.</tag>
+        <tag role="creftypepluralcap">Figures</tag>
+        <tag role="refnum">9</tag>
+        <tag role="typerefnum">Figure 9</tag>
+      </tags>
+      <graphics candidates="figures/calculator_sampling.pdf" graphic="figures/calculator_sampling.pdf" options="width=345.0pt,keepaspectratio=true" xml:id="A3.F9.g1" fragid="A3.F9.g1"/>
+      <toccaption class="ltx_centering">
+        <tag close=" ">
+          <text fontsize="90%">9</text>
+        </tag>
+        <text fontsize="90%">A diagram of the calculator sampling procedure.</text>
+      </toccaption>
+      <caption class="ltx_centering" fontsize="90%"><tag close=": ">Figure 9</tag>A diagram of the calculator sampling procedure.</caption>
+    </figure>
+    <pagination role="newpage"/>
+  </appendix>
+  <appendix inlist="toc" xml:id="A4" labels="LABEL:appendix:example_solutions" fragid="A4">
+    <tags>
+      <tag>Appendix D</tag>
+      <tag role="autoref">Appendix D</tag>
+      <tag role="creftype">appendix</tag>
+      <tag role="creftypecap">Appendix</tag>
+      <tag role="creftypeplural">appendices</tag>
+      <tag role="creftypepluralcap">Appendices</tag>
+      <tag role="refnum">D</tag>
+      <tag role="typerefnum">Appendix D</tag>
+    </tags>
+    <title fontsize="90%"><tag close=" ">Appendix D</tag>Example Model Solutions</title>
+    <toctitle>
+      <tag close=" ">
+        <text fontsize="90%">D</text>
+      </tag>
+      <text fontsize="90%">Example Model Solutions</text>
+    </toctitle>
+    <para xml:id="A4.p1" fragid="A4.p1">
+      <p>
+        <text fontsize="90%">We showcase a handful of samples comparing finetuning and verification at both 6B and 175B scale. Samples were slightly cherry-picked for diversity.</text>
+      </p>
+    </para>
+    <figure placement="h" xml:id="A4.fig3" fragid="A4.fig3">
+      <figure xml:id="A4.fig1" align="center" class="ltx_figure_panel" fragid="A4.fig1">
+        <graphics candidates="figures/example_solutions_1.png" graphic="figures/example_solutions_1.png" options="width=345.0pt,keepaspectratio=true" xml:id="A4.g1" class="ltx_figure_panel" fragid="A4.g1"/>
+        <break class="ltx_break"/>
+        <graphics candidates="figures/example_solutions_3.png" graphic="figures/example_solutions_3.png" options="width=345.0pt,keepaspectratio=true" xml:id="A4.g2" class="ltx_figure_panel" fragid="A4.g2"/>
+      </figure>
+      <figure xml:id="A4.fig2" align="center" class="ltx_figure_panel" fragid="A4.fig2">
+        <graphics candidates="figures/example_solutions_2.png" graphic="figures/example_solutions_2.png" options="width=345.0pt,keepaspectratio=true" xml:id="A4.g3" class="ltx_figure_panel" fragid="A4.g3"/>
+        <break class="ltx_break"/>
+        <graphics candidates="figures/example_solutions_4.png" graphic="figures/example_solutions_4.png" options="width=345.0pt,keepaspectratio=true" xml:id="A4.g4" class="ltx_figure_panel" fragid="A4.g4"/>
+      </figure>
+    </figure>
+    <pagination role="newpage"/>
+    <figure placement="h" xml:id="A4.fig6" fragid="A4.fig6">
+      <figure xml:id="A4.fig4" align="center" class="ltx_figure_panel" fragid="A4.fig4">
+        <graphics candidates="figures/example_solutions_5.png" graphic="figures/example_solutions_5.png" options="width=345.0pt,keepaspectratio=true" xml:id="A4.g5" class="ltx_figure_panel" fragid="A4.g5"/>
+        <break class="ltx_break"/>
+        <graphics candidates="figures/example_solutions_8.png" graphic="figures/example_solutions_8.png" options="width=345.0pt,keepaspectratio=true" xml:id="A4.g6" class="ltx_figure_panel" fragid="A4.g6"/>
+      </figure>
+      <figure xml:id="A4.fig5" align="center" class="ltx_figure_panel" fragid="A4.fig5">
+        <graphics candidates="figures/example_solutions_7.png" graphic="figures/example_solutions_7.png" options="width=345.0pt,keepaspectratio=true" xml:id="A4.g7" class="ltx_figure_panel" fragid="A4.g7"/>
+        <break class="ltx_break"/>
+        <graphics candidates="figures/example_solutions_6.png" graphic="figures/example_solutions_6.png" options="width=345.0pt,keepaspectratio=true" xml:id="A4.g8" class="ltx_figure_panel" fragid="A4.g8"/>
+      </figure>
+    </figure>
+    <pagination role="newpage"/>
+  </appendix>
+  <appendix inlist="toc" xml:id="A5" labels="LABEL:appendix:verifier_details" fragid="A5">
+    <tags>
+      <tag>Appendix E</tag>
+      <tag role="autoref">Appendix E</tag>
+      <tag role="creftype">appendix</tag>
+      <tag role="creftypecap">Appendix</tag>
+      <tag role="creftypeplural">appendices</tag>
+      <tag role="creftypepluralcap">Appendices</tag>
+      <tag role="refnum">E</tag>
+      <tag role="typerefnum">Appendix E</tag>
+    </tags>
+    <title fontsize="90%"><tag close=" ">Appendix E</tag>Verifier Details</title>
+    <toctitle>
+      <tag close=" ">
+        <text fontsize="90%">E</text>
+      </tag>
+      <text fontsize="90%">Verifier Details</text>
+    </toctitle>
+    <para xml:id="A5.p1" fragid="A5.p1">
+      <p>
+        <text fontsize="90%">As noted in section </text>
+        <ref labelref="LABEL:section:verification" fontsize="90%" idref="S4.SS2" href="#S4.SS2" title="4.2 Verification ‣ 4 Methods ‣ Training Verifiers to Solve Math Word Problems">
+          <text class="ltx_ref_tag">4.2</text>
+        </ref>
+        <text fontsize="90%">, we train verifiers with a joint objective where the model learns to label a model completion as correct or incorrect, in addition to the original language modeling objective. Architecturally, this means our verifiers are language models, with a small scalar head that outputs predictions on a per-token basis.</text>
+      </p>
+    </para>
+    <para xml:id="A5.p2" fragid="A5.p2">
+      <p>
+        <text fontsize="90%">We implement this scalar head as a single bias parameter and single gain parameter that operate on the logits outputted by the language model’s final unembedding layer. Specifically, the bias and gain shift and scale the logit corresponding to a special token in the vocabulary. As such, the logits for other tokens can continue to represent the language modeling objective, while this special token is reserved for the verifier’s predictions.</text>
+      </p>
+    </para>
+    <para xml:id="A5.p3" fragid="A5.p3">
+      <p>
+        <text fontsize="90%">We can choose to initialize the verifier from the same pretrained language model the generator was finetuned from, or from the generator itself. In our ablations the latter performed slightly better; we suspect this is because better understanding the language distribution that the generator learned should only aid the verifier in scoring samples from that distribution. Unless otherwise explicitly stated, we initialize our verifiers from their corresponding generators in all experiments.</text>
+      </p>
+    </para>
+    <para xml:id="A5.p4" fragid="A5.p4">
+      <p>
+        <text fontsize="90%">When training verifiers with the joint objective, we use an equal mix of language data and verifier data. Because we sample 100 completions for each original training example to generate the verifier data, using an equal mix means we effectively upsample the original language data by a factor of 100. To form the joint objective, we simply add the verifier loss and language modeling loss unweighted, and define an epoch of this joint objective as having seen each verifier example once. With both objectives, we mask out tokens in the question and only train on tokens in the solutions, as visualized in Figure </text>
+        <ref labelref="LABEL:fig:verifier_masking" fontsize="90%" idref="A5.F12" href="#A5.F12" title="Figure 12 ‣ Appendix E Verifier Details ‣ Training Verifiers to Solve Math Word Problems">
+          <text class="ltx_ref_tag">12</text>
+        </ref>
+        <text fontsize="90%">.</text>
+      </p>
+    </para>
+    <figure inlist="lof" placement="h" xml:id="A5.F12" labels="LABEL:fig:verifier_masking" align="center" fragid="A5.F12">
+      <tags>
+        <tag>
+          <text fontsize="90%">Figure 12</text>
+        </tag>
+        <tag role="autoref">Figure 12</tag>
+        <tag role="creftype">fig.</tag>
+        <tag role="creftypecap">Figure</tag>
+        <tag role="creftypeplural">figs.</tag>
+        <tag role="creftypepluralcap">Figures</tag>
+        <tag role="refnum">12</tag>
+        <tag role="typerefnum">Figure 12</tag>
+      </tags>
+      <graphics candidates="figures/verifier_masking.pdf" graphic="figures/verifier_masking.pdf" options="width=345.0pt,keepaspectratio=true" xml:id="A5.F12.g1" fragid="A5.F12.g1"/>
+      <toccaption class="ltx_centering">
+        <tag close=" ">
+          <text fontsize="90%">12</text>
+        </tag>
+        <text fontsize="90%">Visualization of the joint training objective. We mask out tokens in the question and only consider the loss corresponding to tokens in the solution.</text>
+      </toccaption>
+      <caption class="ltx_centering" fontsize="90%"><tag close=": ">Figure 12</tag>Visualization of the joint training objective. We mask out tokens in the question and only consider the loss corresponding to tokens in the solution.</caption>
+    </figure>
+    <pagination role="newpage"/>
+  </appendix>
+  <appendix inlist="toc" xml:id="A6" labels="LABEL:appendix:verifier_visualization" fragid="A6">
+    <tags>
+      <tag>Appendix F</tag>
+      <tag role="autoref">Appendix F</tag>
+      <tag role="creftype">appendix</tag>
+      <tag role="creftypecap">Appendix</tag>
+      <tag role="creftypeplural">appendices</tag>
+      <tag role="creftypepluralcap">Appendices</tag>
+      <tag role="refnum">F</tag>
+      <tag role="typerefnum">Appendix F</tag>
+    </tags>
+    <title fontsize="90%"><tag close=" ">Appendix F</tag>Verifier Visualization</title>
+    <toctitle>
+      <tag close=" ">
+        <text fontsize="90%">F</text>
+      </tag>
+      <text fontsize="90%">Verifier Visualization</text>
+    </toctitle>
+    <figure inlist="lof" placement="h" xml:id="A6.F13" fragid="A6.F13">
+      <tags>
+        <tag>
+          <text fontsize="90%">Figure 13</text>
+        </tag>
+        <tag role="autoref">Figure 13</tag>
+        <tag role="creftype">fig.</tag>
+        <tag role="creftypecap">Figure</tag>
+        <tag role="creftypeplural">figs.</tag>
+        <tag role="creftypepluralcap">Figures</tag>
+        <tag role="refnum">13</tag>
+        <tag role="typerefnum">Figure 13</tag>
+      </tags>
+      <graphics candidates="figures/vf_viz_cherrypicked.pdf" graphic="figures/vf_viz_cherrypicked.pdf" options="width=258.8pt,keepaspectratio=true" xml:id="A6.F13.g1" class="ltx_centering" fragid="A6.F13.g1"/>
+      <toccaption class="ltx_centering">
+        <tag close=" ">
+          <text fontsize="90%">13</text>
+        </tag>
+        <text fontsize="90%">Five cherry-picked samples generated by a 175B finetuned model and scored by a 175B token-level verifier. A green background color indicates a high verifier score, and a red background color indicates a low one.</text>
+      </toccaption>
+      <caption class="ltx_centering" fontsize="90%"><tag close=": ">Figure 13</tag>Five cherry-picked samples generated by a 175B finetuned model and scored by a 175B token-level verifier. A green background color indicates a high verifier score, and a red background color indicates a low one.</caption>
+    </figure>
+    <para xml:id="A6.p1" fragid="A6.p1">
+      <p>
+        <text fontsize="90%">One benefit of the token-level verifiers is that these models become immediately interpretable: we can visualize the predicted value for each token and better understand how the verifier makes decisions on judging samples. Above we present a visualization of the predicted values for five different cherry-picked questions and model completions, verified by a 175B token-level verifier that was trained on the full training set.</text>
+      </p>
+    </para>
+    <para xml:id="A6.p2" fragid="A6.p2">
+      <p>
+        <text fontsize="90%">In the visualization, the background color of the text corresponds to the verifier score for that token, where red is low value (predicted incorrect) and green is high value (predicted correct). The second column of the table summarizes the verifier’s prediction, and the third column indicates whether the generated model completion was actually correct or incorrect. Any disagreement between the second and third columns indicates that the verifier made an error.</text>
+      </p>
+    </para>
+    <para xml:id="A6.p3" fragid="A6.p3">
+      <p>
+        <text fontsize="90%">The first row includes a true positive example, where the verifier correctly classifies the completion as correct. Note that the model is initially unsure about whether the solution is correct and gradually gains certainty as the solution progresses: this is likely a property of the verifier training procedure, where it trains on a large fraction of incorrect model-generated samples.</text>
+      </p>
+    </para>
+    <para xml:id="A6.p4" fragid="A6.p4">
+      <p>
+        <text fontsize="90%">The second row contains a problem where the solution is correct, but the verifier has rated it as incorrect. This is potentially due to the ambiguity between the “4 times” and the “4 potatoes” in the problem description.</text>
+      </p>
+    </para>
+    <para xml:id="A6.p5" fragid="A6.p5">
+      <p>
+        <text fontsize="90%">The third row consists of another false negative example. However, unlike the previous example, here the model completion contains some faulty reasoning. As such, even though the final answer in the model completion was correct, the natural language explanation was incorrect, and so the verifier correctly assigned a low score.</text>
+      </p>
+    </para>
+    <para xml:id="A6.p6" fragid="A6.p6">
+      <p>
+        <text fontsize="90%">In the fourth row we see the verifier score a model completion that starts out correct, but where the verifier gradually becomes less confident in the solution as the solution progresses. After the solution makes a clear mistake (saying that $64 dollars were spent, instead of the </text>
+        <Math mode="inline" xml:id="A6.p6.m1" tex="64+16+8=\mathdollar 88" text="64 + 16 + 8 = $ * 88" fragid="A6.p6.m1">
+          <m:math alttext="64+16+8=\mathdollar 88" display="inline">
+            <m:semantics>
+              <m:mrow xml:id="A6.p6.m1.11" xref="A6.p6.m1.11.cmml">
+                <m:mrow xml:id="A6.p6.m1.5" xref="A6.p6.m1.5.cmml">
+                  <m:mn mathsize="0.900em" xml:id="A6.p6.m1.1" xref="A6.p6.m1.1.cmml">64</m:mn>
+                  <m:mo mathsize="0.900em" xml:id="A6.p6.m1.2" xref="A6.p6.m1.2.cmml">+</m:mo>
+                  <m:mn mathsize="0.900em" xml:id="A6.p6.m1.3" xref="A6.p6.m1.3.cmml">16</m:mn>
+                  <m:mo mathsize="0.900em" xml:id="A6.p6.m1.2a" xref="A6.p6.m1.2.cmml">+</m:mo>
+                  <m:mn mathsize="0.900em" xml:id="A6.p6.m1.4" xref="A6.p6.m1.4.cmml">8</m:mn>
+                </m:mrow>
+                <m:mo mathsize="0.900em" xml:id="A6.p6.m1.6" xref="A6.p6.m1.6.cmml">=</m:mo>
+                <m:mrow xml:id="A6.p6.m1.10" xref="A6.p6.m1.10.cmml">
+                  <m:mi mathsize="0.900em" mathvariant="normal" xml:id="A6.p6.m1.7" xref="A6.p6.m1.7.cmml">$</m:mi>
+                  <m:mo xml:id="A6.p6.m1.8" xref="A6.p6.m1.8.cmml">⁢</m:mo>
+                  <m:mn mathsize="0.900em" xml:id="A6.p6.m1.9" xref="A6.p6.m1.9.cmml">88</m:mn>
+                </m:mrow>
+              </m:mrow>
+              <m:annotation-xml encoding="MathML-Content">
+                <m:apply xml:id="A6.p6.m1.11.cmml" xref="A6.p6.m1.11">
+                  <m:eq xml:id="A6.p6.m1.6.cmml" xref="A6.p6.m1.6"/>
+                  <m:apply xml:id="A6.p6.m1.5.cmml" xref="A6.p6.m1.5">
+                    <m:plus xml:id="A6.p6.m1.2.cmml" xref="A6.p6.m1.2"/>
+                    <m:cn type="integer" xml:id="A6.p6.m1.1.cmml" xref="A6.p6.m1.1">64</m:cn>
+                    <m:cn type="integer" xml:id="A6.p6.m1.3.cmml" xref="A6.p6.m1.3">16</m:cn>
+                    <m:cn type="integer" xml:id="A6.p6.m1.4.cmml" xref="A6.p6.m1.4">8</m:cn>
+                  </m:apply>
+                  <m:apply xml:id="A6.p6.m1.10.cmml" xref="A6.p6.m1.10">
+                    <m:times xml:id="A6.p6.m1.8.cmml" xref="A6.p6.m1.8"/>
+                    <m:ci xml:id="A6.p6.m1.7.cmml" xref="A6.p6.m1.7">$</m:ci>
+                    <m:cn type="integer" xml:id="A6.p6.m1.9.cmml" xref="A6.p6.m1.9">88</m:cn>
+                  </m:apply>
+                </m:apply>
+              </m:annotation-xml>
+              <m:annotation encoding="application/x-tex">64+16+8=\mathdollar 88</m:annotation>
+            </m:semantics>
+          </m:math>
+        </Math>
+        <text fontsize="90%">), the verifier judges the solution as incorrect with a high degree of confidence.</text>
+      </p>
+    </para>
+    <para xml:id="A6.p7" fragid="A6.p7">
+      <p>
+        <text fontsize="90%">The final row contains a false positive, where the model makes a mistake on the second step, where it subtracts 400 from the price of a diamond jewel instead of a gold one. Verifiers occasionally make mistakes with performing this variable binding of quantities to their relationships.</text>
+      </p>
+    </para>
+    <para xml:id="A6.p8" fragid="A6.p8">
+      <p>
+        <cite/>
+      </p>
+    </para>
+  </appendix>
+  <navigation>
+    <title>Training Verifiers to Solve Math Word Problems</title>
+  </navigation>
+</document>

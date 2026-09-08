@@ -1,0 +1,957 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?latexml searchpaths="/opt/ar5iv-bindings/supported_originals,/opt/ar5iv-bindings/bindings,/custom-bindings,/work"?>
+<?latexml class="article"?>
+<?latexml package="neurips_2023" options="preprint"?>
+<?latexml package="inputenc" options="utf8"?>
+<?latexml package="fontenc" options="T1"?>
+<?latexml package="hyperref"?>
+<?latexml package="url"?>
+<?latexml package="booktabs"?>
+<?latexml package="amsfonts"?>
+<?latexml package="nicefrac"?>
+<?latexml package="microtype"?>
+<?latexml package="xcolor"?>
+<?latexml package="subfig"?>
+<?latexml package="graphicx"?>
+<?latexml package="amsmath"?>
+<?latexml RelaxNGSchema="LaTeXML"?>
+<document xmlns="http://dlmf.nist.gov/LaTeXML" xmlns:m="http://www.w3.org/1998/Math/MathML" class="ltx_authors_1line" xml:id="Document">
+  <resource src="LaTeXML.css" type="text/css"/>
+  <resource src="ltx-article.css" type="text/css"/>
+  <title>ShapeShift: Superquadric-based Object Pose Estimation for Robotic Grasping</title>
+  <creator role="author">
+    <personname>E. Zhixuan Zeng, Yuhao Chen, Alexander Wong<break/>Vision and Image Processing Research Group, University of Waterloo, Waterloo, Canada <break/><text font="typewriter">{emilyzhixuan.zeng, yuhao.chen1, alexander.wong}@uwaterloo.ca</text></personname>
+  </creator>
+  <abstract name="Abstract">
+    <p>Object pose estimation is a critical task in robotics for precise object manipulation. However, current techniques heavily rely on a reference 3D object, limiting their generalizability and making it expensive to expand to new object categories. Direct pose predictions also provide limited information for robotic grasping without referencing the 3D model. Keypoint-based methods offer intrinsic descriptiveness without relying on an exact 3D model, but they may lack consistency and accuracy. To address these challenges, this paper proposes ShapeShift, a superquadric-based framework for object pose estimation that predicts the object’s pose relative to a primitive shape which is fitted to the object. The proposed framework offers intrinsic descriptiveness and the ability to generalize to arbitrary geometric shapes beyond the training set.</p>
+  </abstract>
+  <section inlist="toc" xml:id="S1" labels="LABEL:sec:intro" fragid="S1">
+    <tags>
+      <tag>1</tag>
+      <tag role="autoref">section 1</tag>
+      <tag role="refnum">1</tag>
+      <tag role="typerefnum">§1</tag>
+    </tags>
+    <title><tag close=" ">1</tag>Introduction</title>
+    <para xml:id="S1.p1" fragid="S1.p1">
+      <p>Object pose estimation is a crucial task in robotics, enabling precise manipulation of objects in the environment. However, a common challenge faced by current object pose estimation techniques is their heavy reliance on a reference 3D object.
+Adding new object categories into the model incurs a substantial expense, as it necessitates accurate 3D scans.
+Furthermore, these models have limited generalizability and are confined to a small set of objects. In practice, referring back to the 3D model to obtain useful information about grasp points and positions can limit the effectiveness of these techniques in robotic grasping applications.</p>
+    </para>
+    <para xml:id="S1.p2" fragid="S1.p2">
+      <p>Keypoint-based methods for object pose estimation, such as those described in <cite class="ltx_citemacro_cite">[<ref href="#bib.bib8" idref="bib.bib8" title="A keypoint-based object representation for generating task-specific grasps">6</ref>]</cite> offer intrinsic descriptiveness about the 3D object without the need to reference a 3D model. However, these methods can be arbitrary in their definition and lack consistency between objects. Such methods deal poorly with multiple degrees of symmetry and heavy occlusion.</p>
+    </para>
+    <para xml:id="S1.p3" fragid="S1.p3">
+      <p>To overcome these challenges, this paper proposes ShapeShift, a framework for object pose estimation based on primitive shapes. By fitting a primitive shape to an object, the proposed approach provides intrinsic descriptiveness and information about the 3D object without relying on a 3D model. In this paper, we specifically utilize superquadrics, which are three-dimensional shapes described by a mathematical equation that has been used to simplify shape representation in previous works <cite class="ltx_citemacro_cite">[<ref href="#bib.bib10" idref="bib.bib10" title="Robust and accurate superquadric recovery: a probabilistic approach">3</ref>, <ref href="#bib.bib12" idref="bib.bib12" title="Learning unsupervised hierarchical part decomposition of 3d objects from a single rgb image">5</ref>, <ref href="#bib.bib11" idref="bib.bib11" title="Learning to predict superquadric parameters from depth images with explicit and implicit supervision">4</ref>]</cite>. The proposed approach predicts the object’s pose in reference to a predicted primitive shape fitted to the object. This not only provides intrinsic descriptiveness but also enables generalization to arbitrary geometric shapes not present in the training set, making it a promising solution to the challenges faced by current object pose estimation techniques.</p>
+    </para>
+    <figure inlist="lof" xml:id="S1.F1" labels="LABEL:fig:scene_example" fragid="S1.F1">
+      <tags>
+        <tag>Figure 1</tag>
+        <tag role="autoref">Figure 1</tag>
+        <tag role="refnum">1</tag>
+        <tag role="typerefnum">Figure 1</tag>
+      </tags>
+      <graphics candidates="figures/scene2609_17.png" graphic="figures/scene2609_17.png" options="width=195.1pt,trim=85.35826pt 113.81102pt 56.9055pt 170.71652pt,clip=true,keepaspectratio=true" xml:id="S1.F1.g1" class="ltx_centering ltx_figure_panel" fragid="S1.F1.g1"/>
+      <graphics candidates="figures/scene2609_17_3d.png" graphic="figures/scene2609_17_3d.png" options="width=195.1pt,keepaspectratio=true" xml:id="S1.F1.g2" class="ltx_centering ltx_figure_panel" fragid="S1.F1.g2"/>
+      <toccaption class="ltx_centering"><tag close=" ">1</tag>An example of ShapeShift on a typical scene.</toccaption>
+      <caption class="ltx_centering"><tag close=": ">Figure 1</tag>An example of ShapeShift on a typical scene.</caption>
+    </figure>
+  </section>
+  <section inlist="toc" xml:id="S2" fragid="S2">
+    <tags>
+      <tag>2</tag>
+      <tag role="autoref">section 2</tag>
+      <tag role="refnum">2</tag>
+      <tag role="typerefnum">§2</tag>
+    </tags>
+    <title><tag close=" ">2</tag>Method</title>
+    <para xml:id="S2.p1" fragid="S2.p1">
+      <p>The proposed ShapeShift framework can be described as follows. In the first phase, primitive shapes are fitted to each geometric part of an object using superquadrics. In the second phase, the superquadrics fits are leveraged as “ground truth“ for a superquadric-guided direct regression network to directly predict pose and shape information.</p>
+    </para>
+    <subsection inlist="toc" xml:id="S2.SS1" fragid="S2.SS1">
+      <tags>
+        <tag>2.1</tag>
+        <tag role="autoref">subsection 2.1</tag>
+        <tag role="refnum">2.1</tag>
+        <tag role="typerefnum">§2.1</tag>
+      </tags>
+      <title><tag close=" ">2.1</tag>Phase 1: Superquadric fitting</title>
+      <para xml:id="S2.SS1.p1" fragid="S2.SS1.p1">
+        <p>Superquadrics,
+characterized by <Math mode="inline" xml:id="S2.SS1.p1.m1" tex="\theta=\left\{\epsilon_{1},\epsilon_{2},a_{x},a_{y},a_{z},[r_{x},r_{y},r_{z}],%&#10;t\right\}" text="theta = set@(epsilon _ 1, epsilon _ 2, a _ x, a _ y, a _ z, list@(r _ x, r _ y, r _ z), t)" fragid="S2.SS1.p1.m1"><m:math alttext="\theta=\left\{\epsilon_{1},\epsilon_{2},a_{x},a_{y},a_{z},[r_{x},r_{y},r_{z}],%&#10;t\right\}" display="inline"><m:semantics><m:mrow xml:id="S2.SS1.p1.m1.12" xref="S2.SS1.p1.m1.12.cmml"><m:mi xml:id="S2.SS1.p1.m1.8" xref="S2.SS1.p1.m1.8.cmml">θ</m:mi><m:mo xml:id="S2.SS1.p1.m1.9" xref="S2.SS1.p1.m1.9.cmml">=</m:mo><m:mrow xml:id="S2.SS1.p1.m1.11" xref="S2.SS1.p1.m1.11.cmml"><m:mo xml:id="S2.SS1.p1.m1.10" xref="S2.SS1.p1.m1.11.cmml">{</m:mo><m:msub xml:id="S2.SS1.p1.m1.2" xref="S2.SS1.p1.m1.2.cmml"><m:mi xml:id="S2.SS1.p1.m1.2.1" xref="S2.SS1.p1.m1.2.1.cmml">ϵ</m:mi><m:mn xml:id="S2.SS1.p1.m1.2.2" xref="S2.SS1.p1.m1.2.2.cmml">1</m:mn></m:msub><m:mo xml:id="S2.SS1.p1.m1.10a" xref="S2.SS1.p1.m1.11.cmml">,</m:mo><m:msub xml:id="S2.SS1.p1.m1.3" xref="S2.SS1.p1.m1.3.cmml"><m:mi xml:id="S2.SS1.p1.m1.3.1" xref="S2.SS1.p1.m1.3.1.cmml">ϵ</m:mi><m:mn xml:id="S2.SS1.p1.m1.3.2" xref="S2.SS1.p1.m1.3.2.cmml">2</m:mn></m:msub><m:mo xml:id="S2.SS1.p1.m1.10b" xref="S2.SS1.p1.m1.11.cmml">,</m:mo><m:msub xml:id="S2.SS1.p1.m1.4" xref="S2.SS1.p1.m1.4.cmml"><m:mi xml:id="S2.SS1.p1.m1.4.1" xref="S2.SS1.p1.m1.4.1.cmml">a</m:mi><m:mi xml:id="S2.SS1.p1.m1.4.2" xref="S2.SS1.p1.m1.4.2.cmml">x</m:mi></m:msub><m:mo xml:id="S2.SS1.p1.m1.10c" xref="S2.SS1.p1.m1.11.cmml">,</m:mo><m:msub xml:id="S2.SS1.p1.m1.5" xref="S2.SS1.p1.m1.5.cmml"><m:mi xml:id="S2.SS1.p1.m1.5.1" xref="S2.SS1.p1.m1.5.1.cmml">a</m:mi><m:mi xml:id="S2.SS1.p1.m1.5.2" xref="S2.SS1.p1.m1.5.2.cmml">y</m:mi></m:msub><m:mo xml:id="S2.SS1.p1.m1.10d" xref="S2.SS1.p1.m1.11.cmml">,</m:mo><m:msub xml:id="S2.SS1.p1.m1.6" xref="S2.SS1.p1.m1.6.cmml"><m:mi xml:id="S2.SS1.p1.m1.6.1" xref="S2.SS1.p1.m1.6.1.cmml">a</m:mi><m:mi xml:id="S2.SS1.p1.m1.6.2" xref="S2.SS1.p1.m1.6.2.cmml">z</m:mi></m:msub><m:mo xml:id="S2.SS1.p1.m1.10e" xref="S2.SS1.p1.m1.11.cmml">,</m:mo><m:mrow xml:id="S2.SS1.p1.m1.7" xref="S2.SS1.p1.m1.7.cmml"><m:mo stretchy="false" xml:id="S2.SS1.p1.m1.7.4" xref="S2.SS1.p1.m1.7.cmml">[</m:mo><m:msub xml:id="S2.SS1.p1.m1.7.1" xref="S2.SS1.p1.m1.7.1.cmml"><m:mi xml:id="S2.SS1.p1.m1.7.1.1" xref="S2.SS1.p1.m1.7.1.1.cmml">r</m:mi><m:mi xml:id="S2.SS1.p1.m1.7.1.2" xref="S2.SS1.p1.m1.7.1.2.cmml">x</m:mi></m:msub><m:mo xml:id="S2.SS1.p1.m1.7.4a" xref="S2.SS1.p1.m1.7.cmml">,</m:mo><m:msub xml:id="S2.SS1.p1.m1.7.2" xref="S2.SS1.p1.m1.7.2.cmml"><m:mi xml:id="S2.SS1.p1.m1.7.2.1" xref="S2.SS1.p1.m1.7.2.1.cmml">r</m:mi><m:mi xml:id="S2.SS1.p1.m1.7.2.2" xref="S2.SS1.p1.m1.7.2.2.cmml">y</m:mi></m:msub><m:mo xml:id="S2.SS1.p1.m1.7.4b" xref="S2.SS1.p1.m1.7.cmml">,</m:mo><m:msub xml:id="S2.SS1.p1.m1.7.3" xref="S2.SS1.p1.m1.7.3.cmml"><m:mi xml:id="S2.SS1.p1.m1.7.3.1" xref="S2.SS1.p1.m1.7.3.1.cmml">r</m:mi><m:mi xml:id="S2.SS1.p1.m1.7.3.2" xref="S2.SS1.p1.m1.7.3.2.cmml">z</m:mi></m:msub><m:mo stretchy="false" xml:id="S2.SS1.p1.m1.7.4c" xref="S2.SS1.p1.m1.7.cmml">]</m:mo></m:mrow><m:mo xml:id="S2.SS1.p1.m1.10f" xref="S2.SS1.p1.m1.11.cmml">,</m:mo><m:mi xml:id="S2.SS1.p1.m1.1" xref="S2.SS1.p1.m1.1.cmml">t</m:mi><m:mo xml:id="S2.SS1.p1.m1.10g" xref="S2.SS1.p1.m1.11.cmml">}</m:mo></m:mrow></m:mrow><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S2.SS1.p1.m1.12.cmml" xref="S2.SS1.p1.m1.12"><m:eq xml:id="S2.SS1.p1.m1.9.cmml" xref="S2.SS1.p1.m1.9"/><m:ci xml:id="S2.SS1.p1.m1.8.cmml" xref="S2.SS1.p1.m1.8">𝜃</m:ci><m:set xml:id="S2.SS1.p1.m1.11.cmml" xref="S2.SS1.p1.m1.11"><m:apply xml:id="S2.SS1.p1.m1.2.cmml" xref="S2.SS1.p1.m1.2"><m:csymbol cd="ambiguous" xml:id="S2.SS1.p1.m1.2.3.cmml" xref="S2.SS1.p1.m1.2">subscript</m:csymbol><m:ci xml:id="S2.SS1.p1.m1.2.1.cmml" xref="S2.SS1.p1.m1.2.1">italic-ϵ</m:ci><m:cn type="integer" xml:id="S2.SS1.p1.m1.2.2.cmml" xref="S2.SS1.p1.m1.2.2">1</m:cn></m:apply><m:apply xml:id="S2.SS1.p1.m1.3.cmml" xref="S2.SS1.p1.m1.3"><m:csymbol cd="ambiguous" xml:id="S2.SS1.p1.m1.3.3.cmml" xref="S2.SS1.p1.m1.3">subscript</m:csymbol><m:ci xml:id="S2.SS1.p1.m1.3.1.cmml" xref="S2.SS1.p1.m1.3.1">italic-ϵ</m:ci><m:cn type="integer" xml:id="S2.SS1.p1.m1.3.2.cmml" xref="S2.SS1.p1.m1.3.2">2</m:cn></m:apply><m:apply xml:id="S2.SS1.p1.m1.4.cmml" xref="S2.SS1.p1.m1.4"><m:csymbol cd="ambiguous" xml:id="S2.SS1.p1.m1.4.3.cmml" xref="S2.SS1.p1.m1.4">subscript</m:csymbol><m:ci xml:id="S2.SS1.p1.m1.4.1.cmml" xref="S2.SS1.p1.m1.4.1">𝑎</m:ci><m:ci xml:id="S2.SS1.p1.m1.4.2.cmml" xref="S2.SS1.p1.m1.4.2">𝑥</m:ci></m:apply><m:apply xml:id="S2.SS1.p1.m1.5.cmml" xref="S2.SS1.p1.m1.5"><m:csymbol cd="ambiguous" xml:id="S2.SS1.p1.m1.5.3.cmml" xref="S2.SS1.p1.m1.5">subscript</m:csymbol><m:ci xml:id="S2.SS1.p1.m1.5.1.cmml" xref="S2.SS1.p1.m1.5.1">𝑎</m:ci><m:ci xml:id="S2.SS1.p1.m1.5.2.cmml" xref="S2.SS1.p1.m1.5.2">𝑦</m:ci></m:apply><m:apply xml:id="S2.SS1.p1.m1.6.cmml" xref="S2.SS1.p1.m1.6"><m:csymbol cd="ambiguous" xml:id="S2.SS1.p1.m1.6.3.cmml" xref="S2.SS1.p1.m1.6">subscript</m:csymbol><m:ci xml:id="S2.SS1.p1.m1.6.1.cmml" xref="S2.SS1.p1.m1.6.1">𝑎</m:ci><m:ci xml:id="S2.SS1.p1.m1.6.2.cmml" xref="S2.SS1.p1.m1.6.2">𝑧</m:ci></m:apply><m:list xml:id="S2.SS1.p1.m1.7.cmml" xref="S2.SS1.p1.m1.7"><m:apply xml:id="S2.SS1.p1.m1.7.1.cmml" xref="S2.SS1.p1.m1.7.1"><m:csymbol cd="ambiguous" xml:id="S2.SS1.p1.m1.7.1.3.cmml" xref="S2.SS1.p1.m1.7.1">subscript</m:csymbol><m:ci xml:id="S2.SS1.p1.m1.7.1.1.cmml" xref="S2.SS1.p1.m1.7.1.1">𝑟</m:ci><m:ci xml:id="S2.SS1.p1.m1.7.1.2.cmml" xref="S2.SS1.p1.m1.7.1.2">𝑥</m:ci></m:apply><m:apply xml:id="S2.SS1.p1.m1.7.2.cmml" xref="S2.SS1.p1.m1.7.2"><m:csymbol cd="ambiguous" xml:id="S2.SS1.p1.m1.7.2.3.cmml" xref="S2.SS1.p1.m1.7.2">subscript</m:csymbol><m:ci xml:id="S2.SS1.p1.m1.7.2.1.cmml" xref="S2.SS1.p1.m1.7.2.1">𝑟</m:ci><m:ci xml:id="S2.SS1.p1.m1.7.2.2.cmml" xref="S2.SS1.p1.m1.7.2.2">𝑦</m:ci></m:apply><m:apply xml:id="S2.SS1.p1.m1.7.3.cmml" xref="S2.SS1.p1.m1.7.3"><m:csymbol cd="ambiguous" xml:id="S2.SS1.p1.m1.7.3.3.cmml" xref="S2.SS1.p1.m1.7.3">subscript</m:csymbol><m:ci xml:id="S2.SS1.p1.m1.7.3.1.cmml" xref="S2.SS1.p1.m1.7.3.1">𝑟</m:ci><m:ci xml:id="S2.SS1.p1.m1.7.3.2.cmml" xref="S2.SS1.p1.m1.7.3.2">𝑧</m:ci></m:apply></m:list><m:ci xml:id="S2.SS1.p1.m1.1.cmml" xref="S2.SS1.p1.m1.1">𝑡</m:ci></m:set></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">\theta=\left\{\epsilon_{1},\epsilon_{2},a_{x},a_{y},a_{z},[r_{x},r_{y},r_{z}],%
+t\right\}</m:annotation></m:semantics></m:math></Math>. <Math mode="inline" xml:id="S2.SS1.p1.m2" tex="a_{x}" text="a _ x" fragid="S2.SS1.p1.m2"><m:math alttext="a_{x}" display="inline"><m:semantics><m:msub xml:id="S2.SS1.p1.m2.3" xref="S2.SS1.p1.m2.3.cmml"><m:mi xml:id="S2.SS1.p1.m2.1" xref="S2.SS1.p1.m2.1.cmml">a</m:mi><m:mi xml:id="S2.SS1.p1.m2.2" xref="S2.SS1.p1.m2.2.cmml">x</m:mi></m:msub><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S2.SS1.p1.m2.3.cmml" xref="S2.SS1.p1.m2.3"><m:csymbol cd="ambiguous" xml:id="S2.SS1.p1.m2.3.1.cmml" xref="S2.SS1.p1.m2.3">subscript</m:csymbol><m:ci xml:id="S2.SS1.p1.m2.1.cmml" xref="S2.SS1.p1.m2.1">𝑎</m:ci><m:ci xml:id="S2.SS1.p1.m2.2.cmml" xref="S2.SS1.p1.m2.2">𝑥</m:ci></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">a_{x}</m:annotation></m:semantics></m:math></Math>, <Math mode="inline" xml:id="S2.SS1.p1.m3" tex="a_{y}" text="a _ y" fragid="S2.SS1.p1.m3"><m:math alttext="a_{y}" display="inline"><m:semantics><m:msub xml:id="S2.SS1.p1.m3.3" xref="S2.SS1.p1.m3.3.cmml"><m:mi xml:id="S2.SS1.p1.m3.1" xref="S2.SS1.p1.m3.1.cmml">a</m:mi><m:mi xml:id="S2.SS1.p1.m3.2" xref="S2.SS1.p1.m3.2.cmml">y</m:mi></m:msub><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S2.SS1.p1.m3.3.cmml" xref="S2.SS1.p1.m3.3"><m:csymbol cd="ambiguous" xml:id="S2.SS1.p1.m3.3.1.cmml" xref="S2.SS1.p1.m3.3">subscript</m:csymbol><m:ci xml:id="S2.SS1.p1.m3.1.cmml" xref="S2.SS1.p1.m3.1">𝑎</m:ci><m:ci xml:id="S2.SS1.p1.m3.2.cmml" xref="S2.SS1.p1.m3.2">𝑦</m:ci></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">a_{y}</m:annotation></m:semantics></m:math></Math>, and <Math mode="inline" xml:id="S2.SS1.p1.m4" tex="a_{z}" text="a _ z" fragid="S2.SS1.p1.m4"><m:math alttext="a_{z}" display="inline"><m:semantics><m:msub xml:id="S2.SS1.p1.m4.3" xref="S2.SS1.p1.m4.3.cmml"><m:mi xml:id="S2.SS1.p1.m4.1" xref="S2.SS1.p1.m4.1.cmml">a</m:mi><m:mi xml:id="S2.SS1.p1.m4.2" xref="S2.SS1.p1.m4.2.cmml">z</m:mi></m:msub><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S2.SS1.p1.m4.3.cmml" xref="S2.SS1.p1.m4.3"><m:csymbol cd="ambiguous" xml:id="S2.SS1.p1.m4.3.1.cmml" xref="S2.SS1.p1.m4.3">subscript</m:csymbol><m:ci xml:id="S2.SS1.p1.m4.1.cmml" xref="S2.SS1.p1.m4.1">𝑎</m:ci><m:ci xml:id="S2.SS1.p1.m4.2.cmml" xref="S2.SS1.p1.m4.2">𝑧</m:ci></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">a_{z}</m:annotation></m:semantics></m:math></Math> are the scale, <Math mode="inline" xml:id="S2.SS1.p1.m5" tex="\epsilon_{1}" text="epsilon _ 1" fragid="S2.SS1.p1.m5"><m:math alttext="\epsilon_{1}" display="inline"><m:semantics><m:msub xml:id="S2.SS1.p1.m5.3" xref="S2.SS1.p1.m5.3.cmml"><m:mi xml:id="S2.SS1.p1.m5.1" xref="S2.SS1.p1.m5.1.cmml">ϵ</m:mi><m:mn xml:id="S2.SS1.p1.m5.2" xref="S2.SS1.p1.m5.2.cmml">1</m:mn></m:msub><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S2.SS1.p1.m5.3.cmml" xref="S2.SS1.p1.m5.3"><m:csymbol cd="ambiguous" xml:id="S2.SS1.p1.m5.3.1.cmml" xref="S2.SS1.p1.m5.3">subscript</m:csymbol><m:ci xml:id="S2.SS1.p1.m5.1.cmml" xref="S2.SS1.p1.m5.1">italic-ϵ</m:ci><m:cn type="integer" xml:id="S2.SS1.p1.m5.2.cmml" xref="S2.SS1.p1.m5.2">1</m:cn></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">\epsilon_{1}</m:annotation></m:semantics></m:math></Math> and <Math mode="inline" xml:id="S2.SS1.p1.m6" tex="\epsilon_{2}" text="epsilon _ 2" fragid="S2.SS1.p1.m6"><m:math alttext="\epsilon_{2}" display="inline"><m:semantics><m:msub xml:id="S2.SS1.p1.m6.3" xref="S2.SS1.p1.m6.3.cmml"><m:mi xml:id="S2.SS1.p1.m6.1" xref="S2.SS1.p1.m6.1.cmml">ϵ</m:mi><m:mn xml:id="S2.SS1.p1.m6.2" xref="S2.SS1.p1.m6.2.cmml">2</m:mn></m:msub><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S2.SS1.p1.m6.3.cmml" xref="S2.SS1.p1.m6.3"><m:csymbol cd="ambiguous" xml:id="S2.SS1.p1.m6.3.1.cmml" xref="S2.SS1.p1.m6.3">subscript</m:csymbol><m:ci xml:id="S2.SS1.p1.m6.1.cmml" xref="S2.SS1.p1.m6.1">italic-ϵ</m:ci><m:cn type="integer" xml:id="S2.SS1.p1.m6.2.cmml" xref="S2.SS1.p1.m6.2">2</m:cn></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">\epsilon_{2}</m:annotation></m:semantics></m:math></Math> define the shape of the surface, (<Math mode="inline" xml:id="S2.SS1.p1.m7" tex="r_{x},r_{y},r_{z}" text="list@(r _ x, r _ y, r _ z)" fragid="S2.SS1.p1.m7"><m:math alttext="r_{x},r_{y},r_{z}" display="inline"><m:semantics><m:mrow xml:id="S2.SS1.p1.m7.5" xref="S2.SS1.p1.m7.5.cmml"><m:msub xml:id="S2.SS1.p1.m7.1" xref="S2.SS1.p1.m7.1.cmml"><m:mi xml:id="S2.SS1.p1.m7.1.1" xref="S2.SS1.p1.m7.1.1.cmml">r</m:mi><m:mi xml:id="S2.SS1.p1.m7.1.2" xref="S2.SS1.p1.m7.1.2.cmml">x</m:mi></m:msub><m:mo xml:id="S2.SS1.p1.m7.4" xref="S2.SS1.p1.m7.5.cmml">,</m:mo><m:msub xml:id="S2.SS1.p1.m7.2" xref="S2.SS1.p1.m7.2.cmml"><m:mi xml:id="S2.SS1.p1.m7.2.1" xref="S2.SS1.p1.m7.2.1.cmml">r</m:mi><m:mi xml:id="S2.SS1.p1.m7.2.2" xref="S2.SS1.p1.m7.2.2.cmml">y</m:mi></m:msub><m:mo xml:id="S2.SS1.p1.m7.4a" xref="S2.SS1.p1.m7.5.cmml">,</m:mo><m:msub xml:id="S2.SS1.p1.m7.3" xref="S2.SS1.p1.m7.3.cmml"><m:mi xml:id="S2.SS1.p1.m7.3.1" xref="S2.SS1.p1.m7.3.1.cmml">r</m:mi><m:mi xml:id="S2.SS1.p1.m7.3.2" xref="S2.SS1.p1.m7.3.2.cmml">z</m:mi></m:msub></m:mrow><m:annotation-xml encoding="MathML-Content"><m:list xml:id="S2.SS1.p1.m7.5.cmml" xref="S2.SS1.p1.m7.5"><m:apply xml:id="S2.SS1.p1.m7.1.cmml" xref="S2.SS1.p1.m7.1"><m:csymbol cd="ambiguous" xml:id="S2.SS1.p1.m7.1.3.cmml" xref="S2.SS1.p1.m7.1">subscript</m:csymbol><m:ci xml:id="S2.SS1.p1.m7.1.1.cmml" xref="S2.SS1.p1.m7.1.1">𝑟</m:ci><m:ci xml:id="S2.SS1.p1.m7.1.2.cmml" xref="S2.SS1.p1.m7.1.2">𝑥</m:ci></m:apply><m:apply xml:id="S2.SS1.p1.m7.2.cmml" xref="S2.SS1.p1.m7.2"><m:csymbol cd="ambiguous" xml:id="S2.SS1.p1.m7.2.3.cmml" xref="S2.SS1.p1.m7.2">subscript</m:csymbol><m:ci xml:id="S2.SS1.p1.m7.2.1.cmml" xref="S2.SS1.p1.m7.2.1">𝑟</m:ci><m:ci xml:id="S2.SS1.p1.m7.2.2.cmml" xref="S2.SS1.p1.m7.2.2">𝑦</m:ci></m:apply><m:apply xml:id="S2.SS1.p1.m7.3.cmml" xref="S2.SS1.p1.m7.3"><m:csymbol cd="ambiguous" xml:id="S2.SS1.p1.m7.3.3.cmml" xref="S2.SS1.p1.m7.3">subscript</m:csymbol><m:ci xml:id="S2.SS1.p1.m7.3.1.cmml" xref="S2.SS1.p1.m7.3.1">𝑟</m:ci><m:ci xml:id="S2.SS1.p1.m7.3.2.cmml" xref="S2.SS1.p1.m7.3.2">𝑧</m:ci></m:apply></m:list></m:annotation-xml><m:annotation encoding="application/x-tex">r_{x},r_{y},r_{z}</m:annotation></m:semantics></m:math></Math>) defines rotation and <Math mode="inline" xml:id="S2.SS1.p1.m8" tex="t" text="t" fragid="S2.SS1.p1.m8"><m:math alttext="t" display="inline"><m:semantics><m:mi xml:id="S2.SS1.p1.m8.1" xref="S2.SS1.p1.m8.1.cmml">t</m:mi><m:annotation-xml encoding="MathML-Content"><m:ci xml:id="S2.SS1.p1.m8.1.cmml" xref="S2.SS1.p1.m8.1">𝑡</m:ci></m:annotation-xml><m:annotation encoding="application/x-tex">t</m:annotation></m:semantics></m:math></Math> is translation.</p>
+      </para>
+      <para xml:id="S2.SS1.p2" fragid="S2.SS1.p2">
+        <p>The first phase of ShapeShift leverages the superquadric fitting technique from Liu <cite class="ltx_citemacro_cite">[<ref href="#bib.bib10" idref="bib.bib10" title="Robust and accurate superquadric recovery: a probabilistic approach">3</ref>]</cite> to fit superquadrics to parts.</p>
+      </para>
+      <para xml:id="S2.SS1.p3" fragid="S2.SS1.p3">
+        <p>However, there are scenarios where different parameters result in the same superquadric. In particular, Liu <cite class="ltx_citemacro_cite">[<ref href="#bib.bib10" idref="bib.bib10" title="Robust and accurate superquadric recovery: a probabilistic approach">3</ref>]</cite> introduced duality similarity, when <Math mode="inline" xml:id="S2.SS1.p3.m1" tex="a_{x}\approx a_{y}" text="a _ x approximately-equals a _ y" fragid="S2.SS1.p3.m1"><m:math alttext="a_{x}\approx a_{y}" display="inline"><m:semantics><m:mrow xml:id="S2.SS1.p3.m1.8" xref="S2.SS1.p3.m1.8.cmml"><m:msub xml:id="S2.SS1.p3.m1.3" xref="S2.SS1.p3.m1.3.cmml"><m:mi xml:id="S2.SS1.p3.m1.1" xref="S2.SS1.p3.m1.1.cmml">a</m:mi><m:mi xml:id="S2.SS1.p3.m1.2" xref="S2.SS1.p3.m1.2.cmml">x</m:mi></m:msub><m:mo xml:id="S2.SS1.p3.m1.4" xref="S2.SS1.p3.m1.4.cmml">≈</m:mo><m:msub xml:id="S2.SS1.p3.m1.7" xref="S2.SS1.p3.m1.7.cmml"><m:mi xml:id="S2.SS1.p3.m1.5" xref="S2.SS1.p3.m1.5.cmml">a</m:mi><m:mi xml:id="S2.SS1.p3.m1.6" xref="S2.SS1.p3.m1.6.cmml">y</m:mi></m:msub></m:mrow><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S2.SS1.p3.m1.8.cmml" xref="S2.SS1.p3.m1.8"><m:approx xml:id="S2.SS1.p3.m1.4.cmml" xref="S2.SS1.p3.m1.4"/><m:apply xml:id="S2.SS1.p3.m1.3.cmml" xref="S2.SS1.p3.m1.3"><m:csymbol cd="ambiguous" xml:id="S2.SS1.p3.m1.3.1.cmml" xref="S2.SS1.p3.m1.3">subscript</m:csymbol><m:ci xml:id="S2.SS1.p3.m1.1.cmml" xref="S2.SS1.p3.m1.1">𝑎</m:ci><m:ci xml:id="S2.SS1.p3.m1.2.cmml" xref="S2.SS1.p3.m1.2">𝑥</m:ci></m:apply><m:apply xml:id="S2.SS1.p3.m1.7.cmml" xref="S2.SS1.p3.m1.7"><m:csymbol cd="ambiguous" xml:id="S2.SS1.p3.m1.7.1.cmml" xref="S2.SS1.p3.m1.7">subscript</m:csymbol><m:ci xml:id="S2.SS1.p3.m1.5.cmml" xref="S2.SS1.p3.m1.5">𝑎</m:ci><m:ci xml:id="S2.SS1.p3.m1.6.cmml" xref="S2.SS1.p3.m1.6">𝑦</m:ci></m:apply></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">a_{x}\approx a_{y}</m:annotation></m:semantics></m:math></Math>, <Math mode="inline" xml:id="S2.SS1.p3.m2" tex="\epsilon_{2}&gt;1" text="epsilon _ 2 &gt; 1" fragid="S2.SS1.p3.m2"><m:math alttext="\epsilon_{2}&gt;1" display="inline"><m:semantics><m:mrow xml:id="S2.SS1.p3.m2.6" xref="S2.SS1.p3.m2.6.cmml"><m:msub xml:id="S2.SS1.p3.m2.3" xref="S2.SS1.p3.m2.3.cmml"><m:mi xml:id="S2.SS1.p3.m2.1" xref="S2.SS1.p3.m2.1.cmml">ϵ</m:mi><m:mn xml:id="S2.SS1.p3.m2.2" xref="S2.SS1.p3.m2.2.cmml">2</m:mn></m:msub><m:mo xml:id="S2.SS1.p3.m2.4" xref="S2.SS1.p3.m2.4.cmml">&gt;</m:mo><m:mn xml:id="S2.SS1.p3.m2.5" xref="S2.SS1.p3.m2.5.cmml">1</m:mn></m:mrow><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S2.SS1.p3.m2.6.cmml" xref="S2.SS1.p3.m2.6"><m:gt xml:id="S2.SS1.p3.m2.4.cmml" xref="S2.SS1.p3.m2.4"/><m:apply xml:id="S2.SS1.p3.m2.3.cmml" xref="S2.SS1.p3.m2.3"><m:csymbol cd="ambiguous" xml:id="S2.SS1.p3.m2.3.1.cmml" xref="S2.SS1.p3.m2.3">subscript</m:csymbol><m:ci xml:id="S2.SS1.p3.m2.1.cmml" xref="S2.SS1.p3.m2.1">italic-ϵ</m:ci><m:cn type="integer" xml:id="S2.SS1.p3.m2.2.cmml" xref="S2.SS1.p3.m2.2">2</m:cn></m:apply><m:cn type="integer" xml:id="S2.SS1.p3.m2.5.cmml" xref="S2.SS1.p3.m2.5">1</m:cn></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">\epsilon_{2}&gt;1</m:annotation></m:semantics></m:math></Math>:</p>
+      </para>
+      <para xml:id="S2.SS1.p4" fragid="S2.SS1.p4">
+        <equation xml:id="S2.E1" labels="LABEL:eq:duality" fragid="S2.E1">
+          <tags>
+            <tag>(1)</tag>
+            <tag role="autoref">Equation 1</tag>
+            <tag role="refnum">1</tag>
+          </tags>
+          <Math mode="display" xml:id="S2.E1.m1" tex="\theta_{3}^{c}=\left\{\epsilon_{1},2-\epsilon_{2},s\cdot\bar{a},s\cdot\bar{a},%&#10;a_{z},R\cdot R_{z}(\pi/4),t\right\}\\&#10;" text="(theta _ 3) ^ c = set@(epsilon _ 1, 2 - epsilon _ 2, s cdot bar@(a), s cdot bar@(a), a _ z, (R cdot R _ z) * (pi / 4), t)" fragid="S2.E1.m1">
+            <m:math alttext="\theta_{3}^{c}=\left\{\epsilon_{1},2-\epsilon_{2},s\cdot\bar{a},s\cdot\bar{a},%&#10;a_{z},R\cdot R_{z}(\pi/4),t\right\}\\&#10;" display="block">
+              <m:semantics>
+                <m:mrow xml:id="S2.E1.m1.15" xref="S2.E1.m1.15.cmml">
+                  <m:msubsup xml:id="S2.E1.m1.11" xref="S2.E1.m1.11.cmml">
+                    <m:mi xml:id="S2.E1.m1.8" xref="S2.E1.m1.8.cmml">θ</m:mi>
+                    <m:mn xml:id="S2.E1.m1.9" xref="S2.E1.m1.9.cmml">3</m:mn>
+                    <m:mi xml:id="S2.E1.m1.10" xref="S2.E1.m1.10.cmml">c</m:mi>
+                  </m:msubsup>
+                  <m:mo xml:id="S2.E1.m1.12" xref="S2.E1.m1.12.cmml">=</m:mo>
+                  <m:mrow xml:id="S2.E1.m1.14" xref="S2.E1.m1.14.cmml">
+                    <m:mo xml:id="S2.E1.m1.13" xref="S2.E1.m1.14.cmml">{</m:mo>
+                    <m:msub xml:id="S2.E1.m1.2" xref="S2.E1.m1.2.cmml">
+                      <m:mi xml:id="S2.E1.m1.2.1" xref="S2.E1.m1.2.1.cmml">ϵ</m:mi>
+                      <m:mn xml:id="S2.E1.m1.2.2" xref="S2.E1.m1.2.2.cmml">1</m:mn>
+                    </m:msub>
+                    <m:mo xml:id="S2.E1.m1.13a" xref="S2.E1.m1.14.cmml">,</m:mo>
+                    <m:mrow xml:id="S2.E1.m1.3" xref="S2.E1.m1.3.cmml">
+                      <m:mn xml:id="S2.E1.m1.3.1" xref="S2.E1.m1.3.1.cmml">2</m:mn>
+                      <m:mo xml:id="S2.E1.m1.3.2" xref="S2.E1.m1.3.2.cmml">−</m:mo>
+                      <m:msub xml:id="S2.E1.m1.3.5" xref="S2.E1.m1.3.5.cmml">
+                        <m:mi xml:id="S2.E1.m1.3.3" xref="S2.E1.m1.3.3.cmml">ϵ</m:mi>
+                        <m:mn xml:id="S2.E1.m1.3.4" xref="S2.E1.m1.3.4.cmml">2</m:mn>
+                      </m:msub>
+                    </m:mrow>
+                    <m:mo xml:id="S2.E1.m1.13b" xref="S2.E1.m1.14.cmml">,</m:mo>
+                    <m:mrow xml:id="S2.E1.m1.4" xref="S2.E1.m1.4.cmml">
+                      <m:mi xml:id="S2.E1.m1.4.1" xref="S2.E1.m1.4.1.cmml">s</m:mi>
+                      <m:mo lspace="0.222em" rspace="0.222em" xml:id="S2.E1.m1.4.2" xref="S2.E1.m1.4.2.cmml">⋅</m:mo>
+                      <m:mover accent="true" xml:id="S2.E1.m1.4.5" xref="S2.E1.m1.4.5.cmml">
+                        <m:mi xml:id="S2.E1.m1.4.3" xref="S2.E1.m1.4.3.cmml">a</m:mi>
+                        <m:mo xml:id="S2.E1.m1.4.4" xref="S2.E1.m1.4.4.cmml">¯</m:mo>
+                      </m:mover>
+                    </m:mrow>
+                    <m:mo xml:id="S2.E1.m1.13c" xref="S2.E1.m1.14.cmml">,</m:mo>
+                    <m:mrow xml:id="S2.E1.m1.5" xref="S2.E1.m1.5.cmml">
+                      <m:mi xml:id="S2.E1.m1.5.1" xref="S2.E1.m1.5.1.cmml">s</m:mi>
+                      <m:mo lspace="0.222em" rspace="0.222em" xml:id="S2.E1.m1.5.2" xref="S2.E1.m1.5.2.cmml">⋅</m:mo>
+                      <m:mover accent="true" xml:id="S2.E1.m1.5.5" xref="S2.E1.m1.5.5.cmml">
+                        <m:mi xml:id="S2.E1.m1.5.3" xref="S2.E1.m1.5.3.cmml">a</m:mi>
+                        <m:mo xml:id="S2.E1.m1.5.4" xref="S2.E1.m1.5.4.cmml">¯</m:mo>
+                      </m:mover>
+                    </m:mrow>
+                    <m:mo xml:id="S2.E1.m1.13d" xref="S2.E1.m1.14.cmml">,</m:mo>
+                    <m:msub xml:id="S2.E1.m1.6" xref="S2.E1.m1.6.cmml">
+                      <m:mi xml:id="S2.E1.m1.6.1" xref="S2.E1.m1.6.1.cmml">a</m:mi>
+                      <m:mi xml:id="S2.E1.m1.6.2" xref="S2.E1.m1.6.2.cmml">z</m:mi>
+                    </m:msub>
+                    <m:mo xml:id="S2.E1.m1.13e" xref="S2.E1.m1.14.cmml">,</m:mo>
+                    <m:mrow xml:id="S2.E1.m1.7" xref="S2.E1.m1.7.cmml">
+                      <m:mrow xml:id="S2.E1.m1.7.7" xref="S2.E1.m1.7.7.cmml">
+                        <m:mi xml:id="S2.E1.m1.7.2" xref="S2.E1.m1.7.2.cmml">R</m:mi>
+                        <m:mo lspace="0.222em" rspace="0.222em" xml:id="S2.E1.m1.7.3" xref="S2.E1.m1.7.3.cmml">⋅</m:mo>
+                        <m:msub xml:id="S2.E1.m1.7.6" xref="S2.E1.m1.7.6.cmml">
+                          <m:mi xml:id="S2.E1.m1.7.4" xref="S2.E1.m1.7.4.cmml">R</m:mi>
+                          <m:mi xml:id="S2.E1.m1.7.5" xref="S2.E1.m1.7.5.cmml">z</m:mi>
+                        </m:msub>
+                      </m:mrow>
+                      <m:mo xml:id="S2.E1.m1.7.8" xref="S2.E1.m1.7.8.cmml">⁢</m:mo>
+                      <m:mrow xml:id="S2.E1.m1.7.9b" xref="S2.E1.m1.7.1.cmml">
+                        <m:mo stretchy="false" xml:id="S2.E1.m1.7.9" xref="S2.E1.m1.7.1.cmml">(</m:mo>
+                        <m:mrow xml:id="S2.E1.m1.7.1" xref="S2.E1.m1.7.1.cmml">
+                          <m:mi xml:id="S2.E1.m1.7.1.1" xref="S2.E1.m1.7.1.1.cmml">π</m:mi>
+                          <m:mo xml:id="S2.E1.m1.7.1.2" xref="S2.E1.m1.7.1.2.cmml">/</m:mo>
+                          <m:mn xml:id="S2.E1.m1.7.1.3" xref="S2.E1.m1.7.1.3.cmml">4</m:mn>
+                        </m:mrow>
+                        <m:mo stretchy="false" xml:id="S2.E1.m1.7.9a" xref="S2.E1.m1.7.1.cmml">)</m:mo>
+                      </m:mrow>
+                    </m:mrow>
+                    <m:mo xml:id="S2.E1.m1.13f" xref="S2.E1.m1.14.cmml">,</m:mo>
+                    <m:mi xml:id="S2.E1.m1.1" xref="S2.E1.m1.1.cmml">t</m:mi>
+                    <m:mo xml:id="S2.E1.m1.13g" xref="S2.E1.m1.14.cmml">}</m:mo>
+                  </m:mrow>
+                </m:mrow>
+                <m:annotation-xml encoding="MathML-Content">
+                  <m:apply xml:id="S2.E1.m1.15.cmml" xref="S2.E1.m1.15">
+                    <m:eq xml:id="S2.E1.m1.12.cmml" xref="S2.E1.m1.12"/>
+                    <m:apply xml:id="S2.E1.m1.11.cmml" xref="S2.E1.m1.11">
+                      <m:csymbol cd="ambiguous" xml:id="S2.E1.m1.11.1.cmml" xref="S2.E1.m1.11">superscript</m:csymbol>
+                      <m:apply xml:id="S2.E1.m1.11.3.cmml" xref="S2.E1.m1.11">
+                        <m:csymbol cd="ambiguous" xml:id="S2.E1.m1.11.2.cmml" xref="S2.E1.m1.11">subscript</m:csymbol>
+                        <m:ci xml:id="S2.E1.m1.8.cmml" xref="S2.E1.m1.8">𝜃</m:ci>
+                        <m:cn type="integer" xml:id="S2.E1.m1.9.cmml" xref="S2.E1.m1.9">3</m:cn>
+                      </m:apply>
+                      <m:ci xml:id="S2.E1.m1.10.cmml" xref="S2.E1.m1.10">𝑐</m:ci>
+                    </m:apply>
+                    <m:set xml:id="S2.E1.m1.14.cmml" xref="S2.E1.m1.14">
+                      <m:apply xml:id="S2.E1.m1.2.cmml" xref="S2.E1.m1.2">
+                        <m:csymbol cd="ambiguous" xml:id="S2.E1.m1.2.3.cmml" xref="S2.E1.m1.2">subscript</m:csymbol>
+                        <m:ci xml:id="S2.E1.m1.2.1.cmml" xref="S2.E1.m1.2.1">italic-ϵ</m:ci>
+                        <m:cn type="integer" xml:id="S2.E1.m1.2.2.cmml" xref="S2.E1.m1.2.2">1</m:cn>
+                      </m:apply>
+                      <m:apply xml:id="S2.E1.m1.3.cmml" xref="S2.E1.m1.3">
+                        <m:minus xml:id="S2.E1.m1.3.2.cmml" xref="S2.E1.m1.3.2"/>
+                        <m:cn type="integer" xml:id="S2.E1.m1.3.1.cmml" xref="S2.E1.m1.3.1">2</m:cn>
+                        <m:apply xml:id="S2.E1.m1.3.5.cmml" xref="S2.E1.m1.3.5">
+                          <m:csymbol cd="ambiguous" xml:id="S2.E1.m1.3.5.1.cmml" xref="S2.E1.m1.3.5">subscript</m:csymbol>
+                          <m:ci xml:id="S2.E1.m1.3.3.cmml" xref="S2.E1.m1.3.3">italic-ϵ</m:ci>
+                          <m:cn type="integer" xml:id="S2.E1.m1.3.4.cmml" xref="S2.E1.m1.3.4">2</m:cn>
+                        </m:apply>
+                      </m:apply>
+                      <m:apply xml:id="S2.E1.m1.4.cmml" xref="S2.E1.m1.4">
+                        <m:ci xml:id="S2.E1.m1.4.2.cmml" xref="S2.E1.m1.4.2">⋅</m:ci>
+                        <m:ci xml:id="S2.E1.m1.4.1.cmml" xref="S2.E1.m1.4.1">𝑠</m:ci>
+                        <m:apply xml:id="S2.E1.m1.4.5.cmml" xref="S2.E1.m1.4.5">
+                          <m:ci xml:id="S2.E1.m1.4.4.cmml" xref="S2.E1.m1.4.4">¯</m:ci>
+                          <m:ci xml:id="S2.E1.m1.4.3.cmml" xref="S2.E1.m1.4.3">𝑎</m:ci>
+                        </m:apply>
+                      </m:apply>
+                      <m:apply xml:id="S2.E1.m1.5.cmml" xref="S2.E1.m1.5">
+                        <m:ci xml:id="S2.E1.m1.5.2.cmml" xref="S2.E1.m1.5.2">⋅</m:ci>
+                        <m:ci xml:id="S2.E1.m1.5.1.cmml" xref="S2.E1.m1.5.1">𝑠</m:ci>
+                        <m:apply xml:id="S2.E1.m1.5.5.cmml" xref="S2.E1.m1.5.5">
+                          <m:ci xml:id="S2.E1.m1.5.4.cmml" xref="S2.E1.m1.5.4">¯</m:ci>
+                          <m:ci xml:id="S2.E1.m1.5.3.cmml" xref="S2.E1.m1.5.3">𝑎</m:ci>
+                        </m:apply>
+                      </m:apply>
+                      <m:apply xml:id="S2.E1.m1.6.cmml" xref="S2.E1.m1.6">
+                        <m:csymbol cd="ambiguous" xml:id="S2.E1.m1.6.3.cmml" xref="S2.E1.m1.6">subscript</m:csymbol>
+                        <m:ci xml:id="S2.E1.m1.6.1.cmml" xref="S2.E1.m1.6.1">𝑎</m:ci>
+                        <m:ci xml:id="S2.E1.m1.6.2.cmml" xref="S2.E1.m1.6.2">𝑧</m:ci>
+                      </m:apply>
+                      <m:apply xml:id="S2.E1.m1.7.cmml" xref="S2.E1.m1.7">
+                        <m:times xml:id="S2.E1.m1.7.8.cmml" xref="S2.E1.m1.7.8"/>
+                        <m:apply xml:id="S2.E1.m1.7.7.cmml" xref="S2.E1.m1.7.7">
+                          <m:ci xml:id="S2.E1.m1.7.3.cmml" xref="S2.E1.m1.7.3">⋅</m:ci>
+                          <m:ci xml:id="S2.E1.m1.7.2.cmml" xref="S2.E1.m1.7.2">𝑅</m:ci>
+                          <m:apply xml:id="S2.E1.m1.7.6.cmml" xref="S2.E1.m1.7.6">
+                            <m:csymbol cd="ambiguous" xml:id="S2.E1.m1.7.6.1.cmml" xref="S2.E1.m1.7.6">subscript</m:csymbol>
+                            <m:ci xml:id="S2.E1.m1.7.4.cmml" xref="S2.E1.m1.7.4">𝑅</m:ci>
+                            <m:ci xml:id="S2.E1.m1.7.5.cmml" xref="S2.E1.m1.7.5">𝑧</m:ci>
+                          </m:apply>
+                        </m:apply>
+                        <m:apply xml:id="S2.E1.m1.7.1.cmml" xref="S2.E1.m1.7.9b">
+                          <m:divide xml:id="S2.E1.m1.7.1.2.cmml" xref="S2.E1.m1.7.1.2"/>
+                          <m:ci xml:id="S2.E1.m1.7.1.1.cmml" xref="S2.E1.m1.7.1.1">𝜋</m:ci>
+                          <m:cn type="integer" xml:id="S2.E1.m1.7.1.3.cmml" xref="S2.E1.m1.7.1.3">4</m:cn>
+                        </m:apply>
+                      </m:apply>
+                      <m:ci xml:id="S2.E1.m1.1.cmml" xref="S2.E1.m1.1">𝑡</m:ci>
+                    </m:set>
+                  </m:apply>
+                </m:annotation-xml>
+                <m:annotation encoding="application/x-tex">\theta_{3}^{c}=\left\{\epsilon_{1},2-\epsilon_{2},s\cdot\bar{a},s\cdot\bar{a},%
+a_{z},R\cdot R_{z}(\pi/4),t\right\}\\
+</m:annotation>
+              </m:semantics>
+            </m:math>
+          </Math>
+        </equation>
+        <p>where</p>
+        <equation xml:id="S2.E2" fragid="S2.E2">
+          <tags>
+            <tag>(2)</tag>
+            <tag role="autoref">Equation 2</tag>
+            <tag role="refnum">2</tag>
+          </tags>
+          <Math mode="display" xml:id="S2.E2.m1" tex="\begin{split}s&amp;=(\sqrt{2}/2-1)\epsilon_{2}+2-\sqrt{2}/2\\&#10;\bar{a}&amp;=(a_{x}+a_{y})/2\end{split}" text="s = ((square-root@(2) / 2 - 1) * epsilon _ 2 + 2) - (square-root@(2) / 2) * bar@(a) = (a _ x + a _ y) / 2" fragid="S2.E2.m1">
+            <m:math alttext="\begin{split}s&amp;=(\sqrt{2}/2-1)\epsilon_{2}+2-\sqrt{2}/2\\&#10;\bar{a}&amp;=(a_{x}+a_{y})/2\end{split}" display="block">
+              <m:semantics>
+                <m:mtable columnspacing="0pt" displaystyle="true" rowspacing="0pt" xml:id="S2.E2.m1.41" xref="S2.E2.m1.41.cmml">
+                  <m:mtr xml:id="S2.E2.m1.41a" xref="S2.E2.m1.41.cmml">
+                    <m:mtd class="ltx_align_right" columnalign="right" xml:id="S2.E2.m1.41b" xref="S2.E2.m1.41.cmml">
+                      <m:mi xml:id="S2.E2.m1.1" xref="S2.E2.m1.1.cmml">s</m:mi>
+                    </m:mtd>
+                    <m:mtd class="ltx_align_left" columnalign="left" xml:id="S2.E2.m1.41c" xref="S2.E2.m1.41.cmml">
+                      <m:mrow xml:id="S2.E2.m1.37" xref="S2.E2.m1.41.cmml">
+                        <m:mi xml:id="S2.E2.m1.11" xref="S2.E2.m1.11c.cmml"/>
+                        <m:mo xml:id="S2.E2.m1.2" xref="S2.E2.m1.2.cmml">=</m:mo>
+                        <m:mrow xml:id="S2.E2.m1.36" xref="S2.E2.m1.41.cmml">
+                          <m:mrow xml:id="S2.E2.m1.34" xref="S2.E2.m1.41.cmml">
+                            <m:mrow xml:id="S2.E2.m1.33" xref="S2.E2.m1.41.cmml">
+                              <m:mrow xml:id="S2.E2.m1.22" xref="S2.E2.m1.41.cmml">
+                                <m:mo stretchy="false" xml:id="S2.E2.m1.3" xref="S2.E2.m1.11c.cmml">(</m:mo>
+                                <m:mrow xml:id="S2.E2.m1.31" xref="S2.E2.m1.41.cmml">
+                                  <m:mrow xml:id="S2.E2.m1.31.1" xref="S2.E2.m1.41.cmml">
+                                    <m:msqrt xml:id="S2.E2.m1.4" xref="S2.E2.m1.4.cmml">
+                                      <m:mn xml:id="S2.E2.m1.4.1" xref="S2.E2.m1.4.1.cmml">2</m:mn>
+                                    </m:msqrt>
+                                    <m:mo xml:id="S2.E2.m1.5" xref="S2.E2.m1.5.cmml">/</m:mo>
+                                    <m:mn xml:id="S2.E2.m1.6" xref="S2.E2.m1.6.cmml">2</m:mn>
+                                  </m:mrow>
+                                  <m:mo xml:id="S2.E2.m1.7" xref="S2.E2.m1.7.cmml">−</m:mo>
+                                  <m:mn xml:id="S2.E2.m1.8" xref="S2.E2.m1.8.cmml">1</m:mn>
+                                </m:mrow>
+                                <m:mo stretchy="false" xml:id="S2.E2.m1.9" xref="S2.E2.m1.11c.cmml">)</m:mo>
+                              </m:mrow>
+                              <m:mo xml:id="S2.E2.m1.11a" xref="S2.E2.m1.11c.cmml">⁢</m:mo>
+                              <m:msub xml:id="S2.E2.m1.25" xref="S2.E2.m1.41.cmml">
+                                <m:mi xml:id="S2.E2.m1.10" xref="S2.E2.m1.10.cmml">ϵ</m:mi>
+                                <m:mn xml:id="S2.E2.m1.11.1" xref="S2.E2.m1.11.1.cmml">2</m:mn>
+                              </m:msub>
+                            </m:mrow>
+                            <m:mo xml:id="S2.E2.m1.12" xref="S2.E2.m1.12.cmml">+</m:mo>
+                            <m:mn xml:id="S2.E2.m1.13" xref="S2.E2.m1.13.cmml">2</m:mn>
+                          </m:mrow>
+                          <m:mo xml:id="S2.E2.m1.14" xref="S2.E2.m1.14.cmml">−</m:mo>
+                          <m:mrow xml:id="S2.E2.m1.35" xref="S2.E2.m1.41.cmml">
+                            <m:msqrt xml:id="S2.E2.m1.15" xref="S2.E2.m1.15.cmml">
+                              <m:mn xml:id="S2.E2.m1.15.1" xref="S2.E2.m1.15.1.cmml">2</m:mn>
+                            </m:msqrt>
+                            <m:mo xml:id="S2.E2.m1.16" xref="S2.E2.m1.16.cmml">/</m:mo>
+                            <m:mn xml:id="S2.E2.m1.17" xref="S2.E2.m1.17.cmml">2</m:mn>
+                          </m:mrow>
+                        </m:mrow>
+                      </m:mrow>
+                    </m:mtd>
+                  </m:mtr>
+                  <m:mtr xml:id="S2.E2.m1.41d" xref="S2.E2.m1.41.cmml">
+                    <m:mtd class="ltx_align_right" columnalign="right" xml:id="S2.E2.m1.41e" xref="S2.E2.m1.41.cmml">
+                      <m:mover accent="true" xml:id="S2.E2.m1.18" xref="S2.E2.m1.18.cmml">
+                        <m:mi xml:id="S2.E2.m1.18.1" xref="S2.E2.m1.18.1.cmml">a</m:mi>
+                        <m:mo xml:id="S2.E2.m1.18.2" xref="S2.E2.m1.18.2.cmml">¯</m:mo>
+                      </m:mover>
+                    </m:mtd>
+                    <m:mtd class="ltx_align_left" columnalign="left" xml:id="S2.E2.m1.41f" xref="S2.E2.m1.41.cmml">
+                      <m:mrow xml:id="S2.E2.m1.40" xref="S2.E2.m1.41.cmml">
+                        <m:mi xml:id="S2.E2.m1.11b" xref="S2.E2.m1.11c.cmml"/>
+                        <m:mo xml:id="S2.E2.m1.19" xref="S2.E2.m1.19.cmml">=</m:mo>
+                        <m:mrow xml:id="S2.E2.m1.39" xref="S2.E2.m1.41.cmml">
+                          <m:mrow xml:id="S2.E2.m1.38" xref="S2.E2.m1.41.cmml">
+                            <m:mo stretchy="false" xml:id="S2.E2.m1.20" xref="S2.E2.m1.11c.cmml">(</m:mo>
+                            <m:mrow xml:id="S2.E2.m1.32" xref="S2.E2.m1.41.cmml">
+                              <m:msub xml:id="S2.E2.m1.32.1" xref="S2.E2.m1.41.cmml">
+                                <m:mi xml:id="S2.E2.m1.21" xref="S2.E2.m1.21.cmml">a</m:mi>
+                                <m:mi xml:id="S2.E2.m1.22.1" xref="S2.E2.m1.22.1.cmml">x</m:mi>
+                              </m:msub>
+                              <m:mo xml:id="S2.E2.m1.23" xref="S2.E2.m1.23.cmml">+</m:mo>
+                              <m:msub xml:id="S2.E2.m1.32.2" xref="S2.E2.m1.41.cmml">
+                                <m:mi xml:id="S2.E2.m1.24" xref="S2.E2.m1.24.cmml">a</m:mi>
+                                <m:mi xml:id="S2.E2.m1.25.1" xref="S2.E2.m1.25.1.cmml">y</m:mi>
+                              </m:msub>
+                            </m:mrow>
+                            <m:mo stretchy="false" xml:id="S2.E2.m1.26" xref="S2.E2.m1.11c.cmml">)</m:mo>
+                          </m:mrow>
+                          <m:mo xml:id="S2.E2.m1.27" xref="S2.E2.m1.27.cmml">/</m:mo>
+                          <m:mn xml:id="S2.E2.m1.28" xref="S2.E2.m1.28.cmml">2</m:mn>
+                        </m:mrow>
+                      </m:mrow>
+                    </m:mtd>
+                  </m:mtr>
+                </m:mtable>
+                <m:annotation-xml encoding="MathML-Content">
+                  <m:apply xml:id="S2.E2.m1.41.cmml" xref="S2.E2.m1.41">
+                    <m:and xml:id="S2.E2.m1.11c.cmml" xref="S2.E2.m1.11"/>
+                    <m:apply xml:id="S2.E2.m1.41a.cmml" xref="S2.E2.m1.41">
+                      <m:eq xml:id="S2.E2.m1.2.cmml" xref="S2.E2.m1.2"/>
+                      <m:ci xml:id="S2.E2.m1.1.cmml" xref="S2.E2.m1.1">𝑠</m:ci>
+                      <m:apply xml:id="S2.E2.m1.41.sh1.cmml" xref="S2.E2.m1.41">
+                        <m:minus xml:id="S2.E2.m1.14.cmml" xref="S2.E2.m1.14"/>
+                        <m:apply xml:id="S2.E2.m1.41.sh1.4.cmml" xref="S2.E2.m1.41">
+                          <m:plus xml:id="S2.E2.m1.12.cmml" xref="S2.E2.m1.12"/>
+                          <m:apply xml:id="S2.E2.m1.41.sh1.3.cmml" xref="S2.E2.m1.41">
+                            <m:times xml:id="S2.E2.m1.11.cmml" xref="S2.E2.m1.11"/>
+                            <m:apply xml:id="S2.E2.m1.29.cmml" xref="S2.E2.m1.41">
+                              <m:minus xml:id="S2.E2.m1.7.cmml" xref="S2.E2.m1.7"/>
+                              <m:apply xml:id="S2.E2.m1.29.1.cmml" xref="S2.E2.m1.41">
+                                <m:divide xml:id="S2.E2.m1.5.cmml" xref="S2.E2.m1.5"/>
+                                <m:apply xml:id="S2.E2.m1.4.cmml" xref="S2.E2.m1.4">
+                                  <m:root xml:id="S2.E2.m1.4a.cmml" xref="S2.E2.m1.4"/>
+                                  <m:cn type="integer" xml:id="S2.E2.m1.4.1.cmml" xref="S2.E2.m1.4.1">2</m:cn>
+                                </m:apply>
+                                <m:cn type="integer" xml:id="S2.E2.m1.6.cmml" xref="S2.E2.m1.6">2</m:cn>
+                              </m:apply>
+                              <m:cn type="integer" xml:id="S2.E2.m1.8.cmml" xref="S2.E2.m1.8">1</m:cn>
+                            </m:apply>
+                            <m:apply xml:id="S2.E2.m1.41.sh1.2.cmml" xref="S2.E2.m1.41">
+                              <m:csymbol cd="ambiguous" xml:id="S2.E2.m1.11a.cmml" xref="S2.E2.m1.11">subscript</m:csymbol>
+                              <m:ci xml:id="S2.E2.m1.10.cmml" xref="S2.E2.m1.10">italic-ϵ</m:ci>
+                              <m:cn type="integer" xml:id="S2.E2.m1.11.1.cmml" xref="S2.E2.m1.11.1">2</m:cn>
+                            </m:apply>
+                          </m:apply>
+                          <m:cn type="integer" xml:id="S2.E2.m1.13.cmml" xref="S2.E2.m1.13">2</m:cn>
+                        </m:apply>
+                        <m:apply xml:id="S2.E2.m1.41.sh1.6.cmml" xref="S2.E2.m1.41">
+                          <m:times xml:id="S2.E2.m1.11b.cmml" xref="S2.E2.m1.11"/>
+                          <m:apply xml:id="S2.E2.m1.41.sh1.5.cmml" xref="S2.E2.m1.41">
+                            <m:divide xml:id="S2.E2.m1.16.cmml" xref="S2.E2.m1.16"/>
+                            <m:apply xml:id="S2.E2.m1.15.cmml" xref="S2.E2.m1.15">
+                              <m:root xml:id="S2.E2.m1.15a.cmml" xref="S2.E2.m1.15"/>
+                              <m:cn type="integer" xml:id="S2.E2.m1.15.1.cmml" xref="S2.E2.m1.15.1">2</m:cn>
+                            </m:apply>
+                            <m:cn type="integer" xml:id="S2.E2.m1.17.cmml" xref="S2.E2.m1.17">2</m:cn>
+                          </m:apply>
+                          <m:apply xml:id="S2.E2.m1.18.cmml" xref="S2.E2.m1.18">
+                            <m:ci xml:id="S2.E2.m1.18.2.cmml" xref="S2.E2.m1.18.2">¯</m:ci>
+                            <m:ci xml:id="S2.E2.m1.18.1.cmml" xref="S2.E2.m1.18.1">𝑎</m:ci>
+                          </m:apply>
+                        </m:apply>
+                      </m:apply>
+                    </m:apply>
+                    <m:apply xml:id="S2.E2.m1.41b.cmml" xref="S2.E2.m1.41">
+                      <m:eq xml:id="S2.E2.m1.19.cmml" xref="S2.E2.m1.19"/>
+                      <m:share href="#S2.E2.m1.41.sh1.cmml" xml:id="S2.E2.m1.11d.cmml" xref="S2.E2.m1.11"/>
+                      <m:apply xml:id="S2.E2.m1.41.sh2.cmml" xref="S2.E2.m1.41">
+                        <m:divide xml:id="S2.E2.m1.27.cmml" xref="S2.E2.m1.27"/>
+                        <m:apply xml:id="S2.E2.m1.30b.cmml" xref="S2.E2.m1.41">
+                          <m:plus xml:id="S2.E2.m1.23.cmml" xref="S2.E2.m1.23"/>
+                          <m:apply xml:id="S2.E2.m1.30.1.cmml" xref="S2.E2.m1.41">
+                            <m:csymbol cd="ambiguous" xml:id="S2.E2.m1.30.cmml" xref="S2.E2.m1.41">subscript</m:csymbol>
+                            <m:ci xml:id="S2.E2.m1.21.cmml" xref="S2.E2.m1.21">𝑎</m:ci>
+                            <m:ci xml:id="S2.E2.m1.22.1.cmml" xref="S2.E2.m1.22.1">𝑥</m:ci>
+                          </m:apply>
+                          <m:apply xml:id="S2.E2.m1.30.2.cmml" xref="S2.E2.m1.41">
+                            <m:csymbol cd="ambiguous" xml:id="S2.E2.m1.30a.cmml" xref="S2.E2.m1.41">subscript</m:csymbol>
+                            <m:ci xml:id="S2.E2.m1.24.cmml" xref="S2.E2.m1.24">𝑎</m:ci>
+                            <m:ci xml:id="S2.E2.m1.25.1.cmml" xref="S2.E2.m1.25.1">𝑦</m:ci>
+                          </m:apply>
+                        </m:apply>
+                        <m:cn type="integer" xml:id="S2.E2.m1.28.cmml" xref="S2.E2.m1.28">2</m:cn>
+                      </m:apply>
+                    </m:apply>
+                  </m:apply>
+                </m:annotation-xml>
+                <m:annotation encoding="application/x-tex">\begin{split}s&amp;=(\sqrt{2}/2-1)\epsilon_{2}+2-\sqrt{2}/2\\
+\bar{a}&amp;=(a_{x}+a_{y})/2\end{split}</m:annotation>
+              </m:semantics>
+            </m:math>
+          </Math>
+        </equation>
+      </para>
+      <para xml:id="S2.SS1.p5" fragid="S2.SS1.p5">
+        <p>To avoid such cases and maintain <Math mode="inline" xml:id="S2.SS1.p5.m1" tex="\epsilon_{2}" text="epsilon _ 2" fragid="S2.SS1.p5.m1"><m:math alttext="\epsilon_{2}" display="inline"><m:semantics><m:msub xml:id="S2.SS1.p5.m1.3" xref="S2.SS1.p5.m1.3.cmml"><m:mi xml:id="S2.SS1.p5.m1.1" xref="S2.SS1.p5.m1.1.cmml">ϵ</m:mi><m:mn xml:id="S2.SS1.p5.m1.2" xref="S2.SS1.p5.m1.2.cmml">2</m:mn></m:msub><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S2.SS1.p5.m1.3.cmml" xref="S2.SS1.p5.m1.3"><m:csymbol cd="ambiguous" xml:id="S2.SS1.p5.m1.3.1.cmml" xref="S2.SS1.p5.m1.3">subscript</m:csymbol><m:ci xml:id="S2.SS1.p5.m1.1.cmml" xref="S2.SS1.p5.m1.1">italic-ϵ</m:ci><m:cn type="integer" xml:id="S2.SS1.p5.m1.2.cmml" xref="S2.SS1.p5.m1.2">2</m:cn></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">\epsilon_{2}</m:annotation></m:semantics></m:math></Math> within the range <Math mode="inline" xml:id="S2.SS1.p5.m2" tex="[0,1]" text="closed-interval@(0, 1)" fragid="S2.SS1.p5.m2"><m:math alttext="[0,1]" display="inline"><m:semantics><m:mrow xml:id="S2.SS1.p5.m2.4" xref="S2.SS1.p5.m2.4.cmml"><m:mo stretchy="false" xml:id="S2.SS1.p5.m2.3" xref="S2.SS1.p5.m2.4.cmml">[</m:mo><m:mn xml:id="S2.SS1.p5.m2.1" xref="S2.SS1.p5.m2.1.cmml">0</m:mn><m:mo xml:id="S2.SS1.p5.m2.3a" xref="S2.SS1.p5.m2.4.cmml">,</m:mo><m:mn xml:id="S2.SS1.p5.m2.2" xref="S2.SS1.p5.m2.2.cmml">1</m:mn><m:mo stretchy="false" xml:id="S2.SS1.p5.m2.3b" xref="S2.SS1.p5.m2.4.cmml">]</m:mo></m:mrow><m:annotation-xml encoding="MathML-Content"><m:interval closure="closed" xml:id="S2.SS1.p5.m2.4.cmml" xref="S2.SS1.p5.m2.4"><m:cn type="integer" xml:id="S2.SS1.p5.m2.1.cmml" xref="S2.SS1.p5.m2.1">0</m:cn><m:cn type="integer" xml:id="S2.SS1.p5.m2.2.cmml" xref="S2.SS1.p5.m2.2">1</m:cn></m:interval></m:annotation-xml><m:annotation encoding="application/x-tex">[0,1]</m:annotation></m:semantics></m:math></Math>, the scale can be redefined using a warp transformation. Additionally, the rotation can be transformed into a new rotation using the following approach:</p>
+      </para>
+      <para xml:id="S2.SS1.p6" fragid="S2.SS1.p6">
+        <equation xml:id="S2.E3" fragid="S2.E3">
+          <tags>
+            <tag>(3)</tag>
+            <tag role="autoref">Equation 3</tag>
+            <tag role="refnum">3</tag>
+          </tags>
+          <Math mode="display" xml:id="S2.E3.m1" tex="\begin{split}S&amp;=\begin{bmatrix}a_{x}*s,&amp;a_{y}*s,&amp;a_{z}\end{bmatrix}^{T}\mathbf%&#10;{I}\\&#10;S_{warp}&amp;=R_{d}^{-1}SR_{d}\\&#10;R_{new}&amp;=RR_{d}\end{split}" text="S = (matrix@(Array[[a _ x * s, a _ y * s, a _ z]])) ^ T * I * S _ (w * a * r * p) = (R _ d) ^ (- 1) * S * R _ d * R _ (n * e * w) = R * R _ d" fragid="S2.E3.m1">
+            <m:math alttext="\begin{split}S&amp;=\begin{bmatrix}a_{x}*s,&amp;a_{y}*s,&amp;a_{z}\end{bmatrix}^{T}\mathbf%&#10;{I}\\&#10;S_{warp}&amp;=R_{d}^{-1}SR_{d}\\&#10;R_{new}&amp;=RR_{d}\end{split}" display="block">
+              <m:semantics>
+                <m:mtable columnspacing="0pt" displaystyle="true" rowspacing="0pt" xml:id="S2.E3.m1.28" xref="S2.E3.m1.28.cmml">
+                  <m:mtr xml:id="S2.E3.m1.28a" xref="S2.E3.m1.28.cmml">
+                    <m:mtd class="ltx_align_right" columnalign="right" xml:id="S2.E3.m1.28b" xref="S2.E3.m1.28.cmml">
+                      <m:mi xml:id="S2.E3.m1.2" xref="S2.E3.m1.2.cmml">S</m:mi>
+                    </m:mtd>
+                    <m:mtd class="ltx_align_left" columnalign="left" xml:id="S2.E3.m1.28c" xref="S2.E3.m1.28.cmml">
+                      <m:mrow xml:id="S2.E3.m1.12" xref="S2.E3.m1.28.cmml">
+                        <m:mi xml:id="S2.E3.m1.5" xref="S2.E3.m1.5j.cmml"/>
+                        <m:mo xml:id="S2.E3.m1.3" xref="S2.E3.m1.3.cmml">=</m:mo>
+                        <m:mrow xml:id="S2.E3.m1.11" xref="S2.E3.m1.28.cmml">
+                          <m:msup xml:id="S2.E3.m1.8" xref="S2.E3.m1.28.cmml">
+                            <m:mrow xml:id="S2.E3.m1.4" xref="S2.E3.m1.4.cmml">
+                              <m:mo xml:id="S2.E3.m1.4.1" xref="S2.E3.m1.4.1.cmml">[</m:mo>
+                              <m:mtable columnspacing="5pt" displaystyle="true" xml:id="S2.E3.m1.1" xref="S2.E3.m1.1.cmml">
+                                <m:mtr xml:id="S2.E3.m1.1a" xref="S2.E3.m1.1.cmml">
+                                  <m:mtd xml:id="S2.E3.m1.1b" xref="S2.E3.m1.1.cmml">
+                                    <m:mrow xml:id="S2.E3.m1.1.3a" xref="S2.E3.m1.1.1.cmml">
+                                      <m:mrow xml:id="S2.E3.m1.1.1" xref="S2.E3.m1.1.1.cmml">
+                                        <m:msub xml:id="S2.E3.m1.1.1.3" xref="S2.E3.m1.1.1.3.cmml">
+                                          <m:mi xml:id="S2.E3.m1.1.1.1" xref="S2.E3.m1.1.1.1.cmml">a</m:mi>
+                                          <m:mi xml:id="S2.E3.m1.1.1.2" xref="S2.E3.m1.1.1.2.cmml">x</m:mi>
+                                        </m:msub>
+                                        <m:mo lspace="0.222em" rspace="0.222em" xml:id="S2.E3.m1.1.1.4" xref="S2.E3.m1.1.1.4.cmml">∗</m:mo>
+                                        <m:mi xml:id="S2.E3.m1.1.1.5" xref="S2.E3.m1.1.1.5.cmml">s</m:mi>
+                                      </m:mrow>
+                                      <m:mo xml:id="S2.E3.m1.1.3" xref="S2.E3.m1.1.1.cmml">,</m:mo>
+                                    </m:mrow>
+                                  </m:mtd>
+                                  <m:mtd xml:id="S2.E3.m1.1c" xref="S2.E3.m1.1.cmml">
+                                    <m:mrow xml:id="S2.E3.m1.1.4a" xref="S2.E3.m1.1.2.cmml">
+                                      <m:mrow xml:id="S2.E3.m1.1.2" xref="S2.E3.m1.1.2.cmml">
+                                        <m:msub xml:id="S2.E3.m1.1.2.3" xref="S2.E3.m1.1.2.3.cmml">
+                                          <m:mi xml:id="S2.E3.m1.1.2.1" xref="S2.E3.m1.1.2.1.cmml">a</m:mi>
+                                          <m:mi xml:id="S2.E3.m1.1.2.2" xref="S2.E3.m1.1.2.2.cmml">y</m:mi>
+                                        </m:msub>
+                                        <m:mo lspace="0.222em" rspace="0.222em" xml:id="S2.E3.m1.1.2.4" xref="S2.E3.m1.1.2.4.cmml">∗</m:mo>
+                                        <m:mi xml:id="S2.E3.m1.1.2.5" xref="S2.E3.m1.1.2.5.cmml">s</m:mi>
+                                      </m:mrow>
+                                      <m:mo xml:id="S2.E3.m1.1.4" xref="S2.E3.m1.1.2.cmml">,</m:mo>
+                                    </m:mrow>
+                                  </m:mtd>
+                                  <m:mtd xml:id="S2.E3.m1.1d" xref="S2.E3.m1.1.cmml">
+                                    <m:msub xml:id="S2.E3.m1.1.7" xref="S2.E3.m1.1.7.cmml">
+                                      <m:mi xml:id="S2.E3.m1.1.5" xref="S2.E3.m1.1.5.cmml">a</m:mi>
+                                      <m:mi xml:id="S2.E3.m1.1.6" xref="S2.E3.m1.1.6.cmml">z</m:mi>
+                                    </m:msub>
+                                  </m:mtd>
+                                </m:mtr>
+                              </m:mtable>
+                              <m:mo xml:id="S2.E3.m1.4.1a" xref="S2.E3.m1.4.1.cmml">]</m:mo>
+                            </m:mrow>
+                            <m:mi xml:id="S2.E3.m1.5.1" xref="S2.E3.m1.5.1.cmml">T</m:mi>
+                          </m:msup>
+                          <m:mo xml:id="S2.E3.m1.5a" xref="S2.E3.m1.5j.cmml">⁢</m:mo>
+                          <m:mi xml:id="S2.E3.m1.6" xref="S2.E3.m1.6.cmml">𝐈</m:mi>
+                        </m:mrow>
+                      </m:mrow>
+                    </m:mtd>
+                  </m:mtr>
+                  <m:mtr xml:id="S2.E3.m1.28d" xref="S2.E3.m1.28.cmml">
+                    <m:mtd class="ltx_align_right" columnalign="right" xml:id="S2.E3.m1.28e" xref="S2.E3.m1.28.cmml">
+                      <m:msub xml:id="S2.E3.m1.15" xref="S2.E3.m1.28.cmml">
+                        <m:mi xml:id="S2.E3.m1.7" xref="S2.E3.m1.7.cmml">S</m:mi>
+                        <m:mrow xml:id="S2.E3.m1.8.1" xref="S2.E3.m1.8.1.cmml">
+                          <m:mi xml:id="S2.E3.m1.8.1.1" xref="S2.E3.m1.8.1.1.cmml">w</m:mi>
+                          <m:mo xml:id="S2.E3.m1.8.1.2" xref="S2.E3.m1.8.1.2.cmml">⁢</m:mo>
+                          <m:mi xml:id="S2.E3.m1.8.1.3" xref="S2.E3.m1.8.1.3.cmml">a</m:mi>
+                          <m:mo xml:id="S2.E3.m1.8.1.2a" xref="S2.E3.m1.8.1.2.cmml">⁢</m:mo>
+                          <m:mi xml:id="S2.E3.m1.8.1.4" xref="S2.E3.m1.8.1.4.cmml">r</m:mi>
+                          <m:mo xml:id="S2.E3.m1.8.1.2b" xref="S2.E3.m1.8.1.2.cmml">⁢</m:mo>
+                          <m:mi xml:id="S2.E3.m1.8.1.5" xref="S2.E3.m1.8.1.5.cmml">p</m:mi>
+                        </m:mrow>
+                      </m:msub>
+                    </m:mtd>
+                    <m:mtd class="ltx_align_left" columnalign="left" xml:id="S2.E3.m1.28f" xref="S2.E3.m1.28.cmml">
+                      <m:mrow xml:id="S2.E3.m1.23" xref="S2.E3.m1.28.cmml">
+                        <m:mi xml:id="S2.E3.m1.5b" xref="S2.E3.m1.5j.cmml"/>
+                        <m:mo xml:id="S2.E3.m1.9" xref="S2.E3.m1.9.cmml">=</m:mo>
+                        <m:mrow xml:id="S2.E3.m1.22" xref="S2.E3.m1.28.cmml">
+                          <m:msubsup xml:id="S2.E3.m1.17" xref="S2.E3.m1.28.cmml">
+                            <m:mi xml:id="S2.E3.m1.10" xref="S2.E3.m1.10.cmml">R</m:mi>
+                            <m:mi xml:id="S2.E3.m1.11.1" xref="S2.E3.m1.11.1.cmml">d</m:mi>
+                            <m:mrow xml:id="S2.E3.m1.12.1" xref="S2.E3.m1.12.1.cmml">
+                              <m:mo xml:id="S2.E3.m1.12.1a" xref="S2.E3.m1.12.1.cmml">−</m:mo>
+                              <m:mn xml:id="S2.E3.m1.12.1.1" xref="S2.E3.m1.12.1.1.cmml">1</m:mn>
+                            </m:mrow>
+                          </m:msubsup>
+                          <m:mo xml:id="S2.E3.m1.5c" xref="S2.E3.m1.5j.cmml">⁢</m:mo>
+                          <m:mi xml:id="S2.E3.m1.13" xref="S2.E3.m1.13.cmml">S</m:mi>
+                          <m:mo xml:id="S2.E3.m1.5d" xref="S2.E3.m1.5j.cmml">⁢</m:mo>
+                          <m:msub xml:id="S2.E3.m1.21" xref="S2.E3.m1.28.cmml">
+                            <m:mi xml:id="S2.E3.m1.14" xref="S2.E3.m1.14.cmml">R</m:mi>
+                            <m:mi xml:id="S2.E3.m1.15.1" xref="S2.E3.m1.15.1.cmml">d</m:mi>
+                          </m:msub>
+                        </m:mrow>
+                      </m:mrow>
+                    </m:mtd>
+                  </m:mtr>
+                  <m:mtr xml:id="S2.E3.m1.28g" xref="S2.E3.m1.28.cmml">
+                    <m:mtd class="ltx_align_right" columnalign="right" xml:id="S2.E3.m1.28h" xref="S2.E3.m1.28.cmml">
+                      <m:msub xml:id="S2.E3.m1.24" xref="S2.E3.m1.28.cmml">
+                        <m:mi xml:id="S2.E3.m1.16" xref="S2.E3.m1.16.cmml">R</m:mi>
+                        <m:mrow xml:id="S2.E3.m1.17.1" xref="S2.E3.m1.17.1.cmml">
+                          <m:mi xml:id="S2.E3.m1.17.1.1" xref="S2.E3.m1.17.1.1.cmml">n</m:mi>
+                          <m:mo xml:id="S2.E3.m1.17.1.2" xref="S2.E3.m1.17.1.2.cmml">⁢</m:mo>
+                          <m:mi xml:id="S2.E3.m1.17.1.3" xref="S2.E3.m1.17.1.3.cmml">e</m:mi>
+                          <m:mo xml:id="S2.E3.m1.17.1.2a" xref="S2.E3.m1.17.1.2.cmml">⁢</m:mo>
+                          <m:mi xml:id="S2.E3.m1.17.1.4" xref="S2.E3.m1.17.1.4.cmml">w</m:mi>
+                        </m:mrow>
+                      </m:msub>
+                    </m:mtd>
+                    <m:mtd class="ltx_align_left" columnalign="left" xml:id="S2.E3.m1.28i" xref="S2.E3.m1.28.cmml">
+                      <m:mrow xml:id="S2.E3.m1.27" xref="S2.E3.m1.28.cmml">
+                        <m:mi xml:id="S2.E3.m1.5e" xref="S2.E3.m1.5j.cmml"/>
+                        <m:mo xml:id="S2.E3.m1.18" xref="S2.E3.m1.18.cmml">=</m:mo>
+                        <m:mrow xml:id="S2.E3.m1.26" xref="S2.E3.m1.28.cmml">
+                          <m:mi xml:id="S2.E3.m1.19" xref="S2.E3.m1.19.cmml">R</m:mi>
+                          <m:mo xml:id="S2.E3.m1.5f" xref="S2.E3.m1.5j.cmml">⁢</m:mo>
+                          <m:msub xml:id="S2.E3.m1.25" xref="S2.E3.m1.28.cmml">
+                            <m:mi xml:id="S2.E3.m1.20" xref="S2.E3.m1.20.cmml">R</m:mi>
+                            <m:mi xml:id="S2.E3.m1.21.1" xref="S2.E3.m1.21.1.cmml">d</m:mi>
+                          </m:msub>
+                        </m:mrow>
+                      </m:mrow>
+                    </m:mtd>
+                  </m:mtr>
+                </m:mtable>
+                <m:annotation-xml encoding="MathML-Content">
+                  <m:apply xml:id="S2.E3.m1.28.cmml" xref="S2.E3.m1.28">
+                    <m:and xml:id="S2.E3.m1.5j.cmml" xref="S2.E3.m1.5"/>
+                    <m:apply xml:id="S2.E3.m1.28a.cmml" xref="S2.E3.m1.28">
+                      <m:eq xml:id="S2.E3.m1.3.cmml" xref="S2.E3.m1.3"/>
+                      <m:ci xml:id="S2.E3.m1.2.cmml" xref="S2.E3.m1.2">𝑆</m:ci>
+                      <m:apply xml:id="S2.E3.m1.28.sh1.cmml" xref="S2.E3.m1.28">
+                        <m:times xml:id="S2.E3.m1.5.cmml" xref="S2.E3.m1.5"/>
+                        <m:apply xml:id="S2.E3.m1.28.sh1.1.cmml" xref="S2.E3.m1.28">
+                          <m:csymbol cd="ambiguous" xml:id="S2.E3.m1.5a.cmml" xref="S2.E3.m1.5">superscript</m:csymbol>
+                          <m:apply xml:id="S2.E3.m1.4.cmml" xref="S2.E3.m1.4">
+                            <m:csymbol cd="latexml" xml:id="S2.E3.m1.4.1.cmml" xref="S2.E3.m1.4.1">matrix</m:csymbol>
+                            <m:matrix xml:id="S2.E3.m1.1.cmml" xref="S2.E3.m1.1">
+                              <m:matrixrow xml:id="S2.E3.m1.1a.cmml" xref="S2.E3.m1.1">
+                                <m:apply xml:id="S2.E3.m1.1.1.cmml" xref="S2.E3.m1.1.3a">
+                                  <m:times xml:id="S2.E3.m1.1.1.4.cmml" xref="S2.E3.m1.1.1.4"/>
+                                  <m:apply xml:id="S2.E3.m1.1.1.3.cmml" xref="S2.E3.m1.1.1.3">
+                                    <m:csymbol cd="ambiguous" xml:id="S2.E3.m1.1.1.3.1.cmml" xref="S2.E3.m1.1.1.3">subscript</m:csymbol>
+                                    <m:ci xml:id="S2.E3.m1.1.1.1.cmml" xref="S2.E3.m1.1.1.1">𝑎</m:ci>
+                                    <m:ci xml:id="S2.E3.m1.1.1.2.cmml" xref="S2.E3.m1.1.1.2">𝑥</m:ci>
+                                  </m:apply>
+                                  <m:ci xml:id="S2.E3.m1.1.1.5.cmml" xref="S2.E3.m1.1.1.5">𝑠</m:ci>
+                                </m:apply>
+                                <m:apply xml:id="S2.E3.m1.1.2.cmml" xref="S2.E3.m1.1.4a">
+                                  <m:times xml:id="S2.E3.m1.1.2.4.cmml" xref="S2.E3.m1.1.2.4"/>
+                                  <m:apply xml:id="S2.E3.m1.1.2.3.cmml" xref="S2.E3.m1.1.2.3">
+                                    <m:csymbol cd="ambiguous" xml:id="S2.E3.m1.1.2.3.1.cmml" xref="S2.E3.m1.1.2.3">subscript</m:csymbol>
+                                    <m:ci xml:id="S2.E3.m1.1.2.1.cmml" xref="S2.E3.m1.1.2.1">𝑎</m:ci>
+                                    <m:ci xml:id="S2.E3.m1.1.2.2.cmml" xref="S2.E3.m1.1.2.2">𝑦</m:ci>
+                                  </m:apply>
+                                  <m:ci xml:id="S2.E3.m1.1.2.5.cmml" xref="S2.E3.m1.1.2.5">𝑠</m:ci>
+                                </m:apply>
+                                <m:apply xml:id="S2.E3.m1.1.7.cmml" xref="S2.E3.m1.1.7">
+                                  <m:csymbol cd="ambiguous" xml:id="S2.E3.m1.1.7.1.cmml" xref="S2.E3.m1.1.7">subscript</m:csymbol>
+                                  <m:ci xml:id="S2.E3.m1.1.5.cmml" xref="S2.E3.m1.1.5">𝑎</m:ci>
+                                  <m:ci xml:id="S2.E3.m1.1.6.cmml" xref="S2.E3.m1.1.6">𝑧</m:ci>
+                                </m:apply>
+                              </m:matrixrow>
+                            </m:matrix>
+                          </m:apply>
+                          <m:ci xml:id="S2.E3.m1.5.1.cmml" xref="S2.E3.m1.5.1">𝑇</m:ci>
+                        </m:apply>
+                        <m:ci xml:id="S2.E3.m1.6.cmml" xref="S2.E3.m1.6">𝐈</m:ci>
+                        <m:apply xml:id="S2.E3.m1.28.sh1.2.cmml" xref="S2.E3.m1.28">
+                          <m:csymbol cd="ambiguous" xml:id="S2.E3.m1.5b.cmml" xref="S2.E3.m1.5">subscript</m:csymbol>
+                          <m:ci xml:id="S2.E3.m1.7.cmml" xref="S2.E3.m1.7">𝑆</m:ci>
+                          <m:apply xml:id="S2.E3.m1.8.1.cmml" xref="S2.E3.m1.8.1">
+                            <m:times xml:id="S2.E3.m1.8.1.2.cmml" xref="S2.E3.m1.8.1.2"/>
+                            <m:ci xml:id="S2.E3.m1.8.1.1.cmml" xref="S2.E3.m1.8.1.1">𝑤</m:ci>
+                            <m:ci xml:id="S2.E3.m1.8.1.3.cmml" xref="S2.E3.m1.8.1.3">𝑎</m:ci>
+                            <m:ci xml:id="S2.E3.m1.8.1.4.cmml" xref="S2.E3.m1.8.1.4">𝑟</m:ci>
+                            <m:ci xml:id="S2.E3.m1.8.1.5.cmml" xref="S2.E3.m1.8.1.5">𝑝</m:ci>
+                          </m:apply>
+                        </m:apply>
+                      </m:apply>
+                    </m:apply>
+                    <m:apply xml:id="S2.E3.m1.28b.cmml" xref="S2.E3.m1.28">
+                      <m:eq xml:id="S2.E3.m1.9.cmml" xref="S2.E3.m1.9"/>
+                      <m:share href="#S2.E3.m1.28.sh1.cmml" xml:id="S2.E3.m1.5k.cmml" xref="S2.E3.m1.5"/>
+                      <m:apply xml:id="S2.E3.m1.28.sh2.cmml" xref="S2.E3.m1.28">
+                        <m:times xml:id="S2.E3.m1.5c.cmml" xref="S2.E3.m1.5"/>
+                        <m:apply xml:id="S2.E3.m1.28.sh2.2.cmml" xref="S2.E3.m1.28">
+                          <m:csymbol cd="ambiguous" xml:id="S2.E3.m1.5d.cmml" xref="S2.E3.m1.5">superscript</m:csymbol>
+                          <m:apply xml:id="S2.E3.m1.28.sh2.1.cmml" xref="S2.E3.m1.28">
+                            <m:csymbol cd="ambiguous" xml:id="S2.E3.m1.5e.cmml" xref="S2.E3.m1.5">subscript</m:csymbol>
+                            <m:ci xml:id="S2.E3.m1.10.cmml" xref="S2.E3.m1.10">𝑅</m:ci>
+                            <m:ci xml:id="S2.E3.m1.11.1.cmml" xref="S2.E3.m1.11.1">𝑑</m:ci>
+                          </m:apply>
+                          <m:apply xml:id="S2.E3.m1.12.1.cmml" xref="S2.E3.m1.12.1">
+                            <m:minus xml:id="S2.E3.m1.12.1.2.cmml" xref="S2.E3.m1.12.1"/>
+                            <m:cn type="integer" xml:id="S2.E3.m1.12.1.1.cmml" xref="S2.E3.m1.12.1.1">1</m:cn>
+                          </m:apply>
+                        </m:apply>
+                        <m:ci xml:id="S2.E3.m1.13.cmml" xref="S2.E3.m1.13">𝑆</m:ci>
+                        <m:apply xml:id="S2.E3.m1.28.sh2.3.cmml" xref="S2.E3.m1.28">
+                          <m:csymbol cd="ambiguous" xml:id="S2.E3.m1.5f.cmml" xref="S2.E3.m1.5">subscript</m:csymbol>
+                          <m:ci xml:id="S2.E3.m1.14.cmml" xref="S2.E3.m1.14">𝑅</m:ci>
+                          <m:ci xml:id="S2.E3.m1.15.1.cmml" xref="S2.E3.m1.15.1">𝑑</m:ci>
+                        </m:apply>
+                        <m:apply xml:id="S2.E3.m1.28.sh2.4.cmml" xref="S2.E3.m1.28">
+                          <m:csymbol cd="ambiguous" xml:id="S2.E3.m1.5g.cmml" xref="S2.E3.m1.5">subscript</m:csymbol>
+                          <m:ci xml:id="S2.E3.m1.16.cmml" xref="S2.E3.m1.16">𝑅</m:ci>
+                          <m:apply xml:id="S2.E3.m1.17.1.cmml" xref="S2.E3.m1.17.1">
+                            <m:times xml:id="S2.E3.m1.17.1.2.cmml" xref="S2.E3.m1.17.1.2"/>
+                            <m:ci xml:id="S2.E3.m1.17.1.1.cmml" xref="S2.E3.m1.17.1.1">𝑛</m:ci>
+                            <m:ci xml:id="S2.E3.m1.17.1.3.cmml" xref="S2.E3.m1.17.1.3">𝑒</m:ci>
+                            <m:ci xml:id="S2.E3.m1.17.1.4.cmml" xref="S2.E3.m1.17.1.4">𝑤</m:ci>
+                          </m:apply>
+                        </m:apply>
+                      </m:apply>
+                    </m:apply>
+                    <m:apply xml:id="S2.E3.m1.28c.cmml" xref="S2.E3.m1.28">
+                      <m:eq xml:id="S2.E3.m1.18.cmml" xref="S2.E3.m1.18"/>
+                      <m:share href="#S2.E3.m1.28.sh2.cmml" xml:id="S2.E3.m1.5l.cmml" xref="S2.E3.m1.5"/>
+                      <m:apply xml:id="S2.E3.m1.28.sh3.cmml" xref="S2.E3.m1.28">
+                        <m:times xml:id="S2.E3.m1.5h.cmml" xref="S2.E3.m1.5"/>
+                        <m:ci xml:id="S2.E3.m1.19.cmml" xref="S2.E3.m1.19">𝑅</m:ci>
+                        <m:apply xml:id="S2.E3.m1.28.sh3.1.cmml" xref="S2.E3.m1.28">
+                          <m:csymbol cd="ambiguous" xml:id="S2.E3.m1.5i.cmml" xref="S2.E3.m1.5">subscript</m:csymbol>
+                          <m:ci xml:id="S2.E3.m1.20.cmml" xref="S2.E3.m1.20">𝑅</m:ci>
+                          <m:ci xml:id="S2.E3.m1.21.1.cmml" xref="S2.E3.m1.21.1">𝑑</m:ci>
+                        </m:apply>
+                      </m:apply>
+                    </m:apply>
+                  </m:apply>
+                </m:annotation-xml>
+                <m:annotation encoding="application/x-tex">\begin{split}S&amp;=\begin{bmatrix}a_{x}*s,&amp;a_{y}*s,&amp;a_{z}\end{bmatrix}^{T}\mathbf%
+{I}\\
+S_{warp}&amp;=R_{d}^{-1}SR_{d}\\
+R_{new}&amp;=RR_{d}\end{split}</m:annotation>
+              </m:semantics>
+            </m:math>
+          </Math>
+        </equation>
+      </para>
+      <para class="ltx_noindent" xml:id="S2.SS1.p7" fragid="S2.SS1.p7">
+        <p>where <Math mode="inline" xml:id="S2.SS1.p7.m1" tex="R_{d}=R_{z}(\pi/4)" text="R _ d = R _ z * (pi / 4)" fragid="S2.SS1.p7.m1"><m:math alttext="R_{d}=R_{z}(\pi/4)" display="inline"><m:semantics><m:mrow xml:id="S2.SS1.p7.m1.12" xref="S2.SS1.p7.m1.12.cmml"><m:msub xml:id="S2.SS1.p7.m1.4" xref="S2.SS1.p7.m1.4.cmml"><m:mi xml:id="S2.SS1.p7.m1.2" xref="S2.SS1.p7.m1.2.cmml">R</m:mi><m:mi xml:id="S2.SS1.p7.m1.3" xref="S2.SS1.p7.m1.3.cmml">d</m:mi></m:msub><m:mo xml:id="S2.SS1.p7.m1.5" xref="S2.SS1.p7.m1.5.cmml">=</m:mo><m:mrow xml:id="S2.SS1.p7.m1.11" xref="S2.SS1.p7.m1.11.cmml"><m:msub xml:id="S2.SS1.p7.m1.8" xref="S2.SS1.p7.m1.8.cmml"><m:mi xml:id="S2.SS1.p7.m1.6" xref="S2.SS1.p7.m1.6.cmml">R</m:mi><m:mi xml:id="S2.SS1.p7.m1.7" xref="S2.SS1.p7.m1.7.cmml">z</m:mi></m:msub><m:mo xml:id="S2.SS1.p7.m1.9" xref="S2.SS1.p7.m1.9.cmml">⁢</m:mo><m:mrow xml:id="S2.SS1.p7.m1.10b" xref="S2.SS1.p7.m1.1.cmml"><m:mo stretchy="false" xml:id="S2.SS1.p7.m1.10" xref="S2.SS1.p7.m1.1.cmml">(</m:mo><m:mrow xml:id="S2.SS1.p7.m1.1" xref="S2.SS1.p7.m1.1.cmml"><m:mi xml:id="S2.SS1.p7.m1.1.1" xref="S2.SS1.p7.m1.1.1.cmml">π</m:mi><m:mo xml:id="S2.SS1.p7.m1.1.2" xref="S2.SS1.p7.m1.1.2.cmml">/</m:mo><m:mn xml:id="S2.SS1.p7.m1.1.3" xref="S2.SS1.p7.m1.1.3.cmml">4</m:mn></m:mrow><m:mo stretchy="false" xml:id="S2.SS1.p7.m1.10a" xref="S2.SS1.p7.m1.1.cmml">)</m:mo></m:mrow></m:mrow></m:mrow><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S2.SS1.p7.m1.12.cmml" xref="S2.SS1.p7.m1.12"><m:eq xml:id="S2.SS1.p7.m1.5.cmml" xref="S2.SS1.p7.m1.5"/><m:apply xml:id="S2.SS1.p7.m1.4.cmml" xref="S2.SS1.p7.m1.4"><m:csymbol cd="ambiguous" xml:id="S2.SS1.p7.m1.4.1.cmml" xref="S2.SS1.p7.m1.4">subscript</m:csymbol><m:ci xml:id="S2.SS1.p7.m1.2.cmml" xref="S2.SS1.p7.m1.2">𝑅</m:ci><m:ci xml:id="S2.SS1.p7.m1.3.cmml" xref="S2.SS1.p7.m1.3">𝑑</m:ci></m:apply><m:apply xml:id="S2.SS1.p7.m1.11.cmml" xref="S2.SS1.p7.m1.11"><m:times xml:id="S2.SS1.p7.m1.9.cmml" xref="S2.SS1.p7.m1.9"/><m:apply xml:id="S2.SS1.p7.m1.8.cmml" xref="S2.SS1.p7.m1.8"><m:csymbol cd="ambiguous" xml:id="S2.SS1.p7.m1.8.1.cmml" xref="S2.SS1.p7.m1.8">subscript</m:csymbol><m:ci xml:id="S2.SS1.p7.m1.6.cmml" xref="S2.SS1.p7.m1.6">𝑅</m:ci><m:ci xml:id="S2.SS1.p7.m1.7.cmml" xref="S2.SS1.p7.m1.7">𝑧</m:ci></m:apply><m:apply xml:id="S2.SS1.p7.m1.1.cmml" xref="S2.SS1.p7.m1.10b"><m:divide xml:id="S2.SS1.p7.m1.1.2.cmml" xref="S2.SS1.p7.m1.1.2"/><m:ci xml:id="S2.SS1.p7.m1.1.1.cmml" xref="S2.SS1.p7.m1.1.1">𝜋</m:ci><m:cn type="integer" xml:id="S2.SS1.p7.m1.1.3.cmml" xref="S2.SS1.p7.m1.1.3">4</m:cn></m:apply></m:apply></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">R_{d}=R_{z}(\pi/4)</m:annotation></m:semantics></m:math></Math> is a rotation of <Math mode="inline" xml:id="S2.SS1.p7.m2" tex="\pi/4" text="pi / 4" fragid="S2.SS1.p7.m2"><m:math alttext="\pi/4" display="inline"><m:semantics><m:mrow xml:id="S2.SS1.p7.m2.4" xref="S2.SS1.p7.m2.4.cmml"><m:mi xml:id="S2.SS1.p7.m2.1" xref="S2.SS1.p7.m2.1.cmml">π</m:mi><m:mo xml:id="S2.SS1.p7.m2.2" xref="S2.SS1.p7.m2.2.cmml">/</m:mo><m:mn xml:id="S2.SS1.p7.m2.3" xref="S2.SS1.p7.m2.3.cmml">4</m:mn></m:mrow><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S2.SS1.p7.m2.4.cmml" xref="S2.SS1.p7.m2.4"><m:divide xml:id="S2.SS1.p7.m2.2.cmml" xref="S2.SS1.p7.m2.2"/><m:ci xml:id="S2.SS1.p7.m2.1.cmml" xref="S2.SS1.p7.m2.1">𝜋</m:ci><m:cn type="integer" xml:id="S2.SS1.p7.m2.3.cmml" xref="S2.SS1.p7.m2.3">4</m:cn></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">\pi/4</m:annotation></m:semantics></m:math></Math> about the z axis</p>
+      </para>
+      <para xml:id="S2.SS1.p8" fragid="S2.SS1.p8">
+        <p>Instead of a 3x3 transformation matrix for S, it can be further expanded to a pure scale and a shear transformation. Reversely, <Math mode="inline" xml:id="S2.SS1.p8.m1" tex="S" text="S" fragid="S2.SS1.p8.m1"><m:math alttext="S" display="inline"><m:semantics><m:mi xml:id="S2.SS1.p8.m1.1" xref="S2.SS1.p8.m1.1.cmml">S</m:mi><m:annotation-xml encoding="MathML-Content"><m:ci xml:id="S2.SS1.p8.m1.1.cmml" xref="S2.SS1.p8.m1.1">𝑆</m:ci></m:annotation-xml><m:annotation encoding="application/x-tex">S</m:annotation></m:semantics></m:math></Math> and <Math mode="inline" xml:id="S2.SS1.p8.m2" tex="R" text="R" fragid="S2.SS1.p8.m2"><m:math alttext="R" display="inline"><m:semantics><m:mi xml:id="S2.SS1.p8.m2.1" xref="S2.SS1.p8.m2.1.cmml">R</m:mi><m:annotation-xml encoding="MathML-Content"><m:ci xml:id="S2.SS1.p8.m2.1.cmml" xref="S2.SS1.p8.m2.1">𝑅</m:ci></m:annotation-xml><m:annotation encoding="application/x-tex">R</m:annotation></m:semantics></m:math></Math> can be combined into a single 3x3 transformation matrix (<Math mode="inline" xml:id="S2.SS1.p8.m3" tex="S" text="S" fragid="S2.SS1.p8.m3"><m:math alttext="S" display="inline"><m:semantics><m:mi xml:id="S2.SS1.p8.m3.1" xref="S2.SS1.p8.m3.1.cmml">S</m:mi><m:annotation-xml encoding="MathML-Content"><m:ci xml:id="S2.SS1.p8.m3.1.cmml" xref="S2.SS1.p8.m3.1">𝑆</m:ci></m:annotation-xml><m:annotation encoding="application/x-tex">S</m:annotation></m:semantics></m:math></Math>).</p>
+      </para>
+    </subsection>
+    <subsection inlist="toc" xml:id="S2.SS2" fragid="S2.SS2">
+      <tags>
+        <tag>2.2</tag>
+        <tag role="autoref">subsection 2.2</tag>
+        <tag role="refnum">2.2</tag>
+        <tag role="typerefnum">§2.2</tag>
+      </tags>
+      <title><tag close=" ">2.2</tag>Phase 2: Superquadric-guided Pose Estimation</title>
+      <figure inlist="lof" xml:id="S2.F2" labels="LABEL:fig:architecture" fragid="S2.F2">
+        <tags>
+          <tag>Figure 2</tag>
+          <tag role="autoref">Figure 2</tag>
+          <tag role="refnum">2</tag>
+          <tag role="typerefnum">Figure 2</tag>
+        </tags>
+        <graphics candidates="figures/model_process.png" graphic="figures/model_process.png" options="width=433.6pt,keepaspectratio=true" xml:id="S2.F2.g1" class="ltx_centering" fragid="S2.F2.g1"/>
+        <toccaption class="ltx_centering"><tag close=" ">2</tag>The proposed superquadric-guided pose estimation architecture extends upon <cite class="ltx_citemacro_cite">[<ref href="#bib.bib7" idref="bib.bib7" title="Gdr-net: geometry-guided direct regression network for monocular 6d object pose estimation">7</ref>]</cite> by introducing a new scale and shear head. The main difference is defining the 3D correspondences in reference to a superquadric shape rather than the 3D model of the full object.</toccaption>
+        <caption class="ltx_centering"><tag close=": ">Figure 2</tag>The proposed superquadric-guided pose estimation architecture extends upon <cite class="ltx_citemacro_cite">[<ref href="#bib.bib7" idref="bib.bib7" title="Gdr-net: geometry-guided direct regression network for monocular 6d object pose estimation">7</ref>]</cite> by introducing a new scale and shear head. The main difference is defining the 3D correspondences in reference to a superquadric shape rather than the 3D model of the full object.</caption>
+      </figure>
+      <para xml:id="S2.SS2.p1" fragid="S2.SS2.p1">
+        <p>The second phase of ShapeShift involves superquadric-guided pose estimation to directly predict pose and shape. The proposed architecture (see Figure <ref labelref="LABEL:fig:architecture" idref="S2.F2" href="#S2.F2" title="Figure 2 ‣ 2.2 Phase 2: Superquadric-guided Pose Estimation ‣ 2 Method ‣ ShapeShift: Superquadric-based Object Pose Estimation for Robotic Grasping"><text class="ltx_ref_tag">2</text></ref>) uses depth images as input and extends upon <cite class="ltx_citemacro_cite">[<ref href="#bib.bib7" idref="bib.bib7" title="Gdr-net: geometry-guided direct regression network for monocular 6d object pose estimation">7</ref>]</cite> in several ways. To reduce search dimensions, superquadrics were discretized based on shape parameters and treated as different object categories. This also allows for easily defining symmetry (discrete and continuous) for error calculations. To generate an intermediate representation, un-scaled primitive shapes were sampled using furthest point sampling. Additionally, the proposed architecture introduces additional scale and shear heads. An additional head can be added in the future to predict shape parameter offsets.</p>
+      </para>
+      <figure inlist="lof" xml:id="S2.F3" labels="LABEL:fig:examples" fragid="S2.F3">
+        <tags>
+          <tag>Figure 3</tag>
+          <tag role="autoref">Figure 3</tag>
+          <tag role="refnum">3</tag>
+          <tag role="typerefnum">Figure 3</tag>
+        </tags>
+        <figure xml:id="S2.F3.sf1" labels="LABEL:fig:superquadrics_space" align="center" class="ltx_figure_panel" fragid="S2.F3.sf1">
+          <tags>
+            <tag>(a)</tag>
+            <tag role="autoref">3a</tag>
+            <tag role="refnum">3a</tag>
+          </tags>
+          <graphics candidates="figures/primitives.png" graphic="figures/primitives.png" options="width=151.8pt,keepaspectratio=true" xml:id="S2.F3.sf1.g1" fragid="S2.F3.sf1.g1"/>
+          <toccaption>
+            <tag close=" ">a</tag>
+          </toccaption>
+          <caption>
+            <tag close=" ">(a)</tag>
+          </caption>
+        </figure>
+        <break class="ltx_break"/>
+        <figure xml:id="S2.F3.sf2" labels="LABEL:fig:clutter" align="center" class="ltx_figure_panel" fragid="S2.F3.sf2">
+          <tags>
+            <tag>(b)</tag>
+            <tag role="autoref">3b</tag>
+            <tag role="refnum">3b</tag>
+          </tags>
+          <graphics candidates="figures/scene1485_1.png" graphic="figures/scene1485_1.png" options="width=151.8pt,trim=0.0pt 113.81102pt 0.0pt 28.45274pt,clip=true,keepaspectratio=true" xml:id="S2.F3.sf2.g1" fragid="S2.F3.sf2.g1"/>
+          <toccaption>
+            <tag close=" ">b</tag>
+          </toccaption>
+          <caption>
+            <tag close=" ">(b)</tag>
+          </caption>
+        </figure>
+        <break class="ltx_centering"/>
+        <figure xml:id="S2.F3.sf3" labels="LABEL:fig:occlusion_1" align="center" class="ltx_figure_panel" fragid="S2.F3.sf3">
+          <tags>
+            <tag>(c)</tag>
+            <tag role="autoref">3c</tag>
+            <tag role="refnum">3c</tag>
+          </tags>
+          <graphics candidates="figures/scene6190_5.png" graphic="figures/scene6190_5.png" options="width=151.8pt,trim=113.81102pt 284.52756pt 56.9055pt 56.9055pt,clip=true,keepaspectratio=true" xml:id="S2.F3.sf3.g1" fragid="S2.F3.sf3.g1"/>
+          <toccaption>
+            <tag close=" ">c</tag>
+          </toccaption>
+          <caption>
+            <tag close=" ">(c)</tag>
+          </caption>
+        </figure>
+        <break class="ltx_break"/>
+        <figure xml:id="S2.F3.sf4" labels="LABEL:fig:occlusion_2" align="center" class="ltx_figure_panel" fragid="S2.F3.sf4">
+          <tags>
+            <tag>(d)</tag>
+            <tag role="autoref">3d</tag>
+            <tag role="refnum">3d</tag>
+          </tags>
+          <graphics candidates="figures/scene6547_27.png" graphic="figures/scene6547_27.png" options="width=151.8pt,trim=113.81102pt 284.52756pt 142.26378pt 0.0pt,clip=true,keepaspectratio=true" xml:id="S2.F3.sf4.g1" fragid="S2.F3.sf4.g1"/>
+          <toccaption>
+            <tag close=" ">d</tag>
+          </toccaption>
+          <caption>
+            <tag close=" ">(d)</tag>
+          </caption>
+        </figure>
+        <toccaption class="ltx_centering"><tag close=" ">3</tag>Superquadrics shape space and prediction examples</toccaption>
+        <caption class="ltx_centering"><tag close=": ">Figure 3</tag>Superquadrics shape space and prediction examples</caption>
+      </figure>
+      <figure inlist="lof" xml:id="S2.F4" labels="LABEL:fig:accuracy" fragid="S2.F4">
+        <tags>
+          <tag>Figure 4</tag>
+          <tag role="autoref">Figure 4</tag>
+          <tag role="refnum">4</tag>
+          <tag role="typerefnum">Figure 4</tag>
+        </tags>
+        <graphics candidates="figures/add.png" graphic="figures/add.png" options="width=212.5pt,trim=0.0pt 0.0pt 11.38092pt 0.0pt,keepaspectratio=true" xml:id="S2.F4.g1" class="ltx_centering ltx_figure_panel" fragid="S2.F4.g1"/>
+        <graphics candidates="figures/proj_error.png" graphic="figures/proj_error.png" options="width=212.5pt,trim=85.35826pt 0.0pt 0.0pt 0.0pt,keepaspectratio=true" xml:id="S2.F4.g2" class="ltx_centering ltx_figure_panel" fragid="S2.F4.g2"/>
+        <toccaption class="ltx_centering"><tag close=" ">4</tag>MSSD (left) and MSPD (right) based accuracy scores over different thresholds on discrete superquadric shapes</toccaption>
+        <caption class="ltx_centering"><tag close=": ">Figure 4</tag>MSSD (left) and MSPD (right) based accuracy scores over different thresholds on discrete superquadric shapes</caption>
+      </figure>
+    </subsection>
+  </section>
+  <section inlist="toc" xml:id="S3" fragid="S3">
+    <tags>
+      <tag>3</tag>
+      <tag role="autoref">section 3</tag>
+      <tag role="refnum">3</tag>
+      <tag role="typerefnum">§3</tag>
+    </tags>
+    <title><tag close=" ">3</tag>Experimental results and discussion</title>
+    <para xml:id="S3.p1" fragid="S3.p1">
+      <p>We conducted experiments on a subset of the MetaGraspNet benchmark dataset <cite class="ltx_citemacro_cite">[<ref href="#bib.bib14" idref="bib.bib14" title="MetaGraspNet: a large-scale benchmark dataset for vision-driven robotic grasping via physics-based metaverse synthesis">1</ref>]</cite> containing 54 object categories of objects that are composable using multiple superquadrics. We evaluated the performance of our proposed ShapeShift framework for object pose estimation using the Maximum Symmetry-Aware Surface Distance (MSSD) and Maximum Symmetry-Aware Projection Distance (MSPD) metrics <cite class="ltx_citemacro_cite">[<ref href="#bib.bib9" idref="bib.bib9" title="BOP challenge 2020 on 6d object localization">2</ref>]</cite>. For evaluation, we combined rotation, scale, and shear into a single transformation matrix. The accuracy scores based on both metrics are shown in Figure <ref labelref="LABEL:fig:accuracy" idref="S2.F4" href="#S2.F4" title="Figure 4 ‣ 2.2 Phase 2: Superquadric-guided Pose Estimation ‣ 2 Method ‣ ShapeShift: Superquadric-based Object Pose Estimation for Robotic Grasping"><text class="ltx_ref_tag">4</text></ref>.</p>
+    </para>
+    <para xml:id="S3.p2" fragid="S3.p2">
+      <p>During experimentation, we observed three challenges.</p>
+    </para>
+    <para xml:id="S3.p3" fragid="S3.p3">
+      <p>First, the method’s performance was lower for underrepresented shape categories, as shown in Figure <ref labelref="LABEL:fig:accuracy" idref="S2.F4" href="#S2.F4" title="Figure 4 ‣ 2.2 Phase 2: Superquadric-guided Pose Estimation ‣ 2 Method ‣ ShapeShift: Superquadric-based Object Pose Estimation for Robotic Grasping"><text class="ltx_ref_tag">4</text></ref>.</p>
+    </para>
+    <para xml:id="S3.p4" fragid="S3.p4">
+      <p>Second, shear is underrepresented in the ground truth, but there exists a head dedicated to predicting it, causing a number of false predictions. False predictions of shear caused projected error to be higher than 3D surface distance error for <Math mode="inline" xml:id="S3.p4.m1" tex="\epsilon=(0,0)" text="epsilon = open-interval@(0, 0)" fragid="S3.p4.m1"><m:math alttext="\epsilon=(0,0)" display="inline"><m:semantics><m:mrow xml:id="S3.p4.m1.7" xref="S3.p4.m1.7.cmml"><m:mi xml:id="S3.p4.m1.3" xref="S3.p4.m1.3.cmml">ϵ</m:mi><m:mo xml:id="S3.p4.m1.4" xref="S3.p4.m1.4.cmml">=</m:mo><m:mrow xml:id="S3.p4.m1.6" xref="S3.p4.m1.6.cmml"><m:mo stretchy="false" xml:id="S3.p4.m1.5" xref="S3.p4.m1.6.cmml">(</m:mo><m:mn xml:id="S3.p4.m1.1" xref="S3.p4.m1.1.cmml">0</m:mn><m:mo xml:id="S3.p4.m1.5a" xref="S3.p4.m1.6.cmml">,</m:mo><m:mn xml:id="S3.p4.m1.2" xref="S3.p4.m1.2.cmml">0</m:mn><m:mo stretchy="false" xml:id="S3.p4.m1.5b" xref="S3.p4.m1.6.cmml">)</m:mo></m:mrow></m:mrow><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S3.p4.m1.7.cmml" xref="S3.p4.m1.7"><m:eq xml:id="S3.p4.m1.4.cmml" xref="S3.p4.m1.4"/><m:ci xml:id="S3.p4.m1.3.cmml" xref="S3.p4.m1.3">italic-ϵ</m:ci><m:interval closure="open" xml:id="S3.p4.m1.6.cmml" xref="S3.p4.m1.6"><m:cn type="integer" xml:id="S3.p4.m1.1.cmml" xref="S3.p4.m1.1">0</m:cn><m:cn type="integer" xml:id="S3.p4.m1.2.cmml" xref="S3.p4.m1.2">0</m:cn></m:interval></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">\epsilon=(0,0)</m:annotation></m:semantics></m:math></Math> shapes.</p>
+    </para>
+    <para xml:id="S3.p5" fragid="S3.p5">
+      <p>Finally, the proposed method is robust to partial occlusion on objects composed of multiple primitive shapes. As illustrated in Figures <ref labelref="LABEL:fig:occlusion_1" idref="S2.F3.sf3" href="#S2.F3.sf3" title="In Figure 3 ‣ 2.2 Phase 2: Superquadric-guided Pose Estimation ‣ 2 Method ‣ ShapeShift: Superquadric-based Object Pose Estimation for Robotic Grasping"><text class="ltx_ref_tag">3c</text></ref>, <ref labelref="LABEL:fig:occlusion_2" idref="S2.F3.sf4" href="#S2.F3.sf4" title="In Figure 3 ‣ 2.2 Phase 2: Superquadric-guided Pose Estimation ‣ 2 Method ‣ ShapeShift: Superquadric-based Object Pose Estimation for Robotic Grasping"><text class="ltx_ref_tag">3d</text></ref>, parts of the object that are not occluded can still be properly predicted, even while the method struggles on heavy occlusion. Further work exploring data augmentation methods and an addition amodal mask prediction head should help with overall occluded object performance.</p>
+    </para>
+    <subsection inlist="toc" xml:id="S3.SS1" fragid="S3.SS1">
+      <tags>
+        <tag>3.1</tag>
+        <tag role="autoref">subsection 3.1</tag>
+        <tag role="refnum">3.1</tag>
+        <tag role="typerefnum">§3.1</tag>
+      </tags>
+      <title><tag close=" ">3.1</tag>Conclusion and future work</title>
+      <para xml:id="S3.SS1.p1" fragid="S3.SS1.p1">
+        <p>In this paper, we introduced ShapeShift, a superquadric-based framework for object pose estimation is proposed that predicts an object’s pose relative to a primitive shape fitted to the object. This approach provides intrinsic descriptiveness and information about the 3D object without relying on a 3D model. The approach was further tested on the MetaGraspNet benchmark dataset, and has demonstrated the ability to approximate the shapes present in the image.
+Future work would focus on optimizing performance in cases of occlusion, dealing with the imbalanced distribution of shape types, adding an additional head to predict precise shape parameters, and evaluating performance on novel objects not seen in the training set.</p>
+      </para>
+    </subsection>
+  </section>
+  <bibliography citestyle="numbers" files="egbib" xml:id="bib" fragid="bib">
+    <title fontsize="90%">References</title>
+    <biblist xml:id="bib.L1" fragid="bib.L1">
+      <bibitem class="ltx_bib_article" key="chen2021metagraspnet" type="article" xml:id="bib.bib14" fragid="bib.bib14">
+        <tags>
+          <tag class="ltx_bib_number" role="number">1</tag>
+          <tag class="ltx_bib_author" role="authors">Chen<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Chen, Zeng, Gilles,  and Wong</tag>
+          <tag class="ltx_bib_year" role="year">2021</tag>
+          <tag class="ltx_bib_title" role="title">MetaGraspNet: a large-scale benchmark dataset for vision-driven robotic grasping via physics-based metaverse synthesis</tag>
+          <tag class="ltx_bib_key" close="]" open="[" role="refnum">1</tag>
+        </tags>
+        <bibblock xml:space="preserve">
+          <text class="ltx_bib_author">Y. Chen, E. Z. Zeng, M. Gilles, and A. Wong</text>
+          <text class="ltx_bib_year"> (<bib-date role="publication">2021</bib-date>)</text>
+        </bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>MetaGraspNet: a large-scale benchmark dataset for vision-driven robotic grasping via physics-based metaverse synthesis</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>arXiv preprint arXiv:2112.14663</bib-title></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S3.p1" show="typerefnum" href="#S3.p1" title="3 Experimental results and discussion ‣ ShapeShift: Superquadric-based Object Pose Estimation for Robotic Grasping"><text class="ltx_ref_tag">§3</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="hodavn2020bop" type="inproceedings" xml:id="bib.bib9" fragid="bib.bib9">
+        <tags>
+          <tag class="ltx_bib_number" role="number">2</tag>
+          <tag class="ltx_bib_author" role="authors">Hodaň<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Hodaň, Sundermeyer, Drost, Labbé, Brachmann, Michel, Rother,  and Matas</tag>
+          <tag class="ltx_bib_year" role="year">2020</tag>
+          <tag class="ltx_bib_title" role="title">BOP challenge 2020 on 6d object localization</tag>
+          <tag class="ltx_bib_key" close="]" open="[" role="refnum">2</tag>
+        </tags>
+        <bibblock xml:space="preserve">
+          <text class="ltx_bib_author">T. Hodaň, M. Sundermeyer, B. Drost, Y. Labbé, E. Brachmann, F. Michel, C. Rother, and J. Matas</text>
+          <text class="ltx_bib_year"> (<bib-date role="publication">2020</bib-date>)</text>
+        </bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>BOP challenge 2020 on 6d object localization</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Computer Vision–ECCV 2020 Workshops: Glasgow, UK, August 23–28, 2020, Proceedings, Part II 16</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_pages"> pp. <bib-part role="pages">577–594</bib-part></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S3.p1" show="typerefnum" href="#S3.p1" title="3 Experimental results and discussion ‣ ShapeShift: Superquadric-based Object Pose Estimation for Robotic Grasping"><text class="ltx_ref_tag">§3</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="liu2022robust" type="inproceedings" xml:id="bib.bib10" fragid="bib.bib10">
+        <tags>
+          <tag class="ltx_bib_number" role="number">3</tag>
+          <tag class="ltx_bib_author" role="authors">Liu<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Liu, Wu, Ruan,  and Chirikjian</tag>
+          <tag class="ltx_bib_year" role="year">2022</tag>
+          <tag class="ltx_bib_title" role="title">Robust and accurate superquadric recovery: a probabilistic approach</tag>
+          <tag class="ltx_bib_key" close="]" open="[" role="refnum">3</tag>
+        </tags>
+        <bibblock xml:space="preserve">
+          <text class="ltx_bib_author">W. Liu, Y. Wu, S. Ruan, and G. S. Chirikjian</text>
+          <text class="ltx_bib_year"> (<bib-date role="publication">2022</bib-date>)</text>
+        </bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Robust and accurate superquadric recovery: a probabilistic approach</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>CVPR</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_pages"> pp. <bib-part role="pages">2676–2685</bib-part></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p3" show="typerefnum" href="#S1.p3" title="1 Introduction ‣ ShapeShift: Superquadric-based Object Pose Estimation for Robotic Grasping"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S2.SS1.p2" show="typerefnum" href="#S2.SS1.p2" title="2.1 Phase 1: Superquadric fitting ‣ 2 Method ‣ ShapeShift: Superquadric-based Object Pose Estimation for Robotic Grasping"><text class="ltx_ref_tag">§2.1</text></ref>,
+<ref idref="S2.SS1.p3" show="typerefnum" href="#S2.SS1.p3" title="2.1 Phase 1: Superquadric fitting ‣ 2 Method ‣ ShapeShift: Superquadric-based Object Pose Estimation for Robotic Grasping"><text class="ltx_ref_tag">§2.1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="Oblak2021expli_imp_superq" type="article" xml:id="bib.bib11" fragid="bib.bib11">
+        <tags>
+          <tag class="ltx_bib_number" role="number">4</tag>
+          <tag class="ltx_bib_author" role="authors">Oblak<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Oblak, Šircelj, Štruc, Peer, Solina,  and Jaklič</tag>
+          <tag class="ltx_bib_year" role="year">2021</tag>
+          <tag class="ltx_bib_title" role="title">Learning to predict superquadric parameters from depth images with explicit and implicit supervision</tag>
+          <tag class="ltx_bib_key" close="]" open="[" role="refnum">4</tag>
+        </tags>
+        <bibblock xml:space="preserve">
+          <text class="ltx_bib_author">T. Oblak, J. Šircelj, V. Štruc, P. Peer, F. Solina, and A. Jaklič</text>
+          <text class="ltx_bib_year"> (<bib-date role="publication">2021</bib-date>)</text>
+        </bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Learning to predict superquadric parameters from depth images with explicit and implicit supervision</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>IEEE Access</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">9</bib-part></text> (<text class="ltx_bib_number"><bib-part role="number"/></text>), <text class="ltx_bib_pages"> pp. <bib-part role="pages">1087–1102</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="doi ltx_bib_external" href="https://dx.doi.org/10.1109/ACCESS.2020.3041584">Document</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p3" show="typerefnum" href="#S1.p3" title="1 Introduction ‣ ShapeShift: Superquadric-based Object Pose Estimation for Robotic Grasping"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="paschalidou2020hierarchical_superquad" type="inproceedings" xml:id="bib.bib12" fragid="bib.bib12">
+        <tags>
+          <tag class="ltx_bib_number" role="number">5</tag>
+          <tag class="ltx_bib_author" role="authors">Paschalidou<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Paschalidou, Gool,  and Geiger</tag>
+          <tag class="ltx_bib_year" role="year">2020</tag>
+          <tag class="ltx_bib_title" role="title">Learning unsupervised hierarchical part decomposition of 3d objects from a single rgb image</tag>
+          <tag class="ltx_bib_key" close="]" open="[" role="refnum">5</tag>
+        </tags>
+        <bibblock xml:space="preserve">
+          <text class="ltx_bib_author">D. Paschalidou, L. V. Gool, and A. Geiger</text>
+          <text class="ltx_bib_year"> (<bib-date role="publication">2020</bib-date>)</text>
+        </bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Learning unsupervised hierarchical part decomposition of 3d objects from a single rgb image</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_pages"> pp. <bib-part role="pages">1060–1070</bib-part></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p3" show="typerefnum" href="#S1.p3" title="1 Introduction ‣ ShapeShift: Superquadric-based Object Pose Estimation for Robotic Grasping"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="robson2022keypoint_grasp" type="inproceedings" xml:id="bib.bib8" fragid="bib.bib8">
+        <tags>
+          <tag class="ltx_bib_number" role="number">6</tag>
+          <tag class="ltx_bib_author" role="authors">Robson and Sridharan</tag>
+          <tag class="ltx_bib_year" role="year">2022</tag>
+          <tag class="ltx_bib_title" role="title">A keypoint-based object representation for generating task-specific grasps</tag>
+          <tag class="ltx_bib_key" close="]" open="[" role="refnum">6</tag>
+        </tags>
+        <bibblock xml:space="preserve">
+          <text class="ltx_bib_author">M. Robson and M. Sridharan</text>
+          <text class="ltx_bib_year"> (<bib-date role="publication">2022</bib-date>)</text>
+        </bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>A keypoint-based object representation for generating task-specific grasps</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>2022 IEEE 18th International Conference on Automation Science and Engineering (CASE)</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_pages"> pp. <bib-part role="pages">374–381</bib-part></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p2" show="typerefnum" href="#S1.p2" title="1 Introduction ‣ ShapeShift: Superquadric-based Object Pose Estimation for Robotic Grasping"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="wang2021gdr" type="inproceedings" xml:id="bib.bib7" fragid="bib.bib7">
+        <tags>
+          <tag class="ltx_bib_number" role="number">7</tag>
+          <tag class="ltx_bib_author" role="authors">Wang<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Wang, Manhardt, Tombari,  and Ji</tag>
+          <tag class="ltx_bib_year" role="year">2021</tag>
+          <tag class="ltx_bib_title" role="title">Gdr-net: geometry-guided direct regression network for monocular 6d object pose estimation</tag>
+          <tag class="ltx_bib_key" close="]" open="[" role="refnum">7</tag>
+        </tags>
+        <bibblock xml:space="preserve">
+          <text class="ltx_bib_author">G. Wang, F. Manhardt, F. Tombari, and X. Ji</text>
+          <text class="ltx_bib_year"> (<bib-date role="publication">2021</bib-date>)</text>
+        </bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Gdr-net: geometry-guided direct regression network for monocular 6d object pose estimation</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>CVPR</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_pages"> pp. <bib-part role="pages">16611–16621</bib-part></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S2.F2" show="typerefnum" href="#S2.F2" title="In 2.2 Phase 2: Superquadric-guided Pose Estimation ‣ 2 Method ‣ ShapeShift: Superquadric-based Object Pose Estimation for Robotic Grasping"><text class="ltx_ref_tag">Figure 2</text></ref>,
+<ref idref="S2.SS2.p1" show="typerefnum" href="#S2.SS2.p1" title="2.2 Phase 2: Superquadric-guided Pose Estimation ‣ 2 Method ‣ ShapeShift: Superquadric-based Object Pose Estimation for Robotic Grasping"><text class="ltx_ref_tag">§2.2</text></ref>.</bibblock>
+      </bibitem>
+    </biblist>
+  </bibliography>
+  <navigation>
+    <title>ShapeShift: Superquadric-based Object Pose Estimation for Robotic Grasping</title>
+  </navigation>
+</document>

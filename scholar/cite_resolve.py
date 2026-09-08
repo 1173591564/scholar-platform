@@ -282,8 +282,7 @@ def resolve_via_arxiv(query: str, cache_dir: Path = None) -> Optional[dict]:
 # ===================================================================
 
 def _sidecar_path() -> Path:
-    from .graph_mem import REFS_SIDECAR
-    return REFS_SIDECAR
+    return config.OUTPUT_DIR / "index" / "refs-resolved.json"
 
 
 def merge_sidecar(resolved_map: dict, externals: list[dict]) -> None:

@@ -114,6 +114,9 @@ def get_unanalyzed_logs() -> dict[str, tuple[Path, list[dict]]]:
     logs_dir = config.LOGS_DIR
     result: dict[str, tuple[Path, list[dict]]] = {}
 
+    if not logs_dir.exists():
+        return result
+
     # 收集所有可能的日志源：子目录 + 旧的平面文件
     project_dirs: dict[str, Path] = {}
 

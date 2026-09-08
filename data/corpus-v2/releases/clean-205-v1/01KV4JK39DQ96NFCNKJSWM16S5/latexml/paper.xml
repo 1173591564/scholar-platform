@@ -1,0 +1,1229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?latexml searchpaths="/opt/ar5iv-bindings/supported_originals,/opt/ar5iv-bindings/bindings,/custom-bindings,/work"?>
+<?latexml class="llncs"?>
+<?latexml package="tabularx"?>
+<?latexml preamble="\newcolumntype{R}{>{\raggedleft\arraybackslash}X}"?>
+<?latexml RelaxNGSchema="LaTeXML"?>
+<document xmlns="http://dlmf.nist.gov/LaTeXML" xmlns:m="http://www.w3.org/1998/Math/MathML" class="ltx_authors_1line" xml:id="Document">
+  <resource src="LaTeXML.css" type="text/css"/>
+  <resource src="ltx-article.css" type="text/css"/>
+  <note mark="1" role="institutetext">Aalto University School of Science</note>
+  <title font="bold">Lossless data compression on GPGPU architectures</title>
+  <creator role="author">
+    <personname>Axel Eirola</personname>
+  </creator>
+  <abstract name="Abstract">
+    <p>Modern graphics processors provide exceptional computational power, but only for certain computational models. While they have revolutionized computation in many fields, compression has been largely unnaffected. This paper aims to explain the current issues and possibilities in GPGPU compression. This is done by a high level overview of the GPGPU computational model in the context of compression algorithms; along with a more in-depth analysis of how one would implement bzip2 on a GPGPU architecture.</p>
+  </abstract>
+  <section inlist="toc" xml:id="S1" fragid="S1">
+    <tags>
+      <tag>1</tag>
+      <tag role="refnum">1</tag>
+      <tag role="typerefnum">§1</tag>
+    </tags>
+    <title><tag close=" ">1</tag>Introduction</title>
+    <para xml:id="S1.p1" fragid="S1.p1">
+      <p>Ever since PCs became common household items, and computer gaming hit mainstream attention during the 90s, the graphics processing unit (GPU) industry has been growing steadily in along with the CPU industry. The need for faster and ever more visually stunning graphics has lead a head-on battle between nVidia and AMD for more powerful GPUs, and the consumers money. The colossal computational power on the GPU chips has until lately only been utilized to their full capacity in 3D gaming, but lately with the advent of new architectures is it possible to exploit the computational resources for more general purposes.</p>
+    </para>
+    <para xml:id="S1.p2" fragid="S1.p2">
+      <p>General-purpose computing on graphics processing units (GPGPU) gives software designers the massive parallel computational power and memory bandwidth of modern GPUs, at the cost of more limited programming models. Some tasks, such as scientific computing and audio/video processing, are able to utilize these resources without large complications due to their paralellizable nature. Other tasks such as data compression, especially lossless data compression, are not as lucky and have more difficulties exploiting the power of GPUs. This paper focuses on lossless data compression and attempts to build a picture of the incompatibilities between GPGPU computation and data compression. On the other hand it also takes a look at what data compression related computations have successfully been ported to GPGPU platforms.</p>
+    </para>
+    <para xml:id="S1.p3" fragid="S1.p3">
+      <p>The rest of the paper is split into three sections. The next section <ref labelref="LABEL:sec:gpgpu" idref="S2" href="#S2" title="2 GPGPU ‣ Lossless data compression on GPGPU architectures"><text class="ltx_ref_tag">2</text></ref> describes the GPGPU platforms a bit closer, relating their characteristics to the needs of data compression. Section <ref labelref="LABEL:sec:algorithms" idref="S3" href="#S3" title="3 Current compression algorithms ‣ Lossless data compression on GPGPU architectures"><text class="ltx_ref_tag">3</text></ref> shows some successful applications of GPGPU on compression algorithms, and describes what parts of a bzip2 implementations could be accelerated by GPGPUs. Finally in section <ref labelref="LABEL:sec:discussion" idref="S4" href="#S4" title="4 Discussion ‣ Lossless data compression on GPGPU architectures"><text class="ltx_ref_tag">4</text></ref> we discuss the current trends in the field of GPGPU compression.</p>
+    </para>
+  </section>
+  <section inlist="toc" xml:id="S2" labels="LABEL:sec:gpgpu" fragid="S2">
+    <tags>
+      <tag>2</tag>
+      <tag role="refnum">2</tag>
+      <tag role="typerefnum">§2</tag>
+    </tags>
+    <title><tag close=" ">2</tag>GPGPU</title>
+    <para xml:id="S2.p1" fragid="S2.p1">
+      <p>Current leading edge GPU chips provide way higher computations per second compared to similarly priced leading edge CPU. The computational power of the GPUs is distributed over hundreds of computational cores, all working in parallel. To simplify synchronization of their concurrent computations, the GPGPU platforms run code in clusters of 32 threads called <emph font="italic">warps</emph>. Each of the threads in one warp executes the same instruction, on different data, at every given time. For fast performance, the data the processors operate on should be coalesced in continuous and aligned blocks in memory, to enable a single memory transfer for all data. Multiple warps are run in blocks of hundred of threads, which combine into a grid consisting of all executing threads. Until recently all threads would always run the same program, but newer architectures have enabled simultaneous execution of multiple programs.</p>
+    </para>
+    <para xml:id="S2.p2" fragid="S2.p2">
+      <p>This programming model fits nicely in image processing where each computing core can process a single pixel, comparing it to nearby pixels in temporal or spatial dimensions, producing reductions or sensory compensations of them. On the other hand serial computations are slow on GPUs, as are many algorithms efficiently parallelizable on symmetric multiprocessing CPU systems. The limitations created by the tightly synchronized threads, and the memory access patterns restrict what is feasible to do on a GPGPU platform.</p>
+    </para>
+    <para xml:id="S2.p3" fragid="S2.p3">
+      <p>The split system with the CPUs on the motherboard, and the GPUs as separate devices also lead to some obstacles. Firstly all data data that is to be processed on GPGPU needs to be copied over the PCIe bus. Although the PCIe 2.0 bus is fast (8 GBPS) in comparison to many other transportation mediums, it does fall short of the parallel memory bandwidth on GPU cards (<Math mode="inline" xml:id="S2.p3.m1" tex="&gt;" text="&gt;" fragid="S2.p3.m1"><m:math alttext="&gt;" display="inline"><m:semantics><m:mo xml:id="S2.p3.m1.1" xref="S2.p3.m1.1.cmml">&gt;</m:mo><m:annotation-xml encoding="MathML-Content"><m:gt xml:id="S2.p3.m1.1.cmml" xref="S2.p3.m1.1"/></m:annotation-xml><m:annotation encoding="application/x-tex">&gt;</m:annotation></m:semantics></m:math></Math>200GBPS), which might lead to limits when wanting to do really fast stuff. Although the memory transfer from device (GPU) to host (CPU) can be performed in parallel with executed code, it always adds some extra latency to the overall runtime.</p>
+    </para>
+    <subsection inlist="toc" xml:id="S2.SS1" fragid="S2.SS1">
+      <tags>
+        <tag>2.1</tag>
+        <tag role="refnum">2.1</tag>
+        <tag role="typerefnum">§2.1</tag>
+      </tags>
+      <title><tag close=" ">2.1</tag>GPGPU Data Compression</title>
+      <para xml:id="S2.SS1.p1" fragid="S2.SS1.p1">
+        <p>The fact that lossless data compression is largely about finding redundancy within a set of data, leads to compression algorithms that process the data in one or many passes, comparing incoming data with previously encountered data. This makes many of them highly serial in nature, and are usually challenging to parallelize. The most common way of parallelizing compression algorithms is thus to split the data into smaller blocks and execute the normal serial algorithm on each one. As a downside, this separates the redundancies, giving slightly poorer compression ratio. There are multiple bzip2 implementations doing this with efficient scaling on multiple CPU cores <cite class="ltx_citemacro_cite">[<ref href="#bib.bib6" idref="bib.bib6">6</ref>]</cite>. This simple trick means that little research has been done on more efficiently parallelizable algorithms before GPGPU came along.</p>
+      </para>
+      <para xml:id="S2.SS1.p2" fragid="S2.SS1.p2">
+        <p>The fact that GPGPUs have hundreds of processors and a non-general memory accessing scheme, means that the method of splitting the data into smaller chunks isn’t always feasible <cite class="ltx_citemacro_cite">[<ref href="#bib.bib16" idref="bib.bib16">16</ref>]</cite>. On the other hand if one aims at very trivial and simple compression by processing single fields or integers into more compact form, using for example null suppression or Elias delta codes, one can achieve amazing parallel performance <cite class="ltx_citemacro_cite">[<ref href="#bib.bib12" idref="bib.bib12">12</ref>]</cite>.</p>
+      </para>
+      <para xml:id="S2.SS1.p3" fragid="S2.SS1.p3">
+        <p>The real deal of GPGPU compression is though to be found form exploiting more general computational methods available for GPGPU platforms. Firstly, being such a widely used general tool, sorting has several efficient parallel implementations, such as merge sort executing <Math mode="inline" xml:id="S2.SS1.p3.m1" tex="O(n\log n)" text="O * n * logarithm@(n)" fragid="S2.SS1.p3.m1"><m:math alttext="O(n\log n)" display="inline"><m:semantics><m:mrow xml:id="S2.SS1.p3.m1.5" xref="S2.SS1.p3.m1.5.cmml"><m:mi xml:id="S2.SS1.p3.m1.2" xref="S2.SS1.p3.m1.2.cmml">O</m:mi><m:mo xml:id="S2.SS1.p3.m1.3" xref="S2.SS1.p3.m1.3.cmml">⁢</m:mo><m:mrow xml:id="S2.SS1.p3.m1.4b" xref="S2.SS1.p3.m1.1.cmml"><m:mo stretchy="false" xml:id="S2.SS1.p3.m1.4" xref="S2.SS1.p3.m1.1.cmml">(</m:mo><m:mrow xml:id="S2.SS1.p3.m1.1" xref="S2.SS1.p3.m1.1.cmml"><m:mi xml:id="S2.SS1.p3.m1.1.1" xref="S2.SS1.p3.m1.1.1.cmml">n</m:mi><m:mo lspace="0.167em" xml:id="S2.SS1.p3.m1.1.2" xref="S2.SS1.p3.m1.1.2.cmml">⁢</m:mo><m:mrow xml:id="S2.SS1.p3.m1.1.5" xref="S2.SS1.p3.m1.1.5.cmml"><m:mi xml:id="S2.SS1.p3.m1.1.3" xref="S2.SS1.p3.m1.1.3.cmml">log</m:mi><m:mo lspace="0.167em" xml:id="S2.SS1.p3.m1.1.5a" xref="S2.SS1.p3.m1.1.5.cmml">⁡</m:mo><m:mi xml:id="S2.SS1.p3.m1.1.4" xref="S2.SS1.p3.m1.1.4.cmml">n</m:mi></m:mrow></m:mrow><m:mo stretchy="false" xml:id="S2.SS1.p3.m1.4a" xref="S2.SS1.p3.m1.1.cmml">)</m:mo></m:mrow></m:mrow><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S2.SS1.p3.m1.5.cmml" xref="S2.SS1.p3.m1.5"><m:times xml:id="S2.SS1.p3.m1.3.cmml" xref="S2.SS1.p3.m1.3"/><m:ci xml:id="S2.SS1.p3.m1.2.cmml" xref="S2.SS1.p3.m1.2">𝑂</m:ci><m:apply xml:id="S2.SS1.p3.m1.1.cmml" xref="S2.SS1.p3.m1.4b"><m:times xml:id="S2.SS1.p3.m1.1.2.cmml" xref="S2.SS1.p3.m1.1.2"/><m:ci xml:id="S2.SS1.p3.m1.1.1.cmml" xref="S2.SS1.p3.m1.1.1">𝑛</m:ci><m:apply xml:id="S2.SS1.p3.m1.1.5.cmml" xref="S2.SS1.p3.m1.1.5"><m:log xml:id="S2.SS1.p3.m1.1.3.cmml" xref="S2.SS1.p3.m1.1.3"/><m:ci xml:id="S2.SS1.p3.m1.1.4.cmml" xref="S2.SS1.p3.m1.1.4">𝑛</m:ci></m:apply></m:apply></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">O(n\log n)</m:annotation></m:semantics></m:math></Math> steps, in <Math mode="inline" xml:id="S2.SS1.p3.m2" tex="O(\log n)" text="O * logarithm@(n)" fragid="S2.SS1.p3.m2"><m:math alttext="O(\log n)" display="inline"><m:semantics><m:mrow xml:id="S2.SS1.p3.m2.5" xref="S2.SS1.p3.m2.5.cmml"><m:mi xml:id="S2.SS1.p3.m2.2" xref="S2.SS1.p3.m2.2.cmml">O</m:mi><m:mo xml:id="S2.SS1.p3.m2.3" xref="S2.SS1.p3.m2.3.cmml">⁢</m:mo><m:mrow xml:id="S2.SS1.p3.m2.4b" xref="S2.SS1.p3.m2.1.cmml"><m:mo stretchy="false" xml:id="S2.SS1.p3.m2.4" xref="S2.SS1.p3.m2.1.cmml">(</m:mo><m:mrow xml:id="S2.SS1.p3.m2.1" xref="S2.SS1.p3.m2.1.cmml"><m:mi xml:id="S2.SS1.p3.m2.1.1" xref="S2.SS1.p3.m2.1.1.cmml">log</m:mi><m:mo lspace="0.167em" xml:id="S2.SS1.p3.m2.1a" xref="S2.SS1.p3.m2.1.cmml">⁡</m:mo><m:mi xml:id="S2.SS1.p3.m2.1.2" xref="S2.SS1.p3.m2.1.2.cmml">n</m:mi></m:mrow><m:mo stretchy="false" xml:id="S2.SS1.p3.m2.4a" xref="S2.SS1.p3.m2.1.cmml">)</m:mo></m:mrow></m:mrow><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S2.SS1.p3.m2.5.cmml" xref="S2.SS1.p3.m2.5"><m:times xml:id="S2.SS1.p3.m2.3.cmml" xref="S2.SS1.p3.m2.3"/><m:ci xml:id="S2.SS1.p3.m2.2.cmml" xref="S2.SS1.p3.m2.2">𝑂</m:ci><m:apply xml:id="S2.SS1.p3.m2.1.cmml" xref="S2.SS1.p3.m2.4b"><m:log xml:id="S2.SS1.p3.m2.1.1.cmml" xref="S2.SS1.p3.m2.1.1"/><m:ci xml:id="S2.SS1.p3.m2.1.2.cmml" xref="S2.SS1.p3.m2.1.2">𝑛</m:ci></m:apply></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">O(\log n)</m:annotation></m:semantics></m:math></Math> time for a input of size <Math mode="inline" xml:id="S2.SS1.p3.m3" tex="n" text="n" fragid="S2.SS1.p3.m3"><m:math alttext="n" display="inline"><m:semantics><m:mi xml:id="S2.SS1.p3.m3.1" xref="S2.SS1.p3.m3.1.cmml">n</m:mi><m:annotation-xml encoding="MathML-Content"><m:ci xml:id="S2.SS1.p3.m3.1.cmml" xref="S2.SS1.p3.m3.1">𝑛</m:ci></m:annotation-xml><m:annotation encoding="application/x-tex">n</m:annotation></m:semantics></m:math></Math>. On modern hardware it gives about a tenfold speedup compared to CPU implementations <cite class="ltx_citemacro_cite">[<ref href="#bib.bib13" idref="bib.bib13">13</ref>]</cite>.</p>
+      </para>
+      <para xml:id="S2.SS1.p4" fragid="S2.SS1.p4">
+        <p>Perhaps more interesting is the parallel implementation of counting prefix sums. This algorithm computes intermediate values in a tree-like fashion producing an output with <Math mode="inline" xml:id="S2.SS1.p4.m1" tex="O(n)" text="O * n" fragid="S2.SS1.p4.m1"><m:math alttext="O(n)" display="inline"><m:semantics><m:mrow xml:id="S2.SS1.p4.m1.5" xref="S2.SS1.p4.m1.5.cmml"><m:mi xml:id="S2.SS1.p4.m1.2" xref="S2.SS1.p4.m1.2.cmml">O</m:mi><m:mo xml:id="S2.SS1.p4.m1.3" xref="S2.SS1.p4.m1.3.cmml">⁢</m:mo><m:mrow xml:id="S2.SS1.p4.m1.4b" xref="S2.SS1.p4.m1.5.cmml"><m:mo stretchy="false" xml:id="S2.SS1.p4.m1.4" xref="S2.SS1.p4.m1.5.cmml">(</m:mo><m:mi xml:id="S2.SS1.p4.m1.1" xref="S2.SS1.p4.m1.1.cmml">n</m:mi><m:mo stretchy="false" xml:id="S2.SS1.p4.m1.4a" xref="S2.SS1.p4.m1.5.cmml">)</m:mo></m:mrow></m:mrow><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S2.SS1.p4.m1.5.cmml" xref="S2.SS1.p4.m1.5"><m:times xml:id="S2.SS1.p4.m1.3.cmml" xref="S2.SS1.p4.m1.3"/><m:ci xml:id="S2.SS1.p4.m1.2.cmml" xref="S2.SS1.p4.m1.2">𝑂</m:ci><m:ci xml:id="S2.SS1.p4.m1.1.cmml" xref="S2.SS1.p4.m1.1">𝑛</m:ci></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">O(n)</m:annotation></m:semantics></m:math></Math> steps, in <Math mode="inline" xml:id="S2.SS1.p4.m2" tex="O(\log n)" text="O * logarithm@(n)" fragid="S2.SS1.p4.m2"><m:math alttext="O(\log n)" display="inline"><m:semantics><m:mrow xml:id="S2.SS1.p4.m2.5" xref="S2.SS1.p4.m2.5.cmml"><m:mi xml:id="S2.SS1.p4.m2.2" xref="S2.SS1.p4.m2.2.cmml">O</m:mi><m:mo xml:id="S2.SS1.p4.m2.3" xref="S2.SS1.p4.m2.3.cmml">⁢</m:mo><m:mrow xml:id="S2.SS1.p4.m2.4b" xref="S2.SS1.p4.m2.1.cmml"><m:mo stretchy="false" xml:id="S2.SS1.p4.m2.4" xref="S2.SS1.p4.m2.1.cmml">(</m:mo><m:mrow xml:id="S2.SS1.p4.m2.1" xref="S2.SS1.p4.m2.1.cmml"><m:mi xml:id="S2.SS1.p4.m2.1.1" xref="S2.SS1.p4.m2.1.1.cmml">log</m:mi><m:mo lspace="0.167em" xml:id="S2.SS1.p4.m2.1a" xref="S2.SS1.p4.m2.1.cmml">⁡</m:mo><m:mi xml:id="S2.SS1.p4.m2.1.2" xref="S2.SS1.p4.m2.1.2.cmml">n</m:mi></m:mrow><m:mo stretchy="false" xml:id="S2.SS1.p4.m2.4a" xref="S2.SS1.p4.m2.1.cmml">)</m:mo></m:mrow></m:mrow><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S2.SS1.p4.m2.5.cmml" xref="S2.SS1.p4.m2.5"><m:times xml:id="S2.SS1.p4.m2.3.cmml" xref="S2.SS1.p4.m2.3"/><m:ci xml:id="S2.SS1.p4.m2.2.cmml" xref="S2.SS1.p4.m2.2">𝑂</m:ci><m:apply xml:id="S2.SS1.p4.m2.1.cmml" xref="S2.SS1.p4.m2.4b"><m:log xml:id="S2.SS1.p4.m2.1.1.cmml" xref="S2.SS1.p4.m2.1.1"/><m:ci xml:id="S2.SS1.p4.m2.1.2.cmml" xref="S2.SS1.p4.m2.1.2">𝑛</m:ci></m:apply></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">O(\log n)</m:annotation></m:semantics></m:math></Math> time and being around <Math mode="inline" xml:id="S2.SS1.p4.m3" tex="\sim" text="similar-to" fragid="S2.SS1.p4.m3"><m:math alttext="\sim" display="inline"><m:semantics><m:mo xml:id="S2.SS1.p4.m3.1" xref="S2.SS1.p4.m3.1.cmml">∼</m:mo><m:annotation-xml encoding="MathML-Content"><m:csymbol cd="latexml" xml:id="S2.SS1.p4.m3.1.cmml" xref="S2.SS1.p4.m3.1">similar-to</m:csymbol></m:annotation-xml><m:annotation encoding="application/x-tex">\sim</m:annotation></m:semantics></m:math></Math>20x faster than CPU implementations on modern hardware <cite class="ltx_citemacro_cite">[<ref href="#bib.bib11" idref="bib.bib11">11</ref>]</cite>. This has interesting utilizations in many GPGPU algorithms such as sorting <cite class="ltx_citemacro_cite">[<ref href="#bib.bib10" idref="bib.bib10">10</ref>]</cite> and lexicographic naming <cite class="ltx_citemacro_cite">[<ref href="#bib.bib14" idref="bib.bib14">14</ref>]</cite>. In the next chapter where we will look into some parallel implementations of classic compression methods, where we can see more uses for the prefix sum.</p>
+      </para>
+    </subsection>
+  </section>
+  <section inlist="toc" xml:id="S3" labels="LABEL:sec:algorithms" fragid="S3">
+    <tags>
+      <tag>3</tag>
+      <tag role="refnum">3</tag>
+      <tag role="typerefnum">§3</tag>
+    </tags>
+    <title><tag close=" ">3</tag>Current compression algorithms</title>
+    <para xml:id="S3.p1" fragid="S3.p1">
+      <p>This chapter looks at some widely used compression algorithms, also used in bzip2, to see what parts of them have been successfully parallelized on GPGPU platforms. Notice beforehand that although the algorithms in this chapter are successful at compressing the incoming data, a efficient GPGPU decompressor might not always be available.</p>
+    </para>
+    <subsection inlist="toc" xml:id="S3.SS1" fragid="S3.SS1">
+      <tags>
+        <tag>3.1</tag>
+        <tag role="refnum">3.1</tag>
+        <tag role="typerefnum">§3.1</tag>
+      </tags>
+      <title><tag close=" ">3.1</tag>Burrows-Wheeler Transform (BWT)</title>
+      <para xml:id="S3.SS1.p1" fragid="S3.SS1.p1">
+        <p>The bzip2 compression stack starts with BWT <cite class="ltx_citemacro_cite">[<ref href="#bib.bib4" idref="bib.bib4">4</ref>]</cite> to reorder the characters in the data to a more compressible form. Since the transform is simply executed by sorting the rotations of the input data, we can use any efficient sorting algorithm available for GPGPU. As stated above, there are many available that would make the encoding possible in parallel giving reasonable speedups. Although no research papers seem to have been published on the subject yet, preliminary figures in the community give claims of reasonable speedup <cite class="ltx_citemacro_cite">[<ref href="#bib.bib15" idref="bib.bib15">15</ref>, <ref href="#bib.bib9" idref="bib.bib9">9</ref>]</cite>.</p>
+      </para>
+      <para xml:id="S3.SS1.p2" fragid="S3.SS1.p2">
+        <p>Unfortunately the inverse Burrows-Wheeler transform isn’t as simple to parallelize. One possibility for parallelization would be to utilize the property of the transform that the inverse can be started from any point on the output. Given this we can on each parallel processor start at a point in the transformed string and continue until we hit a character from which decoding has been started by another processor. Problems would possibly arise from poor GPU performance of the very random memory accessing caused by the scattering of characters throughout the string.</p>
+      </para>
+      <pagination role="newpage"/>
+    </subsection>
+    <subsection inlist="toc" xml:id="S3.SS2" fragid="S3.SS2">
+      <tags>
+        <tag>3.2</tag>
+        <tag role="refnum">3.2</tag>
+        <tag role="typerefnum">§3.2</tag>
+      </tags>
+      <title><tag close=" ">3.2</tag>Run-Length Encoding (RLE)</title>
+      <figure inlist="lof" placement="t" xml:id="S3.F1" labels="LABEL:fig:rle_enc" fragid="S3.F1">
+        <tags>
+          <tag>Figure 1</tag>
+          <tag role="refnum">1</tag>
+          <tag role="typerefnum">Figure 1</tag>
+        </tags>
+        <tabular vattach="middle" class="ltx_guessed_headers">
+          <tbody>
+            <tr>
+              <td align="right" thead="row">Uncompressed input</td>
+              <td align="left">
+                <tabular vattach="middle">
+                  <tr>
+                    <td align="justify" border="b l r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">A</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">A</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">A</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">B</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">B</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">C</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">C</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">C</p>
+                      </inline-block>
+                    </td>
+                  </tr>
+                </tabular>
+              </td>
+            </tr>
+            <tr>
+              <td align="right" thead="row">
+                <text font="bold">Step 1:</text>
+              </td>
+              <td align="left">
+                <text font="bold">Run boundary search</text>
+              </td>
+            </tr>
+            <tr>
+              <td align="right" thead="row">Run boundaries</td>
+              <td align="left">
+                <tabular vattach="middle">
+                  <tr>
+                    <td align="justify" border="b l r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">0</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">0</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">1</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">0</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">1</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">0</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">0</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">1</p>
+                      </inline-block>
+                    </td>
+                  </tr>
+                </tabular>
+              </td>
+            </tr>
+            <tr>
+              <td align="right" thead="row">
+                <text font="bold">Step 2:</text>
+              </td>
+              <td align="left">
+                <text font="bold">Calculate output position with prefix sum</text>
+              </td>
+            </tr>
+            <tr>
+              <td align="right" thead="row">Output positions</td>
+              <td align="left">
+                <tabular vattach="middle">
+                  <tr>
+                    <td align="justify" border="b l r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">0</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">0</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">0</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">1</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">1</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">2</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">2</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">2</p>
+                      </inline-block>
+                    </td>
+                  </tr>
+                </tabular>
+              </td>
+            </tr>
+            <tr>
+              <td align="right" thead="row">
+                <text font="bold">Step 3:</text>
+              </td>
+              <td align="left">
+                <text font="bold">Copy to output position</text>
+              </td>
+            </tr>
+            <tr>
+              <td align="right" thead="row">Data value</td>
+              <td align="left">
+                <tabular vattach="middle">
+                  <tr>
+                    <td align="justify" border="l r t"/>
+                    <td align="justify" border="r t"/>
+                    <td align="justify" border="r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">A</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="r t"/>
+                    <td align="justify" border="r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">B</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="r t"/>
+                    <td align="justify" border="r t"/>
+                    <td align="justify" border="r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">C</p>
+                      </inline-block>
+                    </td>
+                  </tr>
+                </tabular>
+              </td>
+            </tr>
+            <tr>
+              <td align="right" thead="row">Data index</td>
+              <td align="left">
+                <tabular vattach="middle">
+                  <tr>
+                    <td align="justify" border="b l r t"/>
+                    <td align="justify" border="b r t"/>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">3</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t"/>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">5</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t"/>
+                    <td align="justify" border="b r t"/>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">8</p>
+                      </inline-block>
+                    </td>
+                  </tr>
+                </tabular>
+              </td>
+            </tr>
+            <tr>
+              <td align="right" thead="row">
+                <text font="bold">Step 4:</text>
+              </td>
+              <td align="left">
+                <text font="bold">Calculate run length</text>
+              </td>
+            </tr>
+            <tr>
+              <td align="right" thead="row">Run length</td>
+              <td align="left">
+                <tabular vattach="middle">
+                  <tr>
+                    <td align="justify" border="b l r t"/>
+                    <td align="justify" border="b r t"/>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">3</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t"/>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">2</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t"/>
+                    <td align="justify" border="b r t"/>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">3</p>
+                      </inline-block>
+                    </td>
+                  </tr>
+                </tabular>
+              </td>
+            </tr>
+          </tbody>
+        </tabular>
+        <toccaption><tag close=" ">1</tag>Run-length encoding. Empty cells are not part of the array, but are added to retain the straight flow of values. Thus the last three arrays are of size 3.</toccaption>
+        <caption><tag close=": ">Figure 1</tag>Run-length encoding. Empty cells are not part of the array, but are added to retain the straight flow of values. Thus the last three arrays are of size 3.</caption>
+      </figure>
+      <para xml:id="S3.SS2.p1" fragid="S3.SS2.p1">
+        <p>Moving into the next step of the bzip2 compression, we encounter RLE, which compresses long runs of same characters into a single character along with a integer specifying the amount of times the character was repeated. Since RLE only focuses on very local redundancies between the characters, it is easier to design parallel algorithms for it. One such algorithm has been researched by W. Fang et al. <cite class="ltx_citemacro_cite">[<ref href="#bib.bib5" idref="bib.bib5">5</ref>]</cite>, and similar work has been done by A. Balevic <cite class="ltx_citemacro_cite">[<ref href="#bib.bib1" idref="bib.bib1">1</ref>]</cite>.</p>
+      </para>
+      <para xml:id="S3.SS2.p2" fragid="S3.SS2.p2">
+        <p>The algorithm described by Fang utilizes as a central part the parallel implementation for counting prefix sums, mentioned above. The encoding works in four parallel steps, as can be seen in figure <ref labelref="LABEL:fig:rle_enc" idref="S3.F1" href="#S3.F1" title="Figure 1 ‣ 3.2 Run-Length Encoding (RLE) ‣ 3 Current compression algorithms ‣ Lossless data compression on GPGPU architectures"><text class="ltx_ref_tag">1</text></ref>. In the first step the boundaries between the runs are identified by having each processor compare its designated character with the neighboring one, outputting 1s in an auxiliary array to mark the boundaries. In the second step the prefix sum of the auxiliary array is computed to get the output positions for the characters and run lengths. In step 3 the algorithm simply copies the index of the boundary in the original data along with the character into the output array. The final step, executed on the now smaller output array, computes the lengths of the runs by comparing the differences of the indices.</p>
+      </para>
+      <figure inlist="lof" placement="th" xml:id="S3.F2" labels="LABEL:fig:rle_dec" fragid="S3.F2">
+        <tags>
+          <tag>Figure 2</tag>
+          <tag role="refnum">2</tag>
+          <tag role="typerefnum">Figure 2</tag>
+        </tags>
+        <tabular vattach="middle" class="ltx_guessed_headers">
+          <tbody>
+            <tr>
+              <td align="right" thead="row">Character input</td>
+              <td align="left">
+                <tabular vattach="middle">
+                  <tr>
+                    <td align="justify" border="l r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">A</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="r t"/>
+                    <td align="justify" border="r t"/>
+                    <td align="justify" border="r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">B</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="r t"/>
+                    <td align="justify" border="r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">C</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="r t"/>
+                    <td align="justify" border="r t"/>
+                  </tr>
+                </tabular>
+              </td>
+            </tr>
+            <tr>
+              <td align="right" thead="row">Run length input</td>
+              <td align="left">
+                <tabular vattach="middle">
+                  <tr>
+                    <td align="justify" border="b l r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">3</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t"/>
+                    <td align="justify" border="b r t"/>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">2</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t"/>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">3</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t"/>
+                    <td align="justify" border="b r t"/>
+                  </tr>
+                </tabular>
+              </td>
+            </tr>
+            <tr>
+              <td align="right" thead="row">
+                <text font="bold">Step 1:</text>
+              </td>
+              <td align="left">
+                <text font="bold">Compute boundary positions with prefix sum</text>
+              </td>
+            </tr>
+            <tr>
+              <td align="right" thead="row">Boundary positions</td>
+              <td align="left">
+                <tabular vattach="middle">
+                  <tr>
+                    <td align="justify" border="b l r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">3</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t"/>
+                    <td align="justify" border="b r t"/>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">5</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t"/>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">8</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t"/>
+                    <td align="justify" border="b r t"/>
+                  </tr>
+                </tabular>
+              </td>
+            </tr>
+            <tr>
+              <td align="right" thead="row">
+                <text font="bold">Step 2:</text>
+              </td>
+              <td align="left">
+                <text font="bold">Set run boundaries</text>
+              </td>
+            </tr>
+            <tr>
+              <td align="right" thead="row">Run boundaries</td>
+              <td align="left">
+                <tabular vattach="middle">
+                  <tr>
+                    <td align="justify" border="b l r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">0</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">0</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">1</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">0</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">1</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">0</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">0</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">1</p>
+                      </inline-block>
+                    </td>
+                  </tr>
+                </tabular>
+              </td>
+            </tr>
+            <tr>
+              <td align="right" thead="row">
+                <text font="bold">Step 3:</text>
+              </td>
+              <td align="left">
+                <text font="bold">Calculate character index with prefix sum</text>
+              </td>
+            </tr>
+            <tr>
+              <td align="right" thead="row">Scatter positions</td>
+              <td align="left">
+                <tabular vattach="middle">
+                  <tr>
+                    <td align="justify" border="b l r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">0</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">0</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">0</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">1</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">1</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">2</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">2</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">2</p>
+                      </inline-block>
+                    </td>
+                  </tr>
+                </tabular>
+              </td>
+            </tr>
+            <tr>
+              <td align="right" thead="row">
+                <text font="bold">Step 4:</text>
+              </td>
+              <td align="left">
+                <text font="bold">Copy characters from calculated indexes</text>
+              </td>
+            </tr>
+            <tr>
+              <td align="right" thead="row">Scatter positions</td>
+              <td align="left">
+                <tabular vattach="middle">
+                  <tr>
+                    <td align="justify" border="l r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">0</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">0</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">0</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">1</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">1</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">2</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">2</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">2</p>
+                      </inline-block>
+                    </td>
+                  </tr>
+                </tabular>
+              </td>
+            </tr>
+            <tr>
+              <td align="right" thead="row">Decompressed output</td>
+              <td align="left">
+                <tabular vattach="middle">
+                  <tr>
+                    <td align="justify" border="b l r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">A</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">A</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">A</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">B</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">B</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">C</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">C</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">C</p>
+                      </inline-block>
+                    </td>
+                  </tr>
+                </tabular>
+              </td>
+            </tr>
+          </tbody>
+        </tabular>
+        <toccaption><tag close=" ">2</tag>Run-length decoding</toccaption>
+        <caption><tag close=": ">Figure 2</tag>Run-length decoding</caption>
+      </figure>
+      <para xml:id="S3.SS2.p3" fragid="S3.SS2.p3">
+        <p>RLE is one of the few GPGPU compression algorithms for which a efficient decoding has been found and implemented. Working similarly as the encoding in reverse, figure <ref labelref="LABEL:fig:rle_dec" idref="S3.F2" href="#S3.F2" title="Figure 2 ‣ 3.2 Run-Length Encoding (RLE) ‣ 3 Current compression algorithms ‣ Lossless data compression on GPGPU architectures"><text class="ltx_ref_tag">2</text></ref> shows the four steps of the algorithm. First the indices of the boundaries are calculated from the run lengths using the prefix sum algorithm. Secondly 1s are written into an auxiliary array at the boundaries in the previous result. In step 3 the prefix sum is run on the auxiliary array to compute an array containing indices of the compressed input. In the last step characters are copied to the output array according to the indices computed in the previous step.</p>
+      </para>
+    </subsection>
+    <subsection inlist="toc" xml:id="S3.SS3" fragid="S3.SS3">
+      <tags>
+        <tag>3.3</tag>
+        <tag role="refnum">3.3</tag>
+        <tag role="typerefnum">§3.3</tag>
+      </tags>
+      <title><tag close=" ">3.3</tag>Move-to-front</title>
+      <para xml:id="S3.SS3.p1" fragid="S3.SS3.p1">
+        <p>Although no published research could be found on MTF encoding, there seems to be a possibility for trivial parallelization. By parallelizing over the stack of recently used symbols to find the index of the read character, we could reduce the time of looking up the index of the character. In practice each processor would check if the character at the processors index matches the input character and output this index to some shared register. Since each character occurs in the stack only once, no concurrency race conditions will occur for the write. Updating the state of the stack can also be similarly parallelizable.</p>
+      </para>
+      <para xml:id="S3.SS3.p2" fragid="S3.SS3.p2">
+        <p>This would lead to constant time lookup of the index, provided that the GPU has equal amount or more processors than amount characters in the alphabet. Although every core in the GPU is easily utilized, one must take note that this implementation would be executing more redundant computations compared to a serial implementation which would stop after finding the first, and only, occurrence.</p>
+      </para>
+      <para xml:id="S3.SS3.p3" fragid="S3.SS3.p3">
+        <p>Speeding up decoding on GPGPU platforms might be more challenging since the character lookup is already constant time on serial implementations, and starting decoding from multiple places is difficult since the state of the stack is not known at the other places.</p>
+      </para>
+    </subsection>
+    <subsection inlist="toc" xml:id="S3.SS4" fragid="S3.SS4">
+      <tags>
+        <tag>3.4</tag>
+        <tag role="refnum">3.4</tag>
+        <tag role="typerefnum">§3.4</tag>
+      </tags>
+      <title><tag close=" ">3.4</tag>Variable-Length Encoding (VLE)</title>
+      <figure inlist="lof" placement="th" xml:id="S3.F3" labels="LABEL:fig:vle_enc" fragid="S3.F3">
+        <tags>
+          <tag>Figure 3</tag>
+          <tag role="refnum">3</tag>
+          <tag role="typerefnum">Figure 3</tag>
+        </tags>
+        <tabular vattach="middle" class="ltx_guessed_headers">
+          <tbody>
+            <tr>
+              <td align="right" thead="row">Uncompressed input</td>
+              <td align="left">
+                <tabular vattach="middle">
+                  <tr>
+                    <td align="justify" border="b l r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">xxxx</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">xxxx</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">xxxx</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">xxxx</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">xxxx</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">xxxx</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">xxxx</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">xxxx</p>
+                      </inline-block>
+                    </td>
+                  </tr>
+                </tabular>
+              </td>
+            </tr>
+            <tr>
+              <td align="right" thead="row">
+                <text font="bold">Step 1:</text>
+              </td>
+              <td align="left">
+                <text font="bold">Codeword lookup</text>
+              </td>
+            </tr>
+            <tr>
+              <td align="right" thead="row">Codewords</td>
+              <td align="left">
+                <tabular vattach="middle">
+                  <tr>
+                    <td align="justify" border="l r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">y</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">yyy</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">yyyy</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">yy</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">yyyy</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">yyy</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">yy</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">yy</p>
+                      </inline-block>
+                    </td>
+                  </tr>
+                </tabular>
+              </td>
+            </tr>
+            <tr>
+              <td align="right" thead="row">Codeword lenghts</td>
+              <td align="left">
+                <tabular vattach="middle">
+                  <tr>
+                    <td align="justify" border="b l r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">1</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">8</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">16</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">7</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">14</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">9</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">4</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">4</p>
+                      </inline-block>
+                    </td>
+                  </tr>
+                </tabular>
+              </td>
+            </tr>
+            <tr>
+              <td align="right" thead="row">
+                <text font="bold">Step 2:</text>
+              </td>
+              <td align="left">
+                <text font="bold">Parallel prefix sum</text>
+              </td>
+            </tr>
+            <tr>
+              <td align="right" thead="row">Codeword output positions</td>
+              <td align="left">
+                <tabular vattach="middle">
+                  <tr>
+                    <td align="justify" border="b l r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">0</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">1</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">9</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">25</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">23</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">46</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">55</p>
+                      </inline-block>
+                    </td>
+                    <td align="justify" border="b r t">
+                      <inline-block vattach="top">
+                        <p class="ltx_align_right">59</p>
+                      </inline-block>
+                    </td>
+                  </tr>
+                </tabular>
+              </td>
+            </tr>
+          </tbody>
+        </tabular>
+        <toccaption><tag close=" ">3</tag>Variable length encoding. xxxx represents one generic uncompressed character, and yyy represents it’s generic codeword.</toccaption>
+        <caption><tag close=": ">Figure 3</tag>Variable length encoding. xxxx represents one generic uncompressed character, and yyy represents it’s generic codeword.</caption>
+      </figure>
+      <para xml:id="S3.SS4.p1" fragid="S3.SS4.p1">
+        <p>The last step of bzip2 covered in this paper is the Huffman coding <cite class="ltx_citemacro_cite">[<ref href="#bib.bib8" idref="bib.bib8">8</ref>]</cite>. Although no GPGPU algorithms are at the time available for constructing the actual Huffman tree, there exists at least one algorithm by A. Balevic <cite class="ltx_citemacro_cite">[<ref href="#bib.bib2" idref="bib.bib2">2</ref>]</cite>, focusing on the substitution from uncompressed data to variable-length encoding. Although the substitution seems like a trivial task for a serial algorithm, this isn’t the case when we want to parallelize. The problem arises from the fact that due to variable length codewords, we don’t know where into the output array the converted codes should be copied.</p>
+      </para>
+      <para xml:id="S3.SS4.p2" fragid="S3.SS4.p2">
+        <p>The encoding algorithm works as in figure <ref labelref="LABEL:fig:vle_enc" idref="S3.F3" href="#S3.F3" title="Figure 3 ‣ 3.4 Variable-Length Encoding (VLE) ‣ 3 Current compression algorithms ‣ Lossless data compression on GPGPU architectures"><text class="ltx_ref_tag">3</text></ref>. First the input characters are converted to codewords in parallel, also storing the corresponding codeword length into an auxiliary array. Secondly the prefix sum is calculated from the auxiliary array to get the output positions of the codewords. Finally the codewords are copied into the calculated indexes.</p>
+      </para>
+      <para xml:id="S3.SS4.p3" fragid="S3.SS4.p3">
+        <p>Here again, decompression is harder. This is due to the fact that the decoder doesn’t know where one codeword ends and another begins before it has decoded the whole prior input. Some work on parallelizing variable-length codes using error-resilience methods has been done <cite class="ltx_citemacro_cite">[<ref href="#bib.bib3" idref="bib.bib3">3</ref>, Ch. 3.10]</cite>, and could possibly be used on GPGPU platforms.</p>
+      </para>
+    </subsection>
+    <subsection inlist="toc" xml:id="S3.SS5" fragid="S3.SS5">
+      <tags>
+        <tag>3.5</tag>
+        <tag role="refnum">3.5</tag>
+        <tag role="typerefnum">§3.5</tag>
+      </tags>
+      <title><tag close=" ">3.5</tag>Other compression usages</title>
+      <para xml:id="S3.SS5.p1" fragid="S3.SS5.p1">
+        <p>In addition to general lossless data compression focusing on large scale redundancies as in the case of bzip2, successful work has also been done in other types of GPGPU data compression applications. Firstly a team at the Texas state university has implemented a high-speed floating point compression algorithm called GFC <cite class="ltx_citemacro_cite">[<ref href="#bib.bib12" idref="bib.bib12">12</ref>]</cite> that touts 75GB/s compression speeds for usage in scientific computation where massive amounts of data are generated and need to be processed in real time. The compression methods used are quite simple, mostly focusing on only storing deltas between floating point values and removing unnecessary zeroes form the result. Unfortunately, the practical processing speed of the compression is limited by the PCIe bus to 8GB/s.</p>
+      </para>
+      <para xml:id="S3.SS5.p2" fragid="S3.SS5.p2">
+        <p>Other work has been done in database data compression <cite class="ltx_citemacro_cite">[<ref href="#bib.bib5" idref="bib.bib5">5</ref>]</cite>, where multiple different light-weight compression methods are combined to speed up GPU co-processing of database queries. Compressing the data makes it faster to move the data over the PCIe bus, and faster to read from disk. The compression techniques focus on compression of single database fields such as integers, using null-suppression, dictionaries, RLE and more.</p>
+      </para>
+    </subsection>
+  </section>
+  <section inlist="toc" xml:id="S4" labels="LABEL:sec:discussion" fragid="S4">
+    <tags>
+      <tag>4</tag>
+      <tag role="refnum">4</tag>
+      <tag role="typerefnum">§4</tag>
+    </tags>
+    <title><tag close=" ">4</tag>Discussion</title>
+    <para xml:id="S4.p1" fragid="S4.p1">
+      <p>The compression algorithms described above compose the central parts of bzip2. Given proper implementations of each, it shouldn’t be hard to combine them togther for a bzip2 compatible compressing tool that could deliver high performance on modern GPUs. The efficiency of the MTF algorithm is debatable. But the benefit of having all code running on the GPU, removing unnecessary data transfer over the PCIe bus, might still make the overall compression speed faster.</p>
+    </para>
+    <para xml:id="S4.p2" fragid="S4.p2">
+      <p>As for the codeword tables for the VLE, it seems unlikely that efficient Huffman-tree GPGPU algorithms will be possible. But this doesn’t mean that pre-calculated ones couldn’t be used, combined with some data analysis for choosing a fitting one for the current input data.</p>
+    </para>
+    <para xml:id="S4.p3" fragid="S4.p3">
+      <p>Although most parallel compression methods depend on splitting the compressible data into small chunks, cutting the dependancies between the chunks, we have here taken a look at some more sophisticated attempts at parallel compression on GPGPU platforms. GPGPU compression focusing on local changes can give very high compression bandwidths, while at the same time more wide scale algorithms are using general computational primitives for efficient parallelizable implementations.</p>
+    </para>
+    <para xml:id="S4.p4" fragid="S4.p4">
+      <p>Future work will most likely be affected by the different general algorithms discovered for GPGPU platforms, and made easily available by libraries such as Thrust <cite class="ltx_citemacro_cite">[<ref href="#bib.bib7" idref="bib.bib7">7</ref>]</cite>.</p>
+    </para>
+  </section>
+  <bibliography xml:id="bib" fragid="bib">
+    <title>References</title>
+    <biblist>
+      <bibitem key="balevicfine" xml:id="bib.bib1" fragid="bib.bib1">
+        <tags>
+          <tag>[1]</tag>
+          <tag role="refnum">1</tag>
+        </tags>
+        <bibblock>
+Balevic, A.:
+</bibblock>
+        <bibblock>Fine-grain parallelization of entropy coding on GPGPUs.
+</bibblock>
+        <bibblock>(2009)
+</bibblock>
+      </bibitem>
+      <bibitem key="balevic2010parallel" xml:id="bib.bib2" fragid="bib.bib2">
+        <tags>
+          <tag>[2]</tag>
+          <tag role="refnum">2</tag>
+        </tags>
+        <bibblock>
+Balevic, A.:
+</bibblock>
+        <bibblock>Parallel variable-length encoding on GPGPUs.
+</bibblock>
+        <bibblock>(2010)
+</bibblock>
+      </bibitem>
+      <bibitem key="biskup2008error" xml:id="bib.bib3" fragid="bib.bib3">
+        <tags>
+          <tag>[3]</tag>
+          <tag role="refnum">3</tag>
+        </tags>
+        <bibblock>
+Biskup, M.:
+</bibblock>
+        <bibblock>Error Resilience in Compressed Data—Selected Topics.
+</bibblock>
+        <bibblock>(2008)
+</bibblock>
+      </bibitem>
+      <bibitem key="burrows1994block" xml:id="bib.bib4" fragid="bib.bib4">
+        <tags>
+          <tag>[4]</tag>
+          <tag role="refnum">4</tag>
+        </tags>
+        <bibblock>
+Burrows, M., Wheeler, D.:
+</bibblock>
+        <bibblock>A block-sorting lossless data compression algorithm.
+</bibblock>
+        <bibblock>(1994)
+</bibblock>
+      </bibitem>
+      <bibitem key="fang2010database" xml:id="bib.bib5" fragid="bib.bib5">
+        <tags>
+          <tag>[5]</tag>
+          <tag role="refnum">5</tag>
+        </tags>
+        <bibblock>
+Fang, W., He, B., Luo, Q.:
+</bibblock>
+        <bibblock>Database compression on graphics processors.
+</bibblock>
+        <bibblock>(2010)
+</bibblock>
+      </bibitem>
+      <bibitem key="gilchrist2009pbzip2" xml:id="bib.bib6" fragid="bib.bib6">
+        <tags>
+          <tag>[6]</tag>
+          <tag role="refnum">6</tag>
+        </tags>
+        <bibblock>
+Gilchrist, J.:
+</bibblock>
+        <bibblock>Pbzip2: Parallel bzip2 data compression software (2009)
+</bibblock>
+      </bibitem>
+      <bibitem key="thrust" xml:id="bib.bib7" fragid="bib.bib7">
+        <tags>
+          <tag>[7]</tag>
+          <tag role="refnum">7</tag>
+        </tags>
+        <bibblock>
+Hoberock, J., Bell, N.:
+</bibblock>
+        <bibblock>Thrust: A parallel template library (2010)
+</bibblock>
+      </bibitem>
+      <bibitem key="huffman1952method" xml:id="bib.bib8" fragid="bib.bib8">
+        <tags>
+          <tag>[8]</tag>
+          <tag role="refnum">8</tag>
+        </tags>
+        <bibblock>
+Huffman, D.:
+</bibblock>
+        <bibblock>A method for the construction of minimum-redundancy codes.
+</bibblock>
+        <bibblock>(1952)
+</bibblock>
+      </bibitem>
+      <bibitem key="inikep2011cuda" xml:id="bib.bib9" fragid="bib.bib9">
+        <tags>
+          <tag>[9]</tag>
+          <tag role="refnum">9</tag>
+        </tags>
+        <bibblock>
+inikep:
+</bibblock>
+        <bibblock>Cuda/gpu-based bwt/st4 sorting.
+</bibblock>
+        <bibblock><ref href="http://encode.ru/threads/1208-CUDA-GPU-based-BWT-ST4-sorting">http://encode.ru/threads/1208-CUDA-GPU-based-BWT-ST4-sorting</ref>
+(2011)
+</bibblock>
+      </bibitem>
+      <bibitem key="leischner2009gpu" xml:id="bib.bib10" fragid="bib.bib10">
+        <tags>
+          <tag>[10]</tag>
+          <tag role="refnum">10</tag>
+        </tags>
+        <bibblock>
+Leischner, N., Osipov, V., Sanders, P.:
+</bibblock>
+        <bibblock>Gpu sample sort.
+</bibblock>
+        <bibblock>(2009)
+</bibblock>
+      </bibitem>
+      <bibitem key="nguyen2007gpu" xml:id="bib.bib11" fragid="bib.bib11">
+        <tags>
+          <tag>[11]</tag>
+          <tag role="refnum">11</tag>
+        </tags>
+        <bibblock>
+Nguyen, H.:
+</bibblock>
+        <bibblock>GPU Gems 3.
+</bibblock>
+        <bibblock>(2007)
+</bibblock>
+      </bibitem>
+      <bibitem key="o2011floating" xml:id="bib.bib12" fragid="bib.bib12">
+        <tags>
+          <tag>[12]</tag>
+          <tag role="refnum">12</tag>
+        </tags>
+        <bibblock>
+O’Neil, M., Burtscher, M.:
+</bibblock>
+        <bibblock>Floating-point data compression at 75 Gb/s on a GPU.
+</bibblock>
+        <bibblock>(2011)
+</bibblock>
+      </bibitem>
+      <bibitem key="satish2009designing" xml:id="bib.bib13" fragid="bib.bib13">
+        <tags>
+          <tag>[13]</tag>
+          <tag role="refnum">13</tag>
+        </tags>
+        <bibblock>
+Satish, N., Harris, M., Garland, M.:
+</bibblock>
+        <bibblock>Designing efficient sorting algorithms for manycore gpus.
+</bibblock>
+        <bibblock>(2009)
+</bibblock>
+      </bibitem>
+      <bibitem key="sun2009parallel" xml:id="bib.bib14" fragid="bib.bib14">
+        <tags>
+          <tag>[14]</tag>
+          <tag role="refnum">14</tag>
+        </tags>
+        <bibblock>
+Sun, W., Ma, Z.:
+</bibblock>
+        <bibblock>Parallel lexicographic names construction with cuda.
+</bibblock>
+        <bibblock>(2009)
+</bibblock>
+      </bibitem>
+      <bibitem key="waveaccess2011cuda" xml:id="bib.bib15" fragid="bib.bib15">
+        <tags>
+          <tag>[15]</tag>
+          <tag role="refnum">15</tag>
+        </tags>
+        <bibblock>
+WaveAccess:
+</bibblock>
+        <bibblock>Breakthrough in cuda data compression.
+</bibblock>
+        <bibblock><ref href="http://waveaccessllc.blogspot.com/2011/04/breakthrough-in-cuda-data-compression.html">http://waveaccessllc.blogspot.com/2011/04/breakthrough-in-cuda-data-compression.html</ref>
+(2011)
+</bibblock>
+      </bibitem>
+      <bibitem key="wu2009cs315a" xml:id="bib.bib16" fragid="bib.bib16">
+        <tags>
+          <tag>[16]</tag>
+          <tag role="refnum">16</tag>
+        </tags>
+        <bibblock>
+Wu, L., Storus, M., Cross, D.:
+</bibblock>
+        <bibblock>CS315A: Final Project CUDA WUDA SHUDA: CUDA Compression Project.
+</bibblock>
+        <bibblock>(2009)
+</bibblock>
+      </bibitem>
+    </biblist>
+  </bibliography>
+  <navigation>
+    <title>Lossless data compression on GPGPU architectures</title>
+  </navigation>
+</document>

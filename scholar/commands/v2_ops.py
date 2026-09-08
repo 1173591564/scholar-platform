@@ -14,6 +14,14 @@ from ..v2.builders import GraphBuilder, SnapshotBuilder, VectorBuilder
 from ..v2.database import V2Database
 from ..v2.embeddings import configured_provider
 from ..v2.importer import CorpusImporter
+from ..v2.latexml_ingest import (
+    CorpusIngester,
+    IngestSource,
+    LaTeXMLRunner,
+    discover_local_sources,
+    fetch_arxiv_source,
+    safe_paper_id,
+)
 from ..v2.models import ScholarError
 
 v2_app = typer.Typer(help="XML-first corpus, projection, and snapshot operations.")
@@ -64,6 +72,79 @@ def import_corpus(
         _error(error)
     finally:
         database.close()
+
+
+@v2_app.command("ingest")
+def ingest_corpus(
+    source: Path | None = typer.Argument(
+        None,
+        exists=True,
+        file_okay=False,
+        resolve_path=True,
+        help="Directory of per-paper LaTeX source dirs/archives",
+    ),
+    arxiv: list[str] = typer.Option(
+        [], "--arxiv", help="arXiv IDs to download (repeatable)"
+    ),
+    arxiv_list: Path | None = typer.Option(
+        None,
+        "--arxiv-list",
+        exists=True,
+        dir_okay=False,
+        help="File with one arXiv ID per line",
+    ),
+    out_dir: Path = typer.Option(..., "--out"),
+    image: str = typer.Option("latexml/ar5ivist:2512.17", "--image"),
+    timeout: int = typer.Option(600, "--timeout"),
+    do_import: bool = typer.Option(False, "--import"),
+    release_id: str | None = typer.Option(None, "--release-id"),
+    name: str | None = typer.Option(None, "--name"),
+    artifact_root: Path | None = typer.Option(None, "--artifact-root"),
+) -> None:
+    """Convert LaTeX sources into an immutable XML corpus release."""
+    if do_import and not release_id:
+        _error(ScholarError("INVALID_ARGUMENT", "--import requires --release-id"))
+    ids = list(arxiv)
+    if arxiv_list is not None:
+        ids.extend(
+            line.strip()
+            for line in arxiv_list.read_text(encoding="utf-8").splitlines()
+            if line.strip() and not line.lstrip().startswith("#")
+        )
+    if source is None and not ids:
+        _error(ScholarError("INVALID_ARGUMENT", "at least one input is required"))
+
+    database = None
+    try:
+        sources = discover_local_sources(source) if source is not None else []
+        for arxiv_id in ids:
+            paper_id = safe_paper_id(arxiv_id)
+            paper_dir = out_dir / paper_id
+            tex_dir = fetch_arxiv_source(arxiv_id, paper_dir)
+            sources.append(
+                IngestSource(
+                    paper_id=paper_id,
+                    tex_dir=tex_dir,
+                    arxiv_id=arxiv_id,
+                )
+            )
+        result = CorpusIngester().ingest(
+            sources,
+            out_dir,
+            LaTeXMLRunner(image=image, timeout=timeout),
+        )
+        if do_import:
+            database = V2Database()
+            database.initialize()
+            result["import"] = CorpusImporter(database).import_release(
+                out_dir, release_id, name, artifact_root
+            )
+        _print(result)
+    except Exception as error:
+        _error(error)
+    finally:
+        if database is not None:
+            database.close()
 
 
 @v2_app.command("build-graph")

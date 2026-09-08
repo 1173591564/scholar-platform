@@ -1,0 +1,1259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?latexml searchpaths="/opt/ar5iv-bindings/supported_originals,/opt/ar5iv-bindings/bindings,/custom-bindings,/work"?>
+<?latexml class="article"?>
+<?latexml package="neurips_2023" options="preprint"?>
+<?latexml package="natbib"?>
+<?latexml package="wrapfig"?>
+<?latexml package="times"?>
+<?latexml package="latexsym"?>
+<?latexml package="tablefootnote"?>
+<?latexml package="url"?>
+<?latexml package="fontenc" options="T1"?>
+<?latexml package="inputenc" options="utf8"?>
+<?latexml package="microtype"?>
+<?latexml package="graphicx"?>
+<?latexml package="subfigure"?>
+<?latexml package="algorithm"?>
+<?latexml package="listings"?>
+<?latexml package="inconsolata"?>
+<?latexml package="times"?>
+<?latexml package="latexsym"?>
+<?latexml package="bm"?>
+<?latexml package="amsthm,amsmath,amssymb"?>
+<?latexml package="mathrsfs"?>
+<?latexml package="epsfig"?>
+<?latexml package="booktabs"?>
+<?latexml package="verbatim"?>
+<?latexml package="enumitem,kantlipsum"?>
+<?latexml package="lipsum"?>
+<?latexml package="tipa"?>
+<?latexml package="algorithmicx"?>
+<?latexml package="algpseudocode"?>
+<?latexml package="multirow"?>
+<?latexml package="arydshln"?>
+<?latexml package="xcolor"?>
+<?latexml package="caption"?>
+<?latexml package="hyperref"?>
+<?latexml package="color"?>
+<?latexml package="dsfont"?>
+<?latexml package="tikz"?>
+<?latexml package="cleveref"?>
+<?latexml RelaxNGSchema="LaTeXML"?>
+<document xmlns="http://dlmf.nist.gov/LaTeXML" xmlns:m="http://www.w3.org/1998/Math/MathML" class="ltx_authors_1line" xml:id="Document">
+  <resource src="LaTeXML.css" type="text/css"/>
+  <resource src="ltx-article.css" type="text/css"/>
+  <resource src="ltx-listings.css" type="text/css"/>
+  <title>PandaGPT: <break/>One Model To Instruction-Follow Them All</title>
+  <creator role="author">
+    <personname>Yixuan Su<sup><text font="italic">♠,</text></sup>  <sup><text font="italic">,</text></sup> &amp;Tian Lan<sup>∗</sup> &amp;Huayang Li<sup><text font="italic">♢,</text></sup><note mark="1" role="footnotemark" xml:id="footnotex1" fragid="footnotex1"><tags><tag>1</tag><tag role="autoref">footnote 1</tag><tag role="creftype">footnote</tag><tag role="creftypecap">Footnote</tag><tag role="creftypeplural">footnotes</tag><tag role="creftypepluralcap">Footnotes</tag><tag role="refnum">1</tag><tag role="typerefnum">footnote 1</tag></tags></note>  <sup><text font="italic">,</text></sup><note mark="2" role="footnotemark" xml:id="footnotex2" fragid="footnotex2"><tags><tag>2</tag><tag role="autoref">footnote 2</tag><tag role="creftype">footnote</tag><tag role="creftypecap">Footnote</tag><tag role="creftypeplural">footnotes</tag><tag role="creftypepluralcap">Footnotes</tag><tag role="refnum">2</tag><tag role="typerefnum">footnote 2</tag></tags></note> &amp;Jialu Xu &amp;Yan Wang &amp;Deng Cai<sup><text font="italic">♣,</text></sup><sup>∗</sup> <break/><break/><sup>♠</sup>University of Cambridge     <sup>♢</sup>Nara Institute of Science and Technology<break/><sup>♣</sup>Tencent AI Lab<break/><ref class="ltx_url" href="https://panda-gpt.github.io/" font="typewriter">https://panda-gpt.github.io/</ref> <break/></personname>
+    <contact role="thanks">Major contributors. Contact: <text font="typewriter">ys484@cam.ac.uk</text> and <text font="typewriter">jcykcai@tencent.com</text>.</contact>
+    <contact role="thanks">Work done during internship at Tencent AI Lab.</contact>
+  </creator>
+  <abstract name="Abstract">
+    <p>We present PandaGPT, an approach to em<text framed="underline" font="bold">P</text>ower large l<text framed="underline" font="bold">AN</text>guage mo<text framed="underline" font="bold">D</text>els with visual and <text framed="underline" font="bold">A</text>uditory instruction-following capabilities.
+Our pilot experiments show that PandaGPT can perform complex tasks such as detailed image description generation, writing stories inspired by videos, and answering questions about audios. More interestingly, PandaGPT can take multimodal inputs simultaneously and compose their semantics naturally. For example, PandaGPT can connect how objects look in an image/video and how they sound in an audio. To do so, PandaGPT combines the multimodal encoders from ImageBind and the large language models from Vicuna. Notably, only aligned image-text pairs are required for the training of PandaGPT. Thanks to the strong capability of ImageBind in embedding data from different modalities into the same space, PandaGPT displays emergent, i.e. zero-shot, cross-modal behaviors for data other than image and text (e.g., video, audio, depth, thermal, and IMU).
+We hope that PandaGPT serves as an initial step toward building AGI that can perceive and understand inputs in different modalities holistically, as we humans do.</p>
+  </abstract>
+  <section inlist="toc" xml:id="S1" fragid="S1">
+    <tags>
+      <tag>1</tag>
+      <tag role="autoref">section 1</tag>
+      <tag role="creftype">§</tag>
+      <tag role="creftypecap">§</tag>
+      <tag role="creftypeplural">§§</tag>
+      <tag role="creftypepluralcap">§§</tag>
+      <tag role="refnum">1</tag>
+      <tag role="typerefnum">§1</tag>
+    </tags>
+    <title><tag close=" ">1</tag>Introduction</title>
+    <para xml:id="S1.p1" fragid="S1.p1">
+      <p>Humans possess remarkable abilities to perceive and understand information from diverse sensory modalities, such as seeing a painting and hearing an audio guide. Analogously, to learn simultaneously, holistically, and directly from many different forms of information holds great promise for enabling machines to have a more comprehensive and better understanding of the world. To this end, there has been an emergent interest in developing artificial intelligence (AI) systems capable of perceiving and understanding information from multiple modalities simultaneously in a manner similar to humans.</p>
+    </para>
+    <para xml:id="S1.p2" fragid="S1.p2">
+      <p>However, much of the prior research has focused on tackling individual modalities in isolation. For instance, while significant progress has been made in text-to-image retrieval and generation <cite class="ltx_citemacro_cite">[<ref href="#bib.bib18" idref="bib.bib18">18</ref>]</cite>, visually-grounded instruction following <cite class="ltx_citemacro_cite">[<ref href="#bib.bib12" idref="bib.bib12">12</ref>, <ref href="#bib.bib31" idref="bib.bib31">31</ref>]</cite>, and speech understanding and generation <cite class="ltx_citemacro_cite">[<ref href="#bib.bib29" idref="bib.bib29">29</ref>]</cite>, these advances have largely been confined to separate combinations of text and other modalities or, at best, a few visual modalities (e.g., image and video). These models are limited in their ability to connect information from different modalities and lack the capacity to perceive and understand multimodal inputs holistically, thereby neglecting the inherent richness and complementary nature of multimodal data.</p>
+    </para>
+    <para xml:id="S1.p3" fragid="S1.p3">
+      <p>In this paper, we present PandaGPT, the first general-purpose model capable of instruction-following data from six modalities. PandaGPT leverages the power of multimodal encoders from ImageBind <cite class="ltx_citemacro_cite">[<ref href="#bib.bib8" idref="bib.bib8">8</ref>]</cite> and the expressive language models from Vicuna <cite class="ltx_citemacro_cite">[<ref href="#bib.bib4" idref="bib.bib4">4</ref>]</cite>, demonstrating impressive and emergent cross-modal capabilities across six modalities: image/video, text, audio, depth, thermal, and inertial measurement units (IMU). Crucially, PandaGPT achieves these capabilities despite being only trained on aligned image-text pairs, thanks to the shared embedding space provided by ImageBind.</p>
+    </para>
+    <para xml:id="S1.p4" fragid="S1.p4">
+      <p>This integration of multimodal information enables PandaGPT to perform a wide range of tasks, including generating detailed descriptions of images, composing engaging stories inspired by videos, and providing accurate answers to questions about audio inputs. Most interestingly, the core innovation of PandaGPT lies in its ability to naturally compose the semantics of multimodal inputs, which enables a rich set of compositional multimodal tasks across different modalities. For example, it can seamlessly connect the visual appearance of objects in a photo with their corresponding sounds in an audio clip, producing a cohesive and comprehensive understanding of the scene. These cross-modal capabilities empower the model to go beyond traditional unimodal analysis. We hope PandaGPT serves as an initial step toward building AGI that can perceive and understand inputs in different modalities holistically, as humans do.</p>
+    </para>
+  </section>
+  <section inlist="toc" xml:id="S2" fragid="S2">
+    <tags>
+      <tag>2</tag>
+      <tag role="autoref">section 2</tag>
+      <tag role="creftype">§</tag>
+      <tag role="creftypecap">§</tag>
+      <tag role="creftypeplural">§§</tag>
+      <tag role="creftypepluralcap">§§</tag>
+      <tag role="refnum">2</tag>
+      <tag role="typerefnum">§2</tag>
+    </tags>
+    <title><tag close=" ">2</tag>Related Work</title>
+    <paragraph inlist="toc" xml:id="S2.SS0.SSS0.Px1" fragid="S2.SS0.SSS0.Px1">
+      <title>Large Language Models.</title>
+      <para xml:id="S2.SS0.SSS0.Px1.p1" fragid="S2.SS0.SSS0.Px1.p1">
+        <p>Large language models (LLMs) pre-trained over massive unlabeled text have dominated the field of natural language processing (NLP) today <cite class="ltx_citemacro_cite">[<ref href="#bib.bib19" idref="bib.bib19">19</ref>, <ref href="#bib.bib5" idref="bib.bib5">5</ref>, <ref href="#bib.bib20" idref="bib.bib20">20</ref>, <ref href="#bib.bib3" idref="bib.bib3">3</ref>]</cite>. With alignment techniques such as supervised instruction tuning <cite class="ltx_citemacro_cite">[<ref href="#bib.bib21" idref="bib.bib21">21</ref>, <ref href="#bib.bib28" idref="bib.bib28">28</ref>, <ref href="#bib.bib13" idref="bib.bib13">13</ref>]</cite> and reinforcement learning from human feedback <cite class="ltx_citemacro_cite">[<ref href="#bib.bib23" idref="bib.bib23">23</ref>, <ref href="#bib.bib16" idref="bib.bib16">16</ref>]</cite>, LLMs exhibit surprisingly effective zero- and few-shot generalization abilities to perform almost any NLP tasks. The most successful examples could be OpenAI’s ChatGPT <cite class="ltx_citemacro_cite">[<ref href="#bib.bib15" idref="bib.bib15">15</ref>]</cite> and GPT4 <cite class="ltx_citemacro_cite">[<ref href="#bib.bib14" idref="bib.bib14">14</ref>]</cite>, which have made a profound impact on the entire AI research community and beyond. There also have been enormous open-source efforts to replicate the success, such as BLOOM <cite class="ltx_citemacro_cite">[<ref href="#bib.bib22" idref="bib.bib22">22</ref>]</cite>, LLaMA <cite class="ltx_citemacro_cite">[<ref href="#bib.bib27" idref="bib.bib27">27</ref>]</cite>, Alpaca <cite class="ltx_citemacro_cite">[<ref href="#bib.bib26" idref="bib.bib26">26</ref>]</cite>, Vicuna <cite class="ltx_citemacro_cite">[<ref href="#bib.bib4" idref="bib.bib4">4</ref>]</cite>, OpenAlpaca <cite class="ltx_citemacro_cite">[<ref href="#bib.bib24" idref="bib.bib24">24</ref>]</cite> among many others.</p>
+      </para>
+    </paragraph>
+    <paragraph inlist="toc" xml:id="S2.SS0.SSS0.Px2" fragid="S2.SS0.SSS0.Px2">
+      <title>Multi-modal Alignment.</title>
+      <para xml:id="S2.SS0.SSS0.Px2.p1" fragid="S2.SS0.SSS0.Px2.p1">
+        <p>Feature alignment among multiple modalities has attracted great interest for its applications such as cross-modal retrieval <cite class="ltx_citemacro_cite">[<ref href="#bib.bib7" idref="bib.bib7">7</ref>, <ref href="#bib.bib6" idref="bib.bib6">6</ref>, <ref href="#bib.bib2" idref="bib.bib2">2</ref>]</cite>. Recently, CLIP <cite class="ltx_citemacro_cite">[<ref href="#bib.bib18" idref="bib.bib18">18</ref>]</cite> learns a joint embedding space for image and text. Flamingo <cite class="ltx_citemacro_cite">[<ref href="#bib.bib1" idref="bib.bib1">1</ref>]</cite>, BLIP-2 <cite class="ltx_citemacro_cite">[<ref href="#bib.bib11" idref="bib.bib11">11</ref>]</cite>, and MAGIC <cite class="ltx_citemacro_citep">[<ref href="#bib.bib25" idref="bib.bib25">25</ref>]</cite> bridge powerful pre-trained vision-only and language-only models and show strong zero-shot abilities. AudioCLIP <cite class="ltx_citemacro_cite">[<ref href="#bib.bib9" idref="bib.bib9">9</ref>]</cite> adds audio into the CLIP framework for audio classification. ImageBind <cite class="ltx_citemacro_cite">[<ref href="#bib.bib8" idref="bib.bib8">8</ref>]</cite> learn a joint embedding across six different modalities (image/video, text, audio, depth, thermal, and IMU data) using image-paired data only. More recently, there has been a surge of interest to combine multi-modal alignment and large language models for multi-modal instruction following.
+LLaVa <cite class="ltx_citemacro_cite">[<ref href="#bib.bib12" idref="bib.bib12">12</ref>]</cite>, Mini-GPT4 <cite class="ltx_citemacro_cite">[<ref href="#bib.bib31" idref="bib.bib31">31</ref>]</cite>, and Video-LLaMA <cite class="ltx_citemacro_citep">[<ref href="#bib.bib30" idref="bib.bib30">30</ref>]</cite> enable visually-grounded instruction following. DetGPT <cite class="ltx_citemacro_citep">[<ref href="#bib.bib17" idref="bib.bib17">17</ref>]</cite> proposes reasoning-based object detection. SpeechGPT <cite class="ltx_citemacro_cite">[<ref href="#bib.bib29" idref="bib.bib29">29</ref>]</cite> adds speech understanding and generation abilities to LLMs. However, these advances have largely been confined to separate combinations of text and other modalities (e.g., image/video or audio).</p>
+      </para>
+      <figure inlist="lof" placement="h" xml:id="S2.F1" labels="LABEL:fig:pandagpt" fragid="S2.F1">
+        <tags>
+          <tag>Figure 1</tag>
+          <tag role="autoref">Figure 1</tag>
+          <tag role="creftype">fig.</tag>
+          <tag role="creftypecap">Figure</tag>
+          <tag role="creftypeplural">figs.</tag>
+          <tag role="creftypepluralcap">Figures</tag>
+          <tag role="refnum">1</tag>
+          <tag role="typerefnum">Figure 1</tag>
+        </tags>
+        <graphics candidates="images/PandaGPT.png" graphic="images/PandaGPT.png" options="width=390.3pt,keepaspectratio=true" xml:id="S2.F1.g1" class="ltx_centering" fragid="S2.F1.g1"/>
+        <toccaption class="ltx_centering"><tag close=" ">1</tag>Illustration of PandaGPT. During training, we only train the linear projection matrix and the additional LoRA weights (as indicated with dashed boxes) while keeping the parameters of ImageBind and Vicuna frozen.</toccaption>
+        <caption class="ltx_centering"><tag close=": ">Figure 1</tag>Illustration of PandaGPT. During training, we only train the linear projection matrix and the additional LoRA weights (as indicated with dashed boxes) while keeping the parameters of ImageBind and Vicuna frozen.</caption>
+      </figure>
+    </paragraph>
+  </section>
+  <section inlist="toc" xml:id="S3" fragid="S3">
+    <tags>
+      <tag>3</tag>
+      <tag role="autoref">section 3</tag>
+      <tag role="creftype">§</tag>
+      <tag role="creftypecap">§</tag>
+      <tag role="creftypeplural">§§</tag>
+      <tag role="creftypepluralcap">§§</tag>
+      <tag role="refnum">3</tag>
+      <tag role="typerefnum">§3</tag>
+    </tags>
+    <title><tag close=" ">3</tag>Method</title>
+    <para xml:id="S3.p1" fragid="S3.p1">
+      <p>PandaGPT combines the multi-modal encoders from ImageBind and the large language models from Vicuna, achieving impressive capabilities in vision- and audio-grounded instruction following tasks. To align the feature space of multimodal encoders from ImageBind and large language models from Vicuna<note mark="1" role="footnote" xml:id="footnote1" fragid="footnote1"><tags><tag>1</tag><tag role="autoref">footnote 1</tag><tag role="creftype">footnote</tag><tag role="creftypecap">Footnote</tag><tag role="creftypeplural">footnotes</tag><tag role="creftypepluralcap">Footnotes</tag><tag role="refnum">1</tag><tag role="typerefnum">footnote 1</tag></tags>We use the version-0 of Vicuna-13B as our base language model.</note>, we train PandaGPT using 160k image-language instruction-following data released by <cite class="ltx_citemacro_citep">[<ref href="#bib.bib12" idref="bib.bib12">12</ref>]</cite> and <cite class="ltx_citemacro_citep">[<ref href="#bib.bib31" idref="bib.bib31">31</ref>]</cite>. Each training instance consists of an image <Math mode="inline" xml:id="S3.p1.m1" tex="\mathcal{I}" text="I" fragid="S3.p1.m1"><m:math alttext="\mathcal{I}" display="inline"><m:semantics><m:mi class="ltx_font_mathcaligraphic" xml:id="S3.p1.m1.1" xref="S3.p1.m1.1.cmml">ℐ</m:mi><m:annotation-xml encoding="MathML-Content"><m:ci xml:id="S3.p1.m1.1.cmml" xref="S3.p1.m1.1">ℐ</m:ci></m:annotation-xml><m:annotation encoding="application/x-tex">\mathcal{I}</m:annotation></m:semantics></m:math></Math> and a multi-turn conversation data <Math mode="inline" xml:id="S3.p1.m2" tex="(\boldsymbol{x}_{1},\boldsymbol{y}_{1},...,\boldsymbol{x}_{n},\boldsymbol{y}_{%&#10;n})" text="vector@(x _ 1, y _ 1, ldots, x _ n, y _ n)" fragid="S3.p1.m2"><m:math alttext="(\boldsymbol{x}_{1},\boldsymbol{y}_{1},...,\boldsymbol{x}_{n},\boldsymbol{y}_{%&#10;n})" display="inline"><m:semantics><m:mrow xml:id="S3.p1.m2.7" xref="S3.p1.m2.7.cmml"><m:mo stretchy="false" xml:id="S3.p1.m2.6" xref="S3.p1.m2.7.cmml">(</m:mo><m:msub xml:id="S3.p1.m2.2" xref="S3.p1.m2.2.cmml"><m:mi xml:id="S3.p1.m2.2.1" xref="S3.p1.m2.2.1.cmml">𝒙</m:mi><m:mn xml:id="S3.p1.m2.2.2" xref="S3.p1.m2.2.2.cmml">1</m:mn></m:msub><m:mo xml:id="S3.p1.m2.6a" xref="S3.p1.m2.7.cmml">,</m:mo><m:msub xml:id="S3.p1.m2.3" xref="S3.p1.m2.3.cmml"><m:mi xml:id="S3.p1.m2.3.1" xref="S3.p1.m2.3.1.cmml">𝒚</m:mi><m:mn xml:id="S3.p1.m2.3.2" xref="S3.p1.m2.3.2.cmml">1</m:mn></m:msub><m:mo xml:id="S3.p1.m2.6b" xref="S3.p1.m2.7.cmml">,</m:mo><m:mi mathvariant="normal" xml:id="S3.p1.m2.1" xref="S3.p1.m2.1.cmml">…</m:mi><m:mo xml:id="S3.p1.m2.6c" xref="S3.p1.m2.7.cmml">,</m:mo><m:msub xml:id="S3.p1.m2.4" xref="S3.p1.m2.4.cmml"><m:mi xml:id="S3.p1.m2.4.1" xref="S3.p1.m2.4.1.cmml">𝒙</m:mi><m:mi xml:id="S3.p1.m2.4.2" xref="S3.p1.m2.4.2.cmml">n</m:mi></m:msub><m:mo xml:id="S3.p1.m2.6d" xref="S3.p1.m2.7.cmml">,</m:mo><m:msub xml:id="S3.p1.m2.5" xref="S3.p1.m2.5.cmml"><m:mi xml:id="S3.p1.m2.5.1" xref="S3.p1.m2.5.1.cmml">𝒚</m:mi><m:mi xml:id="S3.p1.m2.5.2" xref="S3.p1.m2.5.2.cmml">n</m:mi></m:msub><m:mo stretchy="false" xml:id="S3.p1.m2.6e" xref="S3.p1.m2.7.cmml">)</m:mo></m:mrow><m:annotation-xml encoding="MathML-Content"><m:vector xml:id="S3.p1.m2.7.cmml" xref="S3.p1.m2.7"><m:apply xml:id="S3.p1.m2.2.cmml" xref="S3.p1.m2.2"><m:csymbol cd="ambiguous" xml:id="S3.p1.m2.2.3.cmml" xref="S3.p1.m2.2">subscript</m:csymbol><m:ci xml:id="S3.p1.m2.2.1.cmml" xref="S3.p1.m2.2.1">𝒙</m:ci><m:cn type="integer" xml:id="S3.p1.m2.2.2.cmml" xref="S3.p1.m2.2.2">1</m:cn></m:apply><m:apply xml:id="S3.p1.m2.3.cmml" xref="S3.p1.m2.3"><m:csymbol cd="ambiguous" xml:id="S3.p1.m2.3.3.cmml" xref="S3.p1.m2.3">subscript</m:csymbol><m:ci xml:id="S3.p1.m2.3.1.cmml" xref="S3.p1.m2.3.1">𝒚</m:ci><m:cn type="integer" xml:id="S3.p1.m2.3.2.cmml" xref="S3.p1.m2.3.2">1</m:cn></m:apply><m:ci xml:id="S3.p1.m2.1.cmml" xref="S3.p1.m2.1">…</m:ci><m:apply xml:id="S3.p1.m2.4.cmml" xref="S3.p1.m2.4"><m:csymbol cd="ambiguous" xml:id="S3.p1.m2.4.3.cmml" xref="S3.p1.m2.4">subscript</m:csymbol><m:ci xml:id="S3.p1.m2.4.1.cmml" xref="S3.p1.m2.4.1">𝒙</m:ci><m:ci xml:id="S3.p1.m2.4.2.cmml" xref="S3.p1.m2.4.2">𝑛</m:ci></m:apply><m:apply xml:id="S3.p1.m2.5.cmml" xref="S3.p1.m2.5"><m:csymbol cd="ambiguous" xml:id="S3.p1.m2.5.3.cmml" xref="S3.p1.m2.5">subscript</m:csymbol><m:ci xml:id="S3.p1.m2.5.1.cmml" xref="S3.p1.m2.5.1">𝒚</m:ci><m:ci xml:id="S3.p1.m2.5.2.cmml" xref="S3.p1.m2.5.2">𝑛</m:ci></m:apply></m:vector></m:annotation-xml><m:annotation encoding="application/x-tex">(\boldsymbol{x}_{1},\boldsymbol{y}_{1},...,\boldsymbol{x}_{n},\boldsymbol{y}_{%
+n})</m:annotation></m:semantics></m:math></Math>, where <Math mode="inline" xml:id="S3.p1.m3" tex="\boldsymbol{x}_{i}" text="x _ i" fragid="S3.p1.m3"><m:math alttext="\boldsymbol{x}_{i}" display="inline"><m:semantics><m:msub xml:id="S3.p1.m3.3" xref="S3.p1.m3.3.cmml"><m:mi xml:id="S3.p1.m3.1" xref="S3.p1.m3.1.cmml">𝒙</m:mi><m:mi xml:id="S3.p1.m3.2" xref="S3.p1.m3.2.cmml">i</m:mi></m:msub><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S3.p1.m3.3.cmml" xref="S3.p1.m3.3"><m:csymbol cd="ambiguous" xml:id="S3.p1.m3.3.1.cmml" xref="S3.p1.m3.3">subscript</m:csymbol><m:ci xml:id="S3.p1.m3.1.cmml" xref="S3.p1.m3.1">𝒙</m:ci><m:ci xml:id="S3.p1.m3.2.cmml" xref="S3.p1.m3.2">𝑖</m:ci></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">\boldsymbol{x}_{i}</m:annotation></m:semantics></m:math></Math> and <Math mode="inline" xml:id="S3.p1.m4" tex="\boldsymbol{y}_{i}" text="y _ i" fragid="S3.p1.m4"><m:math alttext="\boldsymbol{y}_{i}" display="inline"><m:semantics><m:msub xml:id="S3.p1.m4.3" xref="S3.p1.m4.3.cmml"><m:mi xml:id="S3.p1.m4.1" xref="S3.p1.m4.1.cmml">𝒚</m:mi><m:mi xml:id="S3.p1.m4.2" xref="S3.p1.m4.2.cmml">i</m:mi></m:msub><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S3.p1.m4.3.cmml" xref="S3.p1.m4.3"><m:csymbol cd="ambiguous" xml:id="S3.p1.m4.3.1.cmml" xref="S3.p1.m4.3">subscript</m:csymbol><m:ci xml:id="S3.p1.m4.1.cmml" xref="S3.p1.m4.1">𝒚</m:ci><m:ci xml:id="S3.p1.m4.2.cmml" xref="S3.p1.m4.2">𝑖</m:ci></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">\boldsymbol{y}_{i}</m:annotation></m:semantics></m:math></Math> are the human’s instruction and the system’s response at the <Math mode="inline" xml:id="S3.p1.m5" tex="i" text="i" fragid="S3.p1.m5"><m:math alttext="i" display="inline"><m:semantics><m:mi xml:id="S3.p1.m5.1" xref="S3.p1.m5.1.cmml">i</m:mi><m:annotation-xml encoding="MathML-Content"><m:ci xml:id="S3.p1.m5.1.cmml" xref="S3.p1.m5.1">𝑖</m:ci></m:annotation-xml><m:annotation encoding="application/x-tex">i</m:annotation></m:semantics></m:math></Math>-th turn. To reduce the number of trainable parameters, we only train (i) a linear projection matrix <Math mode="inline" xml:id="S3.p1.m6" tex="f" text="f" fragid="S3.p1.m6"><m:math alttext="f" display="inline"><m:semantics><m:mi xml:id="S3.p1.m6.1" xref="S3.p1.m6.1.cmml">f</m:mi><m:annotation-xml encoding="MathML-Content"><m:ci xml:id="S3.p1.m6.1.cmml" xref="S3.p1.m6.1">𝑓</m:ci></m:annotation-xml><m:annotation encoding="application/x-tex">f</m:annotation></m:semantics></m:math></Math> to connect the representation produced by ImageBind to Vicuna; and (ii) additional LoRA <cite class="ltx_citemacro_citep">[<ref href="#bib.bib10" idref="bib.bib10">10</ref>]</cite> weights on the Vicuna’s attention modules.<note mark="2" role="footnote" xml:id="footnote2" fragid="footnote2"><tags><tag>2</tag><tag role="autoref">footnote 2</tag><tag role="creftype">footnote</tag><tag role="creftypecap">Footnote</tag><tag role="creftypeplural">footnotes</tag><tag role="creftypepluralcap">Footnotes</tag><tag role="refnum">2</tag><tag role="typerefnum">footnote 2</tag></tags>The total number of trainable parameters is around 0.4% of the parameters of Vicuna.</note> Figure <ref labelref="LABEL:fig:pandagpt" idref="S2.F1" href="#S2.F1" title="Figure 1 ‣ Multi-modal Alignment. ‣ 2 Related Work ‣ PandaGPT: One Model To Instruction-Follow Them All"><text class="ltx_ref_tag">1</text></ref> illustrates the architecture of PandaGPT.</p>
+    </para>
+    <para xml:id="S3.p2" fragid="S3.p2">
+      <p>The training objective of PandaGPT is defined as</p>
+      <equation xml:id="S3.E1" fragid="S3.E1">
+        <tags>
+          <tag>(1)</tag>
+          <tag role="autoref">Equation 1</tag>
+          <tag role="creftype">eq.</tag>
+          <tag role="creftypecap">Equation</tag>
+          <tag role="creftypeplural">eqs.</tag>
+          <tag role="creftypepluralcap">Equations</tag>
+          <tag role="refnum">1</tag>
+        </tags>
+        <Math mode="display" xml:id="S3.E1.m1" tex="\mathcal{L}(\theta_{f},\theta_{l})=\prod_{i=1}^{n}p_{\theta}(\boldsymbol{y}_{i%&#10;}|\boldsymbol{x}_{&lt;i},\boldsymbol{y}_{&lt;i-1},f(h_{\mathcal{I}}))," text="L * open-interval@(theta _ f, theta _ l) = ((product _ (i = 1)) ^ n)@(p _ theta * conditional@(y _ i, list@(x _ (absent &lt; i), y _ (absent &lt; i - 1), f * h _ I)))" fragid="S3.E1.m1">
+          <m:math alttext="\mathcal{L}(\theta_{f},\theta_{l})=\prod_{i=1}^{n}p_{\theta}(\boldsymbol{y}_{i%&#10;}|\boldsymbol{x}_{&lt;i},\boldsymbol{y}_{&lt;i-1},f(h_{\mathcal{I}}))," display="block">
+            <m:semantics>
+              <m:mrow xml:id="S3.E1.m1.2a" xref="S3.E1.m1.1.cmml">
+                <m:mrow xml:id="S3.E1.m1.1" xref="S3.E1.m1.1.cmml">
+                  <m:mrow xml:id="S3.E1.m1.1.8" xref="S3.E1.m1.1.8.cmml">
+                    <m:mi class="ltx_font_mathcaligraphic" xml:id="S3.E1.m1.1.4" xref="S3.E1.m1.1.4.cmml">ℒ</m:mi>
+                    <m:mo xml:id="S3.E1.m1.1.5" xref="S3.E1.m1.1.5.cmml">⁢</m:mo>
+                    <m:mrow xml:id="S3.E1.m1.1.7" xref="S3.E1.m1.1.7.cmml">
+                      <m:mo stretchy="false" xml:id="S3.E1.m1.1.6" xref="S3.E1.m1.1.7.cmml">(</m:mo>
+                      <m:msub xml:id="S3.E1.m1.1.1" xref="S3.E1.m1.1.1.cmml">
+                        <m:mi xml:id="S3.E1.m1.1.1.1" xref="S3.E1.m1.1.1.1.cmml">θ</m:mi>
+                        <m:mi xml:id="S3.E1.m1.1.1.2" xref="S3.E1.m1.1.1.2.cmml">f</m:mi>
+                      </m:msub>
+                      <m:mo xml:id="S3.E1.m1.1.6a" xref="S3.E1.m1.1.7.cmml">,</m:mo>
+                      <m:msub xml:id="S3.E1.m1.1.2" xref="S3.E1.m1.1.2.cmml">
+                        <m:mi xml:id="S3.E1.m1.1.2.1" xref="S3.E1.m1.1.2.1.cmml">θ</m:mi>
+                        <m:mi xml:id="S3.E1.m1.1.2.2" xref="S3.E1.m1.1.2.2.cmml">l</m:mi>
+                      </m:msub>
+                      <m:mo stretchy="false" xml:id="S3.E1.m1.1.6b" xref="S3.E1.m1.1.7.cmml">)</m:mo>
+                    </m:mrow>
+                  </m:mrow>
+                  <m:mo rspace="0.111em" xml:id="S3.E1.m1.1.9" xref="S3.E1.m1.1.9.cmml">=</m:mo>
+                  <m:mrow xml:id="S3.E1.m1.1.23" xref="S3.E1.m1.1.23.cmml">
+                    <m:munderover xml:id="S3.E1.m1.1.16" xref="S3.E1.m1.1.16.cmml">
+                      <m:mo movablelimits="false" xml:id="S3.E1.m1.1.10" xref="S3.E1.m1.1.10.cmml">∏</m:mo>
+                      <m:mrow xml:id="S3.E1.m1.1.14" xref="S3.E1.m1.1.14.cmml">
+                        <m:mi xml:id="S3.E1.m1.1.11" xref="S3.E1.m1.1.11.cmml">i</m:mi>
+                        <m:mo xml:id="S3.E1.m1.1.12" xref="S3.E1.m1.1.12.cmml">=</m:mo>
+                        <m:mn xml:id="S3.E1.m1.1.13" xref="S3.E1.m1.1.13.cmml">1</m:mn>
+                      </m:mrow>
+                      <m:mi xml:id="S3.E1.m1.1.15" xref="S3.E1.m1.1.15.cmml">n</m:mi>
+                    </m:munderover>
+                    <m:mrow xml:id="S3.E1.m1.1.22" xref="S3.E1.m1.1.22.cmml">
+                      <m:msub xml:id="S3.E1.m1.1.19" xref="S3.E1.m1.1.19.cmml">
+                        <m:mi xml:id="S3.E1.m1.1.17" xref="S3.E1.m1.1.17.cmml">p</m:mi>
+                        <m:mi xml:id="S3.E1.m1.1.18" xref="S3.E1.m1.1.18.cmml">θ</m:mi>
+                      </m:msub>
+                      <m:mo xml:id="S3.E1.m1.1.20" xref="S3.E1.m1.1.20.cmml">⁢</m:mo>
+                      <m:mrow xml:id="S3.E1.m1.1.21b" xref="S3.E1.m1.1.3.cmml">
+                        <m:mo stretchy="false" xml:id="S3.E1.m1.1.21" xref="S3.E1.m1.1.3.cmml">(</m:mo>
+                        <m:mrow xml:id="S3.E1.m1.1.3" xref="S3.E1.m1.1.3.cmml">
+                          <m:msub xml:id="S3.E1.m1.1.3.6" xref="S3.E1.m1.1.3.6.cmml">
+                            <m:mi xml:id="S3.E1.m1.1.3.4" xref="S3.E1.m1.1.3.4.cmml">𝒚</m:mi>
+                            <m:mi xml:id="S3.E1.m1.1.3.5" xref="S3.E1.m1.1.3.5.cmml">i</m:mi>
+                          </m:msub>
+                          <m:mo fence="false" xml:id="S3.E1.m1.1.3.7" xref="S3.E1.m1.1.3.7.cmml">|</m:mo>
+                          <m:mrow xml:id="S3.E1.m1.1.3.9" xref="S3.E1.m1.1.3.9.cmml">
+                            <m:msub xml:id="S3.E1.m1.1.3.1" xref="S3.E1.m1.1.3.1.cmml">
+                              <m:mi xml:id="S3.E1.m1.1.3.1.1" xref="S3.E1.m1.1.3.1.1.cmml">𝒙</m:mi>
+                              <m:mrow xml:id="S3.E1.m1.1.3.1.5" xref="S3.E1.m1.1.3.1.5.cmml">
+                                <m:mi xml:id="S3.E1.m1.1.3.1.2" xref="S3.E1.m1.1.3.1.2.cmml"/>
+                                <m:mo xml:id="S3.E1.m1.1.3.1.3" xref="S3.E1.m1.1.3.1.3.cmml">&lt;</m:mo>
+                                <m:mi xml:id="S3.E1.m1.1.3.1.4" xref="S3.E1.m1.1.3.1.4.cmml">i</m:mi>
+                              </m:mrow>
+                            </m:msub>
+                            <m:mo xml:id="S3.E1.m1.1.3.8" xref="S3.E1.m1.1.3.9.cmml">,</m:mo>
+                            <m:msub xml:id="S3.E1.m1.1.3.2" xref="S3.E1.m1.1.3.2.cmml">
+                              <m:mi xml:id="S3.E1.m1.1.3.2.1" xref="S3.E1.m1.1.3.2.1.cmml">𝒚</m:mi>
+                              <m:mrow xml:id="S3.E1.m1.1.3.2.8" xref="S3.E1.m1.1.3.2.8.cmml">
+                                <m:mi xml:id="S3.E1.m1.1.3.2.2" xref="S3.E1.m1.1.3.2.2.cmml"/>
+                                <m:mo xml:id="S3.E1.m1.1.3.2.3" xref="S3.E1.m1.1.3.2.3.cmml">&lt;</m:mo>
+                                <m:mrow xml:id="S3.E1.m1.1.3.2.7" xref="S3.E1.m1.1.3.2.7.cmml">
+                                  <m:mi xml:id="S3.E1.m1.1.3.2.4" xref="S3.E1.m1.1.3.2.4.cmml">i</m:mi>
+                                  <m:mo xml:id="S3.E1.m1.1.3.2.5" xref="S3.E1.m1.1.3.2.5.cmml">−</m:mo>
+                                  <m:mn xml:id="S3.E1.m1.1.3.2.6" xref="S3.E1.m1.1.3.2.6.cmml">1</m:mn>
+                                </m:mrow>
+                              </m:mrow>
+                            </m:msub>
+                            <m:mo xml:id="S3.E1.m1.1.3.8a" xref="S3.E1.m1.1.3.9.cmml">,</m:mo>
+                            <m:mrow xml:id="S3.E1.m1.1.3.3" xref="S3.E1.m1.1.3.3.cmml">
+                              <m:mi xml:id="S3.E1.m1.1.3.3.2" xref="S3.E1.m1.1.3.3.2.cmml">f</m:mi>
+                              <m:mo xml:id="S3.E1.m1.1.3.3.3" xref="S3.E1.m1.1.3.3.3.cmml">⁢</m:mo>
+                              <m:mrow xml:id="S3.E1.m1.1.3.3.4b" xref="S3.E1.m1.1.3.3.1.cmml">
+                                <m:mo stretchy="false" xml:id="S3.E1.m1.1.3.3.4" xref="S3.E1.m1.1.3.3.1.cmml">(</m:mo>
+                                <m:msub xml:id="S3.E1.m1.1.3.3.1" xref="S3.E1.m1.1.3.3.1.cmml">
+                                  <m:mi xml:id="S3.E1.m1.1.3.3.1.1" xref="S3.E1.m1.1.3.3.1.1.cmml">h</m:mi>
+                                  <m:mi class="ltx_font_mathcaligraphic" xml:id="S3.E1.m1.1.3.3.1.2" xref="S3.E1.m1.1.3.3.1.2.cmml">ℐ</m:mi>
+                                </m:msub>
+                                <m:mo stretchy="false" xml:id="S3.E1.m1.1.3.3.4a" xref="S3.E1.m1.1.3.3.1.cmml">)</m:mo>
+                              </m:mrow>
+                            </m:mrow>
+                          </m:mrow>
+                        </m:mrow>
+                        <m:mo stretchy="false" xml:id="S3.E1.m1.1.21a" xref="S3.E1.m1.1.3.cmml">)</m:mo>
+                      </m:mrow>
+                    </m:mrow>
+                  </m:mrow>
+                </m:mrow>
+                <m:mo xml:id="S3.E1.m1.2" xref="S3.E1.m1.1.cmml">,</m:mo>
+              </m:mrow>
+              <m:annotation-xml encoding="MathML-Content">
+                <m:apply xml:id="S3.E1.m1.1.cmml" xref="S3.E1.m1.2a">
+                  <m:eq xml:id="S3.E1.m1.1.9.cmml" xref="S3.E1.m1.1.9"/>
+                  <m:apply xml:id="S3.E1.m1.1.8.cmml" xref="S3.E1.m1.1.8">
+                    <m:times xml:id="S3.E1.m1.1.5.cmml" xref="S3.E1.m1.1.5"/>
+                    <m:ci xml:id="S3.E1.m1.1.4.cmml" xref="S3.E1.m1.1.4">ℒ</m:ci>
+                    <m:interval closure="open" xml:id="S3.E1.m1.1.7.cmml" xref="S3.E1.m1.1.7">
+                      <m:apply xml:id="S3.E1.m1.1.1.cmml" xref="S3.E1.m1.1.1">
+                        <m:csymbol cd="ambiguous" xml:id="S3.E1.m1.1.1.3.cmml" xref="S3.E1.m1.1.1">subscript</m:csymbol>
+                        <m:ci xml:id="S3.E1.m1.1.1.1.cmml" xref="S3.E1.m1.1.1.1">𝜃</m:ci>
+                        <m:ci xml:id="S3.E1.m1.1.1.2.cmml" xref="S3.E1.m1.1.1.2">𝑓</m:ci>
+                      </m:apply>
+                      <m:apply xml:id="S3.E1.m1.1.2.cmml" xref="S3.E1.m1.1.2">
+                        <m:csymbol cd="ambiguous" xml:id="S3.E1.m1.1.2.3.cmml" xref="S3.E1.m1.1.2">subscript</m:csymbol>
+                        <m:ci xml:id="S3.E1.m1.1.2.1.cmml" xref="S3.E1.m1.1.2.1">𝜃</m:ci>
+                        <m:ci xml:id="S3.E1.m1.1.2.2.cmml" xref="S3.E1.m1.1.2.2">𝑙</m:ci>
+                      </m:apply>
+                    </m:interval>
+                  </m:apply>
+                  <m:apply xml:id="S3.E1.m1.1.23.cmml" xref="S3.E1.m1.1.23">
+                    <m:apply xml:id="S3.E1.m1.1.16.cmml" xref="S3.E1.m1.1.16">
+                      <m:csymbol cd="ambiguous" xml:id="S3.E1.m1.1.16.1.cmml" xref="S3.E1.m1.1.16">superscript</m:csymbol>
+                      <m:apply xml:id="S3.E1.m1.1.16.3.cmml" xref="S3.E1.m1.1.16">
+                        <m:csymbol cd="ambiguous" xml:id="S3.E1.m1.1.16.2.cmml" xref="S3.E1.m1.1.16">subscript</m:csymbol>
+                        <m:csymbol cd="latexml" xml:id="S3.E1.m1.1.10.cmml" xref="S3.E1.m1.1.10">product</m:csymbol>
+                        <m:apply xml:id="S3.E1.m1.1.14.cmml" xref="S3.E1.m1.1.14">
+                          <m:eq xml:id="S3.E1.m1.1.12.cmml" xref="S3.E1.m1.1.12"/>
+                          <m:ci xml:id="S3.E1.m1.1.11.cmml" xref="S3.E1.m1.1.11">𝑖</m:ci>
+                          <m:cn type="integer" xml:id="S3.E1.m1.1.13.cmml" xref="S3.E1.m1.1.13">1</m:cn>
+                        </m:apply>
+                      </m:apply>
+                      <m:ci xml:id="S3.E1.m1.1.15.cmml" xref="S3.E1.m1.1.15">𝑛</m:ci>
+                    </m:apply>
+                    <m:apply xml:id="S3.E1.m1.1.22.cmml" xref="S3.E1.m1.1.22">
+                      <m:times xml:id="S3.E1.m1.1.20.cmml" xref="S3.E1.m1.1.20"/>
+                      <m:apply xml:id="S3.E1.m1.1.19.cmml" xref="S3.E1.m1.1.19">
+                        <m:csymbol cd="ambiguous" xml:id="S3.E1.m1.1.19.1.cmml" xref="S3.E1.m1.1.19">subscript</m:csymbol>
+                        <m:ci xml:id="S3.E1.m1.1.17.cmml" xref="S3.E1.m1.1.17">𝑝</m:ci>
+                        <m:ci xml:id="S3.E1.m1.1.18.cmml" xref="S3.E1.m1.1.18">𝜃</m:ci>
+                      </m:apply>
+                      <m:apply xml:id="S3.E1.m1.1.3.cmml" xref="S3.E1.m1.1.21b">
+                        <m:csymbol cd="latexml" xml:id="S3.E1.m1.1.3.7.cmml" xref="S3.E1.m1.1.3.7">conditional</m:csymbol>
+                        <m:apply xml:id="S3.E1.m1.1.3.6.cmml" xref="S3.E1.m1.1.3.6">
+                          <m:csymbol cd="ambiguous" xml:id="S3.E1.m1.1.3.6.1.cmml" xref="S3.E1.m1.1.3.6">subscript</m:csymbol>
+                          <m:ci xml:id="S3.E1.m1.1.3.4.cmml" xref="S3.E1.m1.1.3.4">𝒚</m:ci>
+                          <m:ci xml:id="S3.E1.m1.1.3.5.cmml" xref="S3.E1.m1.1.3.5">𝑖</m:ci>
+                        </m:apply>
+                        <m:list xml:id="S3.E1.m1.1.3.9.cmml" xref="S3.E1.m1.1.3.9">
+                          <m:apply xml:id="S3.E1.m1.1.3.1.cmml" xref="S3.E1.m1.1.3.1">
+                            <m:csymbol cd="ambiguous" xml:id="S3.E1.m1.1.3.1.6.cmml" xref="S3.E1.m1.1.3.1">subscript</m:csymbol>
+                            <m:ci xml:id="S3.E1.m1.1.3.1.1.cmml" xref="S3.E1.m1.1.3.1.1">𝒙</m:ci>
+                            <m:apply xml:id="S3.E1.m1.1.3.1.5.cmml" xref="S3.E1.m1.1.3.1.5">
+                              <m:lt xml:id="S3.E1.m1.1.3.1.3.cmml" xref="S3.E1.m1.1.3.1.3"/>
+                              <m:csymbol cd="latexml" xml:id="S3.E1.m1.1.3.1.2.cmml" xref="S3.E1.m1.1.3.1.2">absent</m:csymbol>
+                              <m:ci xml:id="S3.E1.m1.1.3.1.4.cmml" xref="S3.E1.m1.1.3.1.4">𝑖</m:ci>
+                            </m:apply>
+                          </m:apply>
+                          <m:apply xml:id="S3.E1.m1.1.3.2.cmml" xref="S3.E1.m1.1.3.2">
+                            <m:csymbol cd="ambiguous" xml:id="S3.E1.m1.1.3.2.9.cmml" xref="S3.E1.m1.1.3.2">subscript</m:csymbol>
+                            <m:ci xml:id="S3.E1.m1.1.3.2.1.cmml" xref="S3.E1.m1.1.3.2.1">𝒚</m:ci>
+                            <m:apply xml:id="S3.E1.m1.1.3.2.8.cmml" xref="S3.E1.m1.1.3.2.8">
+                              <m:lt xml:id="S3.E1.m1.1.3.2.3.cmml" xref="S3.E1.m1.1.3.2.3"/>
+                              <m:csymbol cd="latexml" xml:id="S3.E1.m1.1.3.2.2.cmml" xref="S3.E1.m1.1.3.2.2">absent</m:csymbol>
+                              <m:apply xml:id="S3.E1.m1.1.3.2.7.cmml" xref="S3.E1.m1.1.3.2.7">
+                                <m:minus xml:id="S3.E1.m1.1.3.2.5.cmml" xref="S3.E1.m1.1.3.2.5"/>
+                                <m:ci xml:id="S3.E1.m1.1.3.2.4.cmml" xref="S3.E1.m1.1.3.2.4">𝑖</m:ci>
+                                <m:cn type="integer" xml:id="S3.E1.m1.1.3.2.6.cmml" xref="S3.E1.m1.1.3.2.6">1</m:cn>
+                              </m:apply>
+                            </m:apply>
+                          </m:apply>
+                          <m:apply xml:id="S3.E1.m1.1.3.3.cmml" xref="S3.E1.m1.1.3.3">
+                            <m:times xml:id="S3.E1.m1.1.3.3.3.cmml" xref="S3.E1.m1.1.3.3.3"/>
+                            <m:ci xml:id="S3.E1.m1.1.3.3.2.cmml" xref="S3.E1.m1.1.3.3.2">𝑓</m:ci>
+                            <m:apply xml:id="S3.E1.m1.1.3.3.1.cmml" xref="S3.E1.m1.1.3.3.4b">
+                              <m:csymbol cd="ambiguous" xml:id="S3.E1.m1.1.3.3.1.3.cmml" xref="S3.E1.m1.1.3.3.4b">subscript</m:csymbol>
+                              <m:ci xml:id="S3.E1.m1.1.3.3.1.1.cmml" xref="S3.E1.m1.1.3.3.1.1">ℎ</m:ci>
+                              <m:ci xml:id="S3.E1.m1.1.3.3.1.2.cmml" xref="S3.E1.m1.1.3.3.1.2">ℐ</m:ci>
+                            </m:apply>
+                          </m:apply>
+                        </m:list>
+                      </m:apply>
+                    </m:apply>
+                  </m:apply>
+                </m:apply>
+              </m:annotation-xml>
+              <m:annotation encoding="application/x-tex">\mathcal{L}(\theta_{f},\theta_{l})=\prod_{i=1}^{n}p_{\theta}(\boldsymbol{y}_{i%
+}|\boldsymbol{x}_{&lt;i},\boldsymbol{y}_{&lt;i-1},f(h_{\mathcal{I}})),</m:annotation>
+            </m:semantics>
+          </m:math>
+        </Math>
+      </equation>
+      <p>where <Math mode="inline" xml:id="S3.p2.m1" tex="\theta_{f}" text="theta _ f" fragid="S3.p2.m1"><m:math alttext="\theta_{f}" display="inline"><m:semantics><m:msub xml:id="S3.p2.m1.3" xref="S3.p2.m1.3.cmml"><m:mi xml:id="S3.p2.m1.1" xref="S3.p2.m1.1.cmml">θ</m:mi><m:mi xml:id="S3.p2.m1.2" xref="S3.p2.m1.2.cmml">f</m:mi></m:msub><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S3.p2.m1.3.cmml" xref="S3.p2.m1.3"><m:csymbol cd="ambiguous" xml:id="S3.p2.m1.3.1.cmml" xref="S3.p2.m1.3">subscript</m:csymbol><m:ci xml:id="S3.p2.m1.1.cmml" xref="S3.p2.m1.1">𝜃</m:ci><m:ci xml:id="S3.p2.m1.2.cmml" xref="S3.p2.m1.2">𝑓</m:ci></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">\theta_{f}</m:annotation></m:semantics></m:math></Math> and <Math mode="inline" xml:id="S3.p2.m2" tex="\theta_{l}" text="theta _ l" fragid="S3.p2.m2"><m:math alttext="\theta_{l}" display="inline"><m:semantics><m:msub xml:id="S3.p2.m2.3" xref="S3.p2.m2.3.cmml"><m:mi xml:id="S3.p2.m2.1" xref="S3.p2.m2.1.cmml">θ</m:mi><m:mi xml:id="S3.p2.m2.2" xref="S3.p2.m2.2.cmml">l</m:mi></m:msub><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S3.p2.m2.3.cmml" xref="S3.p2.m2.3"><m:csymbol cd="ambiguous" xml:id="S3.p2.m2.3.1.cmml" xref="S3.p2.m2.3">subscript</m:csymbol><m:ci xml:id="S3.p2.m2.1.cmml" xref="S3.p2.m2.1">𝜃</m:ci><m:ci xml:id="S3.p2.m2.2.cmml" xref="S3.p2.m2.2">𝑙</m:ci></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">\theta_{l}</m:annotation></m:semantics></m:math></Math> correspond to the learnable parameters of the linear projection matrix and LoRA weights. The <Math mode="inline" xml:id="S3.p2.m3" tex="h_{\mathcal{I}}" text="h _ I" fragid="S3.p2.m3"><m:math alttext="h_{\mathcal{I}}" display="inline"><m:semantics><m:msub xml:id="S3.p2.m3.3" xref="S3.p2.m3.3.cmml"><m:mi xml:id="S3.p2.m3.1" xref="S3.p2.m3.1.cmml">h</m:mi><m:mi class="ltx_font_mathcaligraphic" xml:id="S3.p2.m3.2" xref="S3.p2.m3.2.cmml">ℐ</m:mi></m:msub><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S3.p2.m3.3.cmml" xref="S3.p2.m3.3"><m:csymbol cd="ambiguous" xml:id="S3.p2.m3.3.1.cmml" xref="S3.p2.m3.3">subscript</m:csymbol><m:ci xml:id="S3.p2.m3.1.cmml" xref="S3.p2.m3.1">ℎ</m:ci><m:ci xml:id="S3.p2.m3.2.cmml" xref="S3.p2.m3.2">ℐ</m:ci></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">h_{\mathcal{I}}</m:annotation></m:semantics></m:math></Math> is the image representation produced by ImageBind and <Math mode="inline" xml:id="S3.p2.m4" tex="\theta=\{\theta_{f},\theta_{l},\theta_{1},\theta_{2}\}" text="theta = set@(theta _ f, theta _ l, theta _ 1, theta _ 2)" fragid="S3.p2.m4"><m:math alttext="\theta=\{\theta_{f},\theta_{l},\theta_{1},\theta_{2}\}" display="inline"><m:semantics><m:mrow xml:id="S3.p2.m4.9" xref="S3.p2.m4.9.cmml"><m:mi xml:id="S3.p2.m4.5" xref="S3.p2.m4.5.cmml">θ</m:mi><m:mo xml:id="S3.p2.m4.6" xref="S3.p2.m4.6.cmml">=</m:mo><m:mrow xml:id="S3.p2.m4.8" xref="S3.p2.m4.8.cmml"><m:mo stretchy="false" xml:id="S3.p2.m4.7" xref="S3.p2.m4.8.cmml">{</m:mo><m:msub xml:id="S3.p2.m4.1" xref="S3.p2.m4.1.cmml"><m:mi xml:id="S3.p2.m4.1.1" xref="S3.p2.m4.1.1.cmml">θ</m:mi><m:mi xml:id="S3.p2.m4.1.2" xref="S3.p2.m4.1.2.cmml">f</m:mi></m:msub><m:mo xml:id="S3.p2.m4.7a" xref="S3.p2.m4.8.cmml">,</m:mo><m:msub xml:id="S3.p2.m4.2" xref="S3.p2.m4.2.cmml"><m:mi xml:id="S3.p2.m4.2.1" xref="S3.p2.m4.2.1.cmml">θ</m:mi><m:mi xml:id="S3.p2.m4.2.2" xref="S3.p2.m4.2.2.cmml">l</m:mi></m:msub><m:mo xml:id="S3.p2.m4.7b" xref="S3.p2.m4.8.cmml">,</m:mo><m:msub xml:id="S3.p2.m4.3" xref="S3.p2.m4.3.cmml"><m:mi xml:id="S3.p2.m4.3.1" xref="S3.p2.m4.3.1.cmml">θ</m:mi><m:mn xml:id="S3.p2.m4.3.2" xref="S3.p2.m4.3.2.cmml">1</m:mn></m:msub><m:mo xml:id="S3.p2.m4.7c" xref="S3.p2.m4.8.cmml">,</m:mo><m:msub xml:id="S3.p2.m4.4" xref="S3.p2.m4.4.cmml"><m:mi xml:id="S3.p2.m4.4.1" xref="S3.p2.m4.4.1.cmml">θ</m:mi><m:mn xml:id="S3.p2.m4.4.2" xref="S3.p2.m4.4.2.cmml">2</m:mn></m:msub><m:mo stretchy="false" xml:id="S3.p2.m4.7d" xref="S3.p2.m4.8.cmml">}</m:mo></m:mrow></m:mrow><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S3.p2.m4.9.cmml" xref="S3.p2.m4.9"><m:eq xml:id="S3.p2.m4.6.cmml" xref="S3.p2.m4.6"/><m:ci xml:id="S3.p2.m4.5.cmml" xref="S3.p2.m4.5">𝜃</m:ci><m:set xml:id="S3.p2.m4.8.cmml" xref="S3.p2.m4.8"><m:apply xml:id="S3.p2.m4.1.cmml" xref="S3.p2.m4.1"><m:csymbol cd="ambiguous" xml:id="S3.p2.m4.1.3.cmml" xref="S3.p2.m4.1">subscript</m:csymbol><m:ci xml:id="S3.p2.m4.1.1.cmml" xref="S3.p2.m4.1.1">𝜃</m:ci><m:ci xml:id="S3.p2.m4.1.2.cmml" xref="S3.p2.m4.1.2">𝑓</m:ci></m:apply><m:apply xml:id="S3.p2.m4.2.cmml" xref="S3.p2.m4.2"><m:csymbol cd="ambiguous" xml:id="S3.p2.m4.2.3.cmml" xref="S3.p2.m4.2">subscript</m:csymbol><m:ci xml:id="S3.p2.m4.2.1.cmml" xref="S3.p2.m4.2.1">𝜃</m:ci><m:ci xml:id="S3.p2.m4.2.2.cmml" xref="S3.p2.m4.2.2">𝑙</m:ci></m:apply><m:apply xml:id="S3.p2.m4.3.cmml" xref="S3.p2.m4.3"><m:csymbol cd="ambiguous" xml:id="S3.p2.m4.3.3.cmml" xref="S3.p2.m4.3">subscript</m:csymbol><m:ci xml:id="S3.p2.m4.3.1.cmml" xref="S3.p2.m4.3.1">𝜃</m:ci><m:cn type="integer" xml:id="S3.p2.m4.3.2.cmml" xref="S3.p2.m4.3.2">1</m:cn></m:apply><m:apply xml:id="S3.p2.m4.4.cmml" xref="S3.p2.m4.4"><m:csymbol cd="ambiguous" xml:id="S3.p2.m4.4.3.cmml" xref="S3.p2.m4.4">subscript</m:csymbol><m:ci xml:id="S3.p2.m4.4.1.cmml" xref="S3.p2.m4.4.1">𝜃</m:ci><m:cn type="integer" xml:id="S3.p2.m4.4.2.cmml" xref="S3.p2.m4.4.2">2</m:cn></m:apply></m:set></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">\theta=\{\theta_{f},\theta_{l},\theta_{1},\theta_{2}\}</m:annotation></m:semantics></m:math></Math>, where <Math mode="inline" xml:id="S3.p2.m5" tex="\theta_{1}" text="theta _ 1" fragid="S3.p2.m5"><m:math alttext="\theta_{1}" display="inline"><m:semantics><m:msub xml:id="S3.p2.m5.3" xref="S3.p2.m5.3.cmml"><m:mi xml:id="S3.p2.m5.1" xref="S3.p2.m5.1.cmml">θ</m:mi><m:mn xml:id="S3.p2.m5.2" xref="S3.p2.m5.2.cmml">1</m:mn></m:msub><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S3.p2.m5.3.cmml" xref="S3.p2.m5.3"><m:csymbol cd="ambiguous" xml:id="S3.p2.m5.3.1.cmml" xref="S3.p2.m5.3">subscript</m:csymbol><m:ci xml:id="S3.p2.m5.1.cmml" xref="S3.p2.m5.1">𝜃</m:ci><m:cn type="integer" xml:id="S3.p2.m5.2.cmml" xref="S3.p2.m5.2">1</m:cn></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">\theta_{1}</m:annotation></m:semantics></m:math></Math> and <Math mode="inline" xml:id="S3.p2.m6" tex="\theta_{2}" text="theta _ 2" fragid="S3.p2.m6"><m:math alttext="\theta_{2}" display="inline"><m:semantics><m:msub xml:id="S3.p2.m6.3" xref="S3.p2.m6.3.cmml"><m:mi xml:id="S3.p2.m6.1" xref="S3.p2.m6.1.cmml">θ</m:mi><m:mn xml:id="S3.p2.m6.2" xref="S3.p2.m6.2.cmml">2</m:mn></m:msub><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S3.p2.m6.3.cmml" xref="S3.p2.m6.3"><m:csymbol cd="ambiguous" xml:id="S3.p2.m6.3.1.cmml" xref="S3.p2.m6.3">subscript</m:csymbol><m:ci xml:id="S3.p2.m6.1.cmml" xref="S3.p2.m6.1">𝜃</m:ci><m:cn type="integer" xml:id="S3.p2.m6.2.cmml" xref="S3.p2.m6.2">2</m:cn></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">\theta_{2}</m:annotation></m:semantics></m:math></Math> are frozen parameters of ImageBind and Vicuna. Note that the loss is only computed from the part of system responses during training. We train PandaGPT on the image-language instruction-following dataset for two epochs using a learning rate of 5e-4 with linear decay. The maximum sequence length for Vicuna-13B is set to 400 based on our computation resources (8<Math mode="inline" xml:id="S3.p2.m7" tex="\times" text="*" fragid="S3.p2.m7"><m:math alttext="\times" display="inline"><m:semantics><m:mo xml:id="S3.p2.m7.1" xref="S3.p2.m7.1.cmml">×</m:mo><m:annotation-xml encoding="MathML-Content"><m:times xml:id="S3.p2.m7.1.cmml" xref="S3.p2.m7.1"/></m:annotation-xml><m:annotation encoding="application/x-tex">\times</m:annotation></m:semantics></m:math></Math>A100 40G GPUs). The training takes around 7 hours to complete.</p>
+    </para>
+    <para xml:id="S3.p3" fragid="S3.p3">
+      <p>It is worth noting that the current version of PandaGPT is only trained with aligned image-text data. However, by leveraging the binding property across six modalities (image/video, text, audio, depth, thermal, and IMU) inherited from the frozen ImageBind encoders, PandaGPT demonstrates emergent, i.e. zero-shot, cross-modal capabilities across all of the modalities.</p>
+    </para>
+  </section>
+  <section inlist="toc" xml:id="S4" fragid="S4">
+    <tags>
+      <tag>4</tag>
+      <tag role="autoref">section 4</tag>
+      <tag role="creftype">§</tag>
+      <tag role="creftypecap">§</tag>
+      <tag role="creftypeplural">§§</tag>
+      <tag role="creftypepluralcap">§§</tag>
+      <tag role="refnum">4</tag>
+      <tag role="typerefnum">§4</tag>
+    </tags>
+    <title><tag close=" ">4</tag>Capabilities of PandaGPT</title>
+    <para xml:id="S4.p1" fragid="S4.p1">
+      <p>Compared to existing multimodal instruction-following models trained individually for one particular modality, PandaGPT can understand and combine the information in different forms together, including image/video, text, audio, depth (3D), thermal (infrared radiation), and inertial measurement units (IMU) readings. We find that the capabilities of PandaGPT (see concrete examples in Section <ref labelref="LABEL:sec:cases" idref="S6" href="#S6" title="6 Examples ‣ PandaGPT: One Model To Instruction-Follow Them All"><text class="ltx_ref_tag">6</text></ref>) include but are not limited to:</p>
+      <itemize xml:id="S4.I1" fragid="S4.I1">
+        <item xml:id="S4.I1.i1" fragid="S4.I1.i1">
+          <tags>
+            <tag>•</tag>
+            <tag role="autoref">item </tag>
+            <tag role="typerefnum">1st item</tag>
+          </tags>
+          <para xml:id="S4.I1.i1.p1" fragid="S4.I1.i1.p1">
+            <p><text font="bold">image/video-grounded question answering</text>: see examples of Figure <ref labelref="LABEL:fig:image-dog" idref="S6.F2" href="#S6.F2" title="Figure 2 ‣ 6 Examples ‣ PandaGPT: One Model To Instruction-Follow Them All"><text class="ltx_ref_tag">2</text></ref> , <ref labelref="LABEL:fig:image-musk" idref="S6.F3" href="#S6.F3" title="Figure 3 ‣ 6 Examples ‣ PandaGPT: One Model To Instruction-Follow Them All"><text class="ltx_ref_tag">3</text></ref>, and <ref labelref="LABEL:fig:video-avengers" idref="S6.F4" href="#S6.F4" title="Figure 4 ‣ 6 Examples ‣ PandaGPT: One Model To Instruction-Follow Them All"><text class="ltx_ref_tag">4</text></ref>.</p>
+          </para>
+        </item>
+        <item xml:id="S4.I1.i2" fragid="S4.I1.i2">
+          <tags>
+            <tag>•</tag>
+            <tag role="autoref">item </tag>
+            <tag role="typerefnum">2nd item</tag>
+          </tags>
+          <para xml:id="S4.I1.i2.p1" fragid="S4.I1.i2.p1">
+            <p><text font="bold">image/video-inspired creative writing</text>: see examples of Figure <ref labelref="LABEL:fig:video-noodle" idref="S6.F5" href="#S6.F5" title="Figure 5 ‣ 6 Examples ‣ PandaGPT: One Model To Instruction-Follow Them All"><text class="ltx_ref_tag">5</text></ref>.</p>
+          </para>
+        </item>
+        <item xml:id="S4.I1.i3" fragid="S4.I1.i3">
+          <tags>
+            <tag>•</tag>
+            <tag role="autoref">item </tag>
+            <tag role="typerefnum">3rd item</tag>
+          </tags>
+          <para xml:id="S4.I1.i3.p1" fragid="S4.I1.i3.p1">
+            <p><text font="bold">visual and auditory reasoning</text>: see examples of Figure <ref labelref="LABEL:fig:video-spacex-rocket" idref="S6.F6" href="#S6.F6" title="Figure 6 ‣ 6 Examples ‣ PandaGPT: One Model To Instruction-Follow Them All"><text class="ltx_ref_tag">6</text></ref>, <ref labelref="LABEL:fig:audio-dog" idref="S6.F7" href="#S6.F7" title="Figure 7 ‣ 6 Examples ‣ PandaGPT: One Model To Instruction-Follow Them All"><text class="ltx_ref_tag">7</text></ref>, and <ref labelref="LABEL:fig:audio-gunshot" idref="S6.F8" href="#S6.F8" title="Figure 8 ‣ 6 Examples ‣ PandaGPT: One Model To Instruction-Follow Them All"><text class="ltx_ref_tag">8</text></ref>.</p>
+          </para>
+        </item>
+        <item xml:id="S4.I1.i4" fragid="S4.I1.i4">
+          <tags>
+            <tag>•</tag>
+            <tag role="autoref">item </tag>
+            <tag role="typerefnum">4th item</tag>
+          </tags>
+          <para xml:id="S4.I1.i4.p1" fragid="S4.I1.i4.p1">
+            <p><text font="bold">multimodal arithmetic</text>: PandaGPT is also capable of working with input composed across modalities. By arithmetically adding information from different modalities as input, PandaGPT can produce results that reflect concepts from different parts. See Figure <ref labelref="LABEL:fig:image-girl-audio-rain" idref="S6.F9" href="#S6.F9" title="Figure 9 ‣ 6 Examples ‣ PandaGPT: One Model To Instruction-Follow Them All"><text class="ltx_ref_tag">9</text></ref> and <ref labelref="LABEL:fig:image-woman-audio-ocean-waves" idref="S6.F10" href="#S6.F10" title="Figure 10 ‣ 6 Examples ‣ PandaGPT: One Model To Instruction-Follow Them All"><text class="ltx_ref_tag">10</text></ref> for examples of image and audio arithmetic, and see Figure <ref labelref="LABEL:fig:video-couple-audio-rain" idref="S6.F11" href="#S6.F11" title="Figure 11 ‣ 6 Examples ‣ PandaGPT: One Model To Instruction-Follow Them All"><text class="ltx_ref_tag">11</text></ref> and <ref labelref="LABEL:fig:video-couple-audio-waves" idref="S6.F12" href="#S6.F12" title="Figure 12 ‣ 6 Examples ‣ PandaGPT: One Model To Instruction-Follow Them All"><text class="ltx_ref_tag">12</text></ref> for examples of video and audio arithmetic.</p>
+          </para>
+        </item>
+      </itemize>
+    </para>
+  </section>
+  <section inlist="toc" xml:id="S5" fragid="S5">
+    <tags>
+      <tag>5</tag>
+      <tag role="autoref">section 5</tag>
+      <tag role="creftype">§</tag>
+      <tag role="creftypecap">§</tag>
+      <tag role="creftypeplural">§§</tag>
+      <tag role="creftypepluralcap">§§</tag>
+      <tag role="refnum">5</tag>
+      <tag role="typerefnum">§5</tag>
+    </tags>
+    <title><tag close=" ">5</tag>Limitations</title>
+    <para xml:id="S5.p1" fragid="S5.p1">
+      <p>Despite the amazing ability in handling multiple modalities and their combinations. There are multiple ways to further improve PandaGPT.</p>
+    </para>
+    <para xml:id="S5.p2" fragid="S5.p2">
+      <enumerate xml:id="S5.I1" fragid="S5.I1">
+        <item xml:id="S5.I1.i1" fragid="S5.I1.i1">
+          <tags>
+            <tag>1.</tag>
+            <tag role="autoref">item 1</tag>
+            <tag role="creftype">item</tag>
+            <tag role="creftypecap">Item</tag>
+            <tag role="creftypeplural">items</tag>
+            <tag role="creftypepluralcap">Items</tag>
+            <tag role="refnum">1</tag>
+            <tag role="typerefnum">item 1</tag>
+          </tags>
+          <para xml:id="S5.I1.i1.p1" fragid="S5.I1.i1.p1">
+            <p>The training of PandaGPT can be enriched by using other alignment data, for instance, other modalities paired with text (e.g., audio-text pairs).</p>
+          </para>
+        </item>
+        <item xml:id="S5.I1.i2" fragid="S5.I1.i2">
+          <tags>
+            <tag>2.</tag>
+            <tag role="autoref">item 2</tag>
+            <tag role="creftype">item</tag>
+            <tag role="creftypecap">Item</tag>
+            <tag role="creftypeplural">items</tag>
+            <tag role="creftypepluralcap">Items</tag>
+            <tag role="refnum">2</tag>
+            <tag role="typerefnum">item 2</tag>
+          </tags>
+          <para xml:id="S5.I1.i2.p1" fragid="S5.I1.i2.p1">
+            <p>We only use one embedding vector for the content in other modalities than text, more research into fine-grained feature extraction such as cross-modal attention mechanisms could be beneficial to the performance.</p>
+          </para>
+        </item>
+        <item xml:id="S5.I1.i3" fragid="S5.I1.i3">
+          <tags>
+            <tag>3.</tag>
+            <tag role="autoref">item 3</tag>
+            <tag role="creftype">item</tag>
+            <tag role="creftypecap">Item</tag>
+            <tag role="creftypeplural">items</tag>
+            <tag role="creftypepluralcap">Items</tag>
+            <tag role="refnum">3</tag>
+            <tag role="typerefnum">item 3</tag>
+          </tags>
+          <para xml:id="S5.I1.i3.p1" fragid="S5.I1.i3.p1">
+            <p>PandaGPT currently only allows multimodal information to be used as input, future possibilities include generating richer multimedia content (e.g., creating images and response in audio).</p>
+          </para>
+        </item>
+        <item xml:id="S5.I1.i4" fragid="S5.I1.i4">
+          <tags>
+            <tag>4.</tag>
+            <tag role="autoref">item 4</tag>
+            <tag role="creftype">item</tag>
+            <tag role="creftypecap">Item</tag>
+            <tag role="creftypeplural">items</tag>
+            <tag role="creftypepluralcap">Items</tag>
+            <tag role="refnum">4</tag>
+            <tag role="typerefnum">item 4</tag>
+          </tags>
+          <para xml:id="S5.I1.i4.p1" fragid="S5.I1.i4.p1">
+            <p>New benchmarks to evaluate the composition ability of multimodal inputs is demanded.</p>
+          </para>
+        </item>
+        <item xml:id="S5.I1.i5" fragid="S5.I1.i5">
+          <tags>
+            <tag>5.</tag>
+            <tag role="autoref">item 5</tag>
+            <tag role="creftype">item</tag>
+            <tag role="creftypecap">Item</tag>
+            <tag role="creftypeplural">items</tag>
+            <tag role="creftypepluralcap">Items</tag>
+            <tag role="refnum">5</tag>
+            <tag role="typerefnum">item 5</tag>
+          </tags>
+          <para xml:id="S5.I1.i5.p1" fragid="S5.I1.i5.p1">
+            <p>PandaGPT can also exhibit several common deficiencies of existing language models, including hallucination, toxicity, and stereotypes.</p>
+          </para>
+        </item>
+      </enumerate>
+      <p>Lastly, we would like to note that PandaGPT is a research prototype and cannot be readily used for real-world applications.</p>
+    </para>
+  </section>
+  <section inlist="toc" xml:id="S6" labels="LABEL:sec:cases" fragid="S6">
+    <tags>
+      <tag>6</tag>
+      <tag role="autoref">section 6</tag>
+      <tag role="creftype">§</tag>
+      <tag role="creftypecap">§</tag>
+      <tag role="creftypeplural">§§</tag>
+      <tag role="creftypepluralcap">§§</tag>
+      <tag role="refnum">6</tag>
+      <tag role="typerefnum">§6</tag>
+    </tags>
+    <title><tag close=" ">6</tag>Examples</title>
+    <figure inlist="lof" placement="h" xml:id="S6.F2" labels="LABEL:fig:image-dog" fragid="S6.F2">
+      <tags>
+        <tag>Figure 2</tag>
+        <tag role="autoref">Figure 2</tag>
+        <tag role="creftype">fig.</tag>
+        <tag role="creftypecap">Figure</tag>
+        <tag role="creftypeplural">figs.</tag>
+        <tag role="creftypepluralcap">Figures</tag>
+        <tag role="refnum">2</tag>
+        <tag role="typerefnum">Figure 2</tag>
+      </tags>
+      <graphics candidates="images/image-dog.png" graphic="images/image-dog.png" options="width=390.3pt,keepaspectratio=true" xml:id="S6.F2.g1" class="ltx_centering" fragid="S6.F2.g1"/>
+      <toccaption class="ltx_centering"><tag close=" ">2</tag>Example showing PandaGPT’s capability in image-grounded question answering.</toccaption>
+      <caption class="ltx_centering"><tag close=": ">Figure 2</tag>Example showing PandaGPT’s capability in image-grounded question answering.</caption>
+    </figure>
+    <figure inlist="lof" placement="h" xml:id="S6.F3" labels="LABEL:fig:image-musk" fragid="S6.F3">
+      <tags>
+        <tag>Figure 3</tag>
+        <tag role="autoref">Figure 3</tag>
+        <tag role="creftype">fig.</tag>
+        <tag role="creftypecap">Figure</tag>
+        <tag role="creftypeplural">figs.</tag>
+        <tag role="creftypepluralcap">Figures</tag>
+        <tag role="refnum">3</tag>
+        <tag role="typerefnum">Figure 3</tag>
+      </tags>
+      <graphics candidates="images/image-musk.png" graphic="images/image-musk.png" options="width=390.3pt,keepaspectratio=true" xml:id="S6.F3.g1" class="ltx_centering" fragid="S6.F3.g1"/>
+      <toccaption class="ltx_centering"><tag close=" ">3</tag>Example showing PandaGPT’s capability in image-grounded question answering.</toccaption>
+      <caption class="ltx_centering"><tag close=": ">Figure 3</tag>Example showing PandaGPT’s capability in image-grounded question answering.</caption>
+    </figure>
+    <figure inlist="lof" placement="h" xml:id="S6.F4" labels="LABEL:fig:video-avengers" fragid="S6.F4">
+      <tags>
+        <tag>Figure 4</tag>
+        <tag role="autoref">Figure 4</tag>
+        <tag role="creftype">fig.</tag>
+        <tag role="creftypecap">Figure</tag>
+        <tag role="creftypeplural">figs.</tag>
+        <tag role="creftypepluralcap">Figures</tag>
+        <tag role="refnum">4</tag>
+        <tag role="typerefnum">Figure 4</tag>
+      </tags>
+      <graphics candidates="images/video-avengers.png" graphic="images/video-avengers.png" options="width=390.3pt,keepaspectratio=true" xml:id="S6.F4.g1" class="ltx_centering" fragid="S6.F4.g1"/>
+      <toccaption class="ltx_centering"><tag close=" ">4</tag>Example showing PandaGPT’s capability in video-grounded question answering.</toccaption>
+      <caption class="ltx_centering"><tag close=": ">Figure 4</tag>Example showing PandaGPT’s capability in video-grounded question answering.</caption>
+    </figure>
+    <figure inlist="lof" placement="h" xml:id="S6.F5" labels="LABEL:fig:video-noodle" fragid="S6.F5">
+      <tags>
+        <tag>Figure 5</tag>
+        <tag role="autoref">Figure 5</tag>
+        <tag role="creftype">fig.</tag>
+        <tag role="creftypecap">Figure</tag>
+        <tag role="creftypeplural">figs.</tag>
+        <tag role="creftypepluralcap">Figures</tag>
+        <tag role="refnum">5</tag>
+        <tag role="typerefnum">Figure 5</tag>
+      </tags>
+      <graphics candidates="images/video-noodle.png" graphic="images/video-noodle.png" options="width=390.3pt,keepaspectratio=true" xml:id="S6.F5.g1" class="ltx_centering" fragid="S6.F5.g1"/>
+      <toccaption class="ltx_centering"><tag close=" ">5</tag>Example showing PandaGPT’s capability in image/video-inspired creative writing.</toccaption>
+      <caption class="ltx_centering"><tag close=": ">Figure 5</tag>Example showing PandaGPT’s capability in image/video-inspired creative writing.</caption>
+    </figure>
+    <figure inlist="lof" placement="h" xml:id="S6.F6" labels="LABEL:fig:video-spacex-rocket" fragid="S6.F6">
+      <tags>
+        <tag>Figure 6</tag>
+        <tag role="autoref">Figure 6</tag>
+        <tag role="creftype">fig.</tag>
+        <tag role="creftypecap">Figure</tag>
+        <tag role="creftypeplural">figs.</tag>
+        <tag role="creftypepluralcap">Figures</tag>
+        <tag role="refnum">6</tag>
+        <tag role="typerefnum">Figure 6</tag>
+      </tags>
+      <graphics candidates="images/video-spacex-rocket.png" graphic="images/video-spacex-rocket.png" options="width=390.3pt,keepaspectratio=true" xml:id="S6.F6.g1" class="ltx_centering" fragid="S6.F6.g1"/>
+      <toccaption class="ltx_centering"><tag close=" ">6</tag>Example showing PandaGPT’s capability in visual reasoning.</toccaption>
+      <caption class="ltx_centering"><tag close=": ">Figure 6</tag>Example showing PandaGPT’s capability in visual reasoning.</caption>
+    </figure>
+    <figure inlist="lof" placement="h" xml:id="S6.F7" labels="LABEL:fig:audio-dog" fragid="S6.F7">
+      <tags>
+        <tag>Figure 7</tag>
+        <tag role="autoref">Figure 7</tag>
+        <tag role="creftype">fig.</tag>
+        <tag role="creftypecap">Figure</tag>
+        <tag role="creftypeplural">figs.</tag>
+        <tag role="creftypepluralcap">Figures</tag>
+        <tag role="refnum">7</tag>
+        <tag role="typerefnum">Figure 7</tag>
+      </tags>
+      <graphics candidates="images/audio-dog.png" graphic="images/audio-dog.png" options="width=390.3pt,keepaspectratio=true" xml:id="S6.F7.g1" class="ltx_centering" fragid="S6.F7.g1"/>
+      <toccaption class="ltx_centering"><tag close=" ">7</tag>Example showing PandaGPT’s capability in auditory reasoning.</toccaption>
+      <caption class="ltx_centering"><tag close=": ">Figure 7</tag>Example showing PandaGPT’s capability in auditory reasoning.</caption>
+    </figure>
+    <figure inlist="lof" placement="h" xml:id="S6.F8" labels="LABEL:fig:audio-gunshot" fragid="S6.F8">
+      <tags>
+        <tag>Figure 8</tag>
+        <tag role="autoref">Figure 8</tag>
+        <tag role="creftype">fig.</tag>
+        <tag role="creftypecap">Figure</tag>
+        <tag role="creftypeplural">figs.</tag>
+        <tag role="creftypepluralcap">Figures</tag>
+        <tag role="refnum">8</tag>
+        <tag role="typerefnum">Figure 8</tag>
+      </tags>
+      <graphics candidates="images/audio-gunshot.png" graphic="images/audio-gunshot.png" options="width=390.3pt,keepaspectratio=true" xml:id="S6.F8.g1" class="ltx_centering" fragid="S6.F8.g1"/>
+      <toccaption class="ltx_centering"><tag close=" ">8</tag>Example showing PandaGPT’s capability in auditory reasoning.</toccaption>
+      <caption class="ltx_centering"><tag close=": ">Figure 8</tag>Example showing PandaGPT’s capability in auditory reasoning.</caption>
+    </figure>
+    <figure inlist="lof" placement="h" xml:id="S6.F9" labels="LABEL:fig:image-girl-audio-rain" fragid="S6.F9">
+      <tags>
+        <tag>Figure 9</tag>
+        <tag role="autoref">Figure 9</tag>
+        <tag role="creftype">fig.</tag>
+        <tag role="creftypecap">Figure</tag>
+        <tag role="creftypeplural">figs.</tag>
+        <tag role="creftypepluralcap">Figures</tag>
+        <tag role="refnum">9</tag>
+        <tag role="typerefnum">Figure 9</tag>
+      </tags>
+      <graphics candidates="images/image-girl-audio-rain.png" graphic="images/image-girl-audio-rain.png" options="width=390.3pt,keepaspectratio=true" xml:id="S6.F9.g1" class="ltx_centering" fragid="S6.F9.g1"/>
+      <toccaption class="ltx_centering"><tag close=" ">9</tag>Example showing PandaGPT’s capability in multimodal arithmetic (Image and Audio).</toccaption>
+      <caption class="ltx_centering"><tag close=": ">Figure 9</tag>Example showing PandaGPT’s capability in multimodal arithmetic (Image and Audio).</caption>
+    </figure>
+    <figure inlist="lof" placement="h" xml:id="S6.F10" labels="LABEL:fig:image-woman-audio-ocean-waves" fragid="S6.F10">
+      <tags>
+        <tag>Figure 10</tag>
+        <tag role="autoref">Figure 10</tag>
+        <tag role="creftype">fig.</tag>
+        <tag role="creftypecap">Figure</tag>
+        <tag role="creftypeplural">figs.</tag>
+        <tag role="creftypepluralcap">Figures</tag>
+        <tag role="refnum">10</tag>
+        <tag role="typerefnum">Figure 10</tag>
+      </tags>
+      <graphics candidates="images/image-woman-audio-ocean-waves.png" graphic="images/image-woman-audio-ocean-waves.png" options="width=390.3pt,keepaspectratio=true" xml:id="S6.F10.g1" class="ltx_centering" fragid="S6.F10.g1"/>
+      <toccaption class="ltx_centering"><tag close=" ">10</tag>Example showing PandaGPT’s capability in multimodal arithmetic (Image and Audio).</toccaption>
+      <caption class="ltx_centering"><tag close=": ">Figure 10</tag>Example showing PandaGPT’s capability in multimodal arithmetic (Image and Audio).</caption>
+    </figure>
+    <figure inlist="lof" placement="h" xml:id="S6.F11" labels="LABEL:fig:video-couple-audio-rain" fragid="S6.F11">
+      <tags>
+        <tag>Figure 11</tag>
+        <tag role="autoref">Figure 11</tag>
+        <tag role="creftype">fig.</tag>
+        <tag role="creftypecap">Figure</tag>
+        <tag role="creftypeplural">figs.</tag>
+        <tag role="creftypepluralcap">Figures</tag>
+        <tag role="refnum">11</tag>
+        <tag role="typerefnum">Figure 11</tag>
+      </tags>
+      <graphics candidates="images/video-couple-audio-rain.png" graphic="images/video-couple-audio-rain.png" options="width=390.3pt,keepaspectratio=true" xml:id="S6.F11.g1" class="ltx_centering" fragid="S6.F11.g1"/>
+      <toccaption class="ltx_centering"><tag close=" ">11</tag>Example showing PandaGPT’s capability in multimodal arithmetic (Video and Audio).</toccaption>
+      <caption class="ltx_centering"><tag close=": ">Figure 11</tag>Example showing PandaGPT’s capability in multimodal arithmetic (Video and Audio).</caption>
+    </figure>
+    <figure inlist="lof" placement="h" xml:id="S6.F12" labels="LABEL:fig:video-couple-audio-waves" fragid="S6.F12">
+      <tags>
+        <tag>Figure 12</tag>
+        <tag role="autoref">Figure 12</tag>
+        <tag role="creftype">fig.</tag>
+        <tag role="creftypecap">Figure</tag>
+        <tag role="creftypeplural">figs.</tag>
+        <tag role="creftypepluralcap">Figures</tag>
+        <tag role="refnum">12</tag>
+        <tag role="typerefnum">Figure 12</tag>
+      </tags>
+      <graphics candidates="images/video-couple-audio-waves.png" graphic="images/video-couple-audio-waves.png" options="width=390.3pt,keepaspectratio=true" xml:id="S6.F12.g1" class="ltx_centering" fragid="S6.F12.g1"/>
+      <toccaption class="ltx_centering"><tag close=" ">12</tag>Example showing PandaGPT’s capability in multimodal arithmetic (Video and Audio).</toccaption>
+      <caption class="ltx_centering"><tag close=": ">Figure 12</tag>Example showing PandaGPT’s capability in multimodal arithmetic (Video and Audio).</caption>
+    </figure>
+    <pagination role="newpage"/>
+  </section>
+  <bibliography xml:id="bib" fragid="bib">
+    <title>References</title>
+    <biblist>
+      <bibitem key="alayrac2022flamingo" xml:id="bib.bib1" fragid="bib.bib1">
+        <tags>
+          <tag role="number">1</tag>
+          <tag role="year">2022</tag>
+          <tag role="authors">Alayrac et al.</tag>
+          <tag role="fullauthors">Alayrac, Donahue, Luc, Miech, Barr, Hasson, Lenc,
+Mensch, Millican, Reynolds et al.</tag>
+          <tag role="refnum">Alayrac et al. [2022]</tag>
+          <tag role="key">alayrac2022flamingo</tag>
+        </tags>
+        <bibblock>
+Jean-Baptiste Alayrac, Jeff Donahue, Pauline Luc, Antoine Miech, Iain Barr,
+Yana Hasson, Karel Lenc, Arthur Mensch, Katherine Millican, Malcolm Reynolds,
+et al. 2022.
+</bibblock>
+        <bibblock>Flamingo: a visual language model for few-shot learning.
+</bibblock>
+        <bibblock><emph font="italic">Advances in Neural Information Processing Systems</emph>,
+35:23716–23736.
+</bibblock>
+      </bibitem>
+      <bibitem key="alayrac2020self" xml:id="bib.bib2" fragid="bib.bib2">
+        <tags>
+          <tag role="number">2</tag>
+          <tag role="year">2020</tag>
+          <tag role="authors">Alayrac et al.</tag>
+          <tag role="fullauthors">Alayrac, Recasens, Schneider, Arandjelović,
+Ramapuram, De Fauw, Smaira, Dieleman, and Zisserman</tag>
+          <tag role="refnum">Alayrac et al. [2020]</tag>
+          <tag role="key">alayrac2020self</tag>
+        </tags>
+        <bibblock>
+Jean-Baptiste Alayrac, Adria Recasens, Rosalia Schneider, Relja
+Arandjelović, Jason Ramapuram, Jeffrey De Fauw, Lucas Smaira, Sander
+Dieleman, and Andrew Zisserman. 2020.
+</bibblock>
+        <bibblock>Self-supervised multimodal versatile networks.
+</bibblock>
+        <bibblock><emph font="italic">Advances in Neural Information Processing Systems</emph>, 33:25–37.
+</bibblock>
+      </bibitem>
+      <bibitem key="brown2020language" xml:id="bib.bib3" fragid="bib.bib3">
+        <tags>
+          <tag role="number">3</tag>
+          <tag role="year">2020</tag>
+          <tag role="authors">Brown et al.</tag>
+          <tag role="fullauthors">Brown, Mann, Ryder, Subbiah, Kaplan, Dhariwal,
+Neelakantan, Shyam, Sastry, Askell et al.</tag>
+          <tag role="refnum">Brown et al. [2020]</tag>
+          <tag role="key">brown2020language</tag>
+        </tags>
+        <bibblock>
+Tom Brown, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared D Kaplan, Prafulla
+Dhariwal, Arvind Neelakantan, Pranav Shyam, Girish Sastry, Amanda Askell,
+et al. 2020.
+</bibblock>
+        <bibblock>Language models are few-shot learners.
+</bibblock>
+        <bibblock><emph font="italic">Advances in neural information processing systems</emph>,
+33:1877–1901.
+</bibblock>
+      </bibitem>
+      <bibitem key="vicuna2023" xml:id="bib.bib4" fragid="bib.bib4">
+        <tags>
+          <tag role="number">4</tag>
+          <tag role="year">2023</tag>
+          <tag role="authors">Chiang et al.</tag>
+          <tag role="fullauthors">Chiang, Li, Lin, Sheng, Wu, Zhang, Zheng, Zhuang,
+Zhuang, Gonzalez, Stoica, and Xing</tag>
+          <tag role="refnum">Chiang et al. [2023]</tag>
+          <tag role="key">vicuna2023</tag>
+        </tags>
+        <bibblock>
+Wei-Lin Chiang, Zhuohan Li, Zi Lin, Ying Sheng, Zhanghao Wu, Hao Zhang, Lianmin
+Zheng, Siyuan Zhuang, Yonghao Zhuang, Joseph E. Gonzalez, Ion Stoica, and
+Eric P. Xing. 2023.
+</bibblock>
+        <bibblock><ref class="ltx_href" href="https://lmsys.org/blog/2023-03-30-vicuna/">Vicuna: An
+open-source chatbot impressing gpt-4 with 90%* chatgpt quality</ref>.
+</bibblock>
+      </bibitem>
+      <bibitem key="devlin2019bert" xml:id="bib.bib5" fragid="bib.bib5">
+        <tags>
+          <tag role="number">5</tag>
+          <tag role="year">2019</tag>
+          <tag role="authors">Devlin et al.</tag>
+          <tag role="fullauthors">Devlin, Chang, Lee, and
+Toutanova</tag>
+          <tag role="refnum">Devlin et al. [2019]</tag>
+          <tag role="key">devlin2019bert</tag>
+        </tags>
+        <bibblock>
+Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. 2019.
+</bibblock>
+        <bibblock>Bert: Pre-training of deep bidirectional transformers for language
+understanding.
+</bibblock>
+        <bibblock>In <emph font="italic">Proceedings of the 2019 Conference of the North American
+Chapter of the Association for Computational Linguistics: Human Language
+Technologies, Volume 1 (Long and Short Papers)</emph>, pages 4171–4186.
+</bibblock>
+      </bibitem>
+      <bibitem key="faghri2017vse++" xml:id="bib.bib6" fragid="bib.bib6">
+        <tags>
+          <tag role="number">6</tag>
+          <tag role="year">2017</tag>
+          <tag role="authors">Faghri et al.</tag>
+          <tag role="fullauthors">Faghri, Fleet, Kiros, and
+Fidler</tag>
+          <tag role="refnum">Faghri et al. [2017]</tag>
+          <tag role="key">faghri2017vse++</tag>
+        </tags>
+        <bibblock>
+Fartash Faghri, David J Fleet, Jamie Ryan Kiros, and Sanja Fidler. 2017.
+</bibblock>
+        <bibblock>Vse++: Improving visual-semantic embeddings with hard negatives.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:1707.05612</emph>.
+</bibblock>
+      </bibitem>
+      <bibitem key="frome2013devise" xml:id="bib.bib7" fragid="bib.bib7">
+        <tags>
+          <tag role="number">7</tag>
+          <tag role="year">2013</tag>
+          <tag role="authors">Frome et al.</tag>
+          <tag role="fullauthors">Frome, Corrado, Shlens, Bengio, Dean, Ranzato, and
+Mikolov</tag>
+          <tag role="refnum">Frome et al. [2013]</tag>
+          <tag role="key">frome2013devise</tag>
+        </tags>
+        <bibblock>
+Andrea Frome, Greg S Corrado, Jon Shlens, Samy Bengio, Jeff Dean, Marc’Aurelio
+Ranzato, and Tomas Mikolov. 2013.
+</bibblock>
+        <bibblock>Devise: A deep visual-semantic embedding model.
+</bibblock>
+        <bibblock><emph font="italic">Advances in neural information processing systems</emph>, 26.
+</bibblock>
+      </bibitem>
+      <bibitem key="girdhar2023imagebind" xml:id="bib.bib8" fragid="bib.bib8">
+        <tags>
+          <tag role="number">8</tag>
+          <tag role="year">2023</tag>
+          <tag role="authors">Girdhar et al.</tag>
+          <tag role="fullauthors">Girdhar, El-Nouby, Liu, Singh, Alwala, Joulin,
+and Misra</tag>
+          <tag role="refnum">Girdhar et al. [2023]</tag>
+          <tag role="key">girdhar2023imagebind</tag>
+        </tags>
+        <bibblock>
+Rohit Girdhar, Alaaeldin El-Nouby, Zhuang Liu, Mannat Singh, Kalyan Vasudev
+Alwala, Armand Joulin, and Ishan Misra. 2023.
+</bibblock>
+        <bibblock>Imagebind: One embedding space to bind them all.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:2305.05665</emph>.
+</bibblock>
+      </bibitem>
+      <bibitem key="guzhov2022audioclip" xml:id="bib.bib9" fragid="bib.bib9">
+        <tags>
+          <tag role="number">9</tag>
+          <tag role="year">2022</tag>
+          <tag role="authors">Guzhov et al.</tag>
+          <tag role="fullauthors">Guzhov, Raue, Hees, and
+Dengel</tag>
+          <tag role="refnum">Guzhov et al. [2022]</tag>
+          <tag role="key">guzhov2022audioclip</tag>
+        </tags>
+        <bibblock>
+Andrey Guzhov, Federico Raue, Jörn Hees, and Andreas Dengel. 2022.
+</bibblock>
+        <bibblock>Audioclip: Extending clip to image, text and audio.
+</bibblock>
+        <bibblock>In <emph font="italic">ICASSP 2022-2022 IEEE International Conference on Acoustics,
+Speech and Signal Processing (ICASSP)</emph>, pages 976–980. IEEE.
+</bibblock>
+      </bibitem>
+      <bibitem key="hu2021lora" xml:id="bib.bib10" fragid="bib.bib10">
+        <tags>
+          <tag role="number">10</tag>
+          <tag role="year">2021</tag>
+          <tag role="authors">Hu et al.</tag>
+          <tag role="fullauthors">Hu, Shen, Wallis, Allen-Zhu, Li, Wang, Wang, and
+Chen</tag>
+          <tag role="refnum">Hu et al. [2021]</tag>
+          <tag role="key">hu2021lora</tag>
+        </tags>
+        <bibblock>
+Edward J Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean
+Wang, Lu Wang, and Weizhu Chen. 2021.
+</bibblock>
+        <bibblock>Lora: Low-rank adaptation of large language models.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:2106.09685</emph>.
+</bibblock>
+      </bibitem>
+      <bibitem key="li2023blip" xml:id="bib.bib11" fragid="bib.bib11">
+        <tags>
+          <tag role="number">11</tag>
+          <tag role="year">2023</tag>
+          <tag role="authors">Li et al.</tag>
+          <tag role="fullauthors">Li, Li, Savarese, and Hoi</tag>
+          <tag role="refnum">Li et al. [2023]</tag>
+          <tag role="key">li2023blip</tag>
+        </tags>
+        <bibblock>
+Junnan Li, Dongxu Li, Silvio Savarese, and Steven Hoi. 2023.
+</bibblock>
+        <bibblock>Blip-2: Bootstrapping language-image pre-training with frozen image
+encoders and large language models.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:2301.12597</emph>.
+</bibblock>
+      </bibitem>
+      <bibitem key="liu2023llava" xml:id="bib.bib12" fragid="bib.bib12">
+        <tags>
+          <tag role="number">12</tag>
+          <tag role="year">2023</tag>
+          <tag role="authors">Liu et al.</tag>
+          <tag role="fullauthors">Liu, Li, Wu, and Lee</tag>
+          <tag role="refnum">Liu et al. [2023]</tag>
+          <tag role="key">liu2023llava</tag>
+        </tags>
+        <bibblock>
+Haotian Liu, Chunyuan Li, Qingyang Wu, and Yong Jae Lee. 2023.
+</bibblock>
+        <bibblock>Visual instruction tuning.
+</bibblock>
+      </bibitem>
+      <bibitem key="mishra2021natural" xml:id="bib.bib13" fragid="bib.bib13">
+        <tags>
+          <tag role="number">13</tag>
+          <tag role="year">2021</tag>
+          <tag role="authors">Mishra et al.</tag>
+          <tag role="fullauthors">Mishra, Khashabi, Baral, and
+Hajishirzi</tag>
+          <tag role="refnum">Mishra et al. [2021]</tag>
+          <tag role="key">mishra2021natural</tag>
+        </tags>
+        <bibblock>
+Swaroop Mishra, Daniel Khashabi, Chitta Baral, and Hannaneh Hajishirzi. 2021.
+</bibblock>
+        <bibblock>Natural instructions: Benchmarking generalization to new tasks from
+natural language instructions.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:2104.08773</emph>, pages 839–849.
+</bibblock>
+      </bibitem>
+      <bibitem key="gpt4" xml:id="bib.bib14" fragid="bib.bib14">
+        <tags>
+          <tag role="number">14</tag>
+          <tag role="year">2022a</tag>
+          <tag role="authors">OpenAI</tag>
+          <tag role="refnum">OpenAI [2022a]</tag>
+          <tag role="key">gpt4</tag>
+        </tags>
+        <bibblock>
+OpenAI. 2022a.
+</bibblock>
+        <bibblock>Gpt-4 technical report.
+</bibblock>
+      </bibitem>
+      <bibitem key="chatgpt" xml:id="bib.bib15" fragid="bib.bib15">
+        <tags>
+          <tag role="number">15</tag>
+          <tag role="year">2022b</tag>
+          <tag role="authors">OpenAI</tag>
+          <tag role="refnum">OpenAI [2022b]</tag>
+          <tag role="key">chatgpt</tag>
+        </tags>
+        <bibblock>
+OpenAI. 2022b.
+</bibblock>
+        <bibblock>Introducing chatgpt.
+</bibblock>
+      </bibitem>
+      <bibitem key="ouyang2022training" xml:id="bib.bib16" fragid="bib.bib16">
+        <tags>
+          <tag role="number">16</tag>
+          <tag role="year">2022</tag>
+          <tag role="authors">Ouyang et al.</tag>
+          <tag role="fullauthors">Ouyang, Wu, Jiang, Almeida, Wainwright, Mishkin,
+Zhang, Agarwal, Slama, Ray et al.</tag>
+          <tag role="refnum">Ouyang et al. [2022]</tag>
+          <tag role="key">ouyang2022training</tag>
+        </tags>
+        <bibblock>
+Long Ouyang, Jeffrey Wu, Xu Jiang, Diogo Almeida, Carroll Wainwright, Pamela
+Mishkin, Chong Zhang, Sandhini Agarwal, Katarina Slama, Alex Ray, et al.
+2022.
+</bibblock>
+        <bibblock>Training language models to follow instructions with human feedback.
+</bibblock>
+        <bibblock><emph font="italic">Advances in Neural Information Processing Systems</emph>,
+35:27730–27744.
+</bibblock>
+      </bibitem>
+      <bibitem key="detgpt2023" xml:id="bib.bib17" fragid="bib.bib17">
+        <tags>
+          <tag role="number">17</tag>
+          <tag role="year">2023</tag>
+          <tag role="authors">Pi et al.</tag>
+          <tag role="fullauthors">Pi, Gao, Diao, Pan, Dong, Zhang, Yao, Kong, and
+Zhang</tag>
+          <tag role="refnum">Pi et al. [2023]</tag>
+          <tag role="key">detgpt2023</tag>
+        </tags>
+        <bibblock>
+Renjie Pi, Jiahui Gao, Shizhe Diao, Rui Pan, Hanze Dong, Jipeng Zhang, Lewei
+Yao, Lingpeng Kong, and Tong Zhang. 2023.
+</bibblock>
+        <bibblock>Detgpt: Detect what you need via reasoning.
+</bibblock>
+      </bibitem>
+      <bibitem key="radford2021learning" xml:id="bib.bib18" fragid="bib.bib18">
+        <tags>
+          <tag role="number">18</tag>
+          <tag role="year">2021</tag>
+          <tag role="authors">Radford et al.</tag>
+          <tag role="fullauthors">Radford, Kim, Hallacy, Ramesh, Goh, Agarwal,
+Sastry, Askell, Mishkin, Clark et al.</tag>
+          <tag role="refnum">Radford et al. [2021]</tag>
+          <tag role="key">radford2021learning</tag>
+        </tags>
+        <bibblock>
+Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh,
+Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark,
+et al. 2021.
+</bibblock>
+        <bibblock>Learning transferable visual models from natural language
+supervision.
+</bibblock>
+        <bibblock>In <emph font="italic">International conference on machine learning</emph>, pages
+8748–8763. PMLR.
+</bibblock>
+      </bibitem>
+      <bibitem key="radford2018improving" xml:id="bib.bib19" fragid="bib.bib19">
+        <tags>
+          <tag role="number">19</tag>
+          <tag role="year">2018</tag>
+          <tag role="authors">Radford et al.</tag>
+          <tag role="fullauthors">Radford, Narasimhan, Salimans, Sutskever
+et al.</tag>
+          <tag role="refnum">Radford et al. [2018]</tag>
+          <tag role="key">radford2018improving</tag>
+        </tags>
+        <bibblock>
+Alec Radford, Karthik Narasimhan, Tim Salimans, Ilya Sutskever, et al. 2018.
+</bibblock>
+        <bibblock>Improving language understanding by generative pre-training.
+</bibblock>
+      </bibitem>
+      <bibitem key="radford2019language" xml:id="bib.bib20" fragid="bib.bib20">
+        <tags>
+          <tag role="number">20</tag>
+          <tag role="year">2019</tag>
+          <tag role="authors">Radford et al.</tag>
+          <tag role="fullauthors">Radford, Wu, Child, Luan, Amodei, Sutskever
+et al.</tag>
+          <tag role="refnum">Radford et al. [2019]</tag>
+          <tag role="key">radford2019language</tag>
+        </tags>
+        <bibblock>
+Alec Radford, Jeffrey Wu, Rewon Child, David Luan, Dario Amodei, Ilya
+Sutskever, et al. 2019.
+</bibblock>
+        <bibblock>Language models are unsupervised multitask learners.
+</bibblock>
+        <bibblock><emph font="italic">OpenAI blog</emph>, 1(8):9.
+</bibblock>
+      </bibitem>
+      <bibitem key="sanh2021multitask" xml:id="bib.bib21" fragid="bib.bib21">
+        <tags>
+          <tag role="number">21</tag>
+          <tag role="year">2021</tag>
+          <tag role="authors">Sanh et al.</tag>
+          <tag role="fullauthors">Sanh, Webson, Raffel, Bach, Sutawika, Alyafeai,
+Chaffin, Stiegler, Scao, Raja et al.</tag>
+          <tag role="refnum">Sanh et al. [2021]</tag>
+          <tag role="key">sanh2021multitask</tag>
+        </tags>
+        <bibblock>
+Victor Sanh, Albert Webson, Colin Raffel, Stephen H Bach, Lintang Sutawika,
+Zaid Alyafeai, Antoine Chaffin, Arnaud Stiegler, Teven Le Scao, Arun Raja,
+et al. 2021.
+</bibblock>
+        <bibblock>Multitask prompted training enables zero-shot task generalization.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:2110.08207</emph>.
+</bibblock>
+      </bibitem>
+      <bibitem key="scao2022bloom" xml:id="bib.bib22" fragid="bib.bib22">
+        <tags>
+          <tag role="number">22</tag>
+          <tag role="year">2022</tag>
+          <tag role="authors">Scao et al.</tag>
+          <tag role="fullauthors">Scao, Fan, Akiki, Pavlick, Ilić, Hesslow,
+Castagné, Luccioni, Yvon, Gallé et al.</tag>
+          <tag role="refnum">Scao et al. [2022]</tag>
+          <tag role="key">scao2022bloom</tag>
+        </tags>
+        <bibblock>
+Teven Le Scao, Angela Fan, Christopher Akiki, Ellie Pavlick, Suzana Ilić,
+Daniel Hesslow, Roman Castagné, Alexandra Sasha Luccioni, François
+Yvon, Matthias Gallé, et al. 2022.
+</bibblock>
+        <bibblock>Bloom: A 176b-parameter open-access multilingual language model.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:2211.05100</emph>.
+</bibblock>
+      </bibitem>
+      <bibitem key="stiennon2020learning" xml:id="bib.bib23" fragid="bib.bib23">
+        <tags>
+          <tag role="number">23</tag>
+          <tag role="year">2020</tag>
+          <tag role="authors">Stiennon et al.</tag>
+          <tag role="fullauthors">Stiennon, Ouyang, Wu, Ziegler, Lowe, Voss,
+Radford, Amodei, and Christiano</tag>
+          <tag role="refnum">Stiennon et al. [2020]</tag>
+          <tag role="key">stiennon2020learning</tag>
+        </tags>
+        <bibblock>
+Nisan Stiennon, Long Ouyang, Jeffrey Wu, Daniel Ziegler, Ryan Lowe, Chelsea
+Voss, Alec Radford, Dario Amodei, and Paul F Christiano. 2020.
+</bibblock>
+        <bibblock>Learning to summarize with human feedback.
+</bibblock>
+        <bibblock><emph font="italic">Advances in Neural Information Processing Systems</emph>,
+33:3008–3021.
+</bibblock>
+      </bibitem>
+      <bibitem key="openalpaca" xml:id="bib.bib24" fragid="bib.bib24">
+        <tags>
+          <tag role="number">24</tag>
+          <tag role="year">2023</tag>
+          <tag role="authors">Su et al.</tag>
+          <tag role="fullauthors">Su, Lan, and Cai</tag>
+          <tag role="refnum">Su et al. [2023]</tag>
+          <tag role="key">openalpaca</tag>
+        </tags>
+        <bibblock>
+Yixuan Su, Tian Lan, and Deng Cai. 2023.
+</bibblock>
+        <bibblock>Openalpaca: A fully open-source instruction-following model based on
+openllama.
+</bibblock>
+        <bibblock><ref class="ltx_url" href="https://github.com/yxuansu/OpenAlpaca" font="typewriter">https://github.com/yxuansu/OpenAlpaca</ref>.
+</bibblock>
+      </bibitem>
+      <bibitem key="su2022language" xml:id="bib.bib25" fragid="bib.bib25">
+        <tags>
+          <tag role="number">25</tag>
+          <tag role="year">2022</tag>
+          <tag role="authors">Su et al.</tag>
+          <tag role="fullauthors">Su, Lan, Liu, Liu, Yogatama, Wang, Kong, and
+Collier</tag>
+          <tag role="refnum">Su et al. [2022]</tag>
+          <tag role="key">su2022language</tag>
+        </tags>
+        <bibblock>
+Yixuan Su, Tian Lan, Yahui Liu, Fangyu Liu, Dani Yogatama, Yan Wang, Lingpeng
+Kong, and Nigel Collier. 2022.
+</bibblock>
+        <bibblock>Language models can see: plugging visual controls in text generation.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:2205.02655</emph>.
+</bibblock>
+      </bibitem>
+      <bibitem key="alpaca" xml:id="bib.bib26" fragid="bib.bib26">
+        <tags>
+          <tag role="number">26</tag>
+          <tag role="year">2023</tag>
+          <tag role="authors">Taori et al.</tag>
+          <tag role="fullauthors">Taori, Gulrajani, Zhang, Dubois, Li, Guestrin,
+Liang, and Hashimoto</tag>
+          <tag role="refnum">Taori et al. [2023]</tag>
+          <tag role="key">alpaca</tag>
+        </tags>
+        <bibblock>
+Rohan Taori, Ishaan Gulrajani, Tianyi Zhang, Yann Dubois, Xuechen Li, Carlos
+Guestrin, Percy Liang, and Tatsunori B. Hashimoto. 2023.
+</bibblock>
+        <bibblock>Stanford alpaca: An instruction-following llama model.
+</bibblock>
+        <bibblock><ref class="ltx_url" href="https://github.com/tatsu-lab/stanford_alpaca" font="typewriter">https://github.com/tatsu-lab/stanford_alpaca</ref>.
+</bibblock>
+      </bibitem>
+      <bibitem key="touvron2023llama" xml:id="bib.bib27" fragid="bib.bib27">
+        <tags>
+          <tag role="number">27</tag>
+          <tag role="year">2023</tag>
+          <tag role="authors">Touvron et al.</tag>
+          <tag role="fullauthors">Touvron, Lavril, Izacard, Martinet, Lachaux,
+Lacroix, Rozière, Goyal, Hambro, Azhar et al.</tag>
+          <tag role="refnum">Touvron et al. [2023]</tag>
+          <tag role="key">touvron2023llama</tag>
+        </tags>
+        <bibblock>
+Hugo Touvron, Thibaut Lavril, Gautier Izacard, Xavier Martinet, Marie-Anne
+Lachaux, Timothée Lacroix, Baptiste Rozière, Naman Goyal, Eric
+Hambro, Faisal Azhar, et al. 2023.
+</bibblock>
+        <bibblock>Llama: Open and efficient foundation language models.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:2302.13971</emph>.
+</bibblock>
+      </bibitem>
+      <bibitem key="wei2021finetuned" xml:id="bib.bib28" fragid="bib.bib28">
+        <tags>
+          <tag role="number">28</tag>
+          <tag role="year">2021</tag>
+          <tag role="authors">Wei et al.</tag>
+          <tag role="fullauthors">Wei, Bosma, Zhao, Guu, Yu, Lester, Du, Dai, and
+Le</tag>
+          <tag role="refnum">Wei et al. [2021]</tag>
+          <tag role="key">wei2021finetuned</tag>
+        </tags>
+        <bibblock>
+Jason Wei, Maarten Bosma, Vincent Y Zhao, Kelvin Guu, Adams Wei Yu, Brian
+Lester, Nan Du, Andrew M Dai, and Quoc V Le. 2021.
+</bibblock>
+        <bibblock>Finetuned language models are zero-shot learners.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:2109.01652</emph>.
+</bibblock>
+      </bibitem>
+      <bibitem key="zhang2023speechgpt" xml:id="bib.bib29" fragid="bib.bib29">
+        <tags>
+          <tag role="number">29</tag>
+          <tag role="year">2023a</tag>
+          <tag role="authors">Zhang et al.</tag>
+          <tag role="fullauthors">Zhang, Li, Zhang, Zhan, Wang, Zhou,
+and Qiu</tag>
+          <tag role="refnum">Zhang et al. [2023a]</tag>
+          <tag role="key">zhang2023speechgpt</tag>
+        </tags>
+        <bibblock>
+Dong Zhang, Shimin Li, Xin Zhang, Jun Zhan, Pengyu Wang, Yaqian Zhou, and
+Xipeng Qiu. 2023a.
+</bibblock>
+        <bibblock><ref class="ltx_href" href="http://arxiv.org/abs/2305.11000">Speechgpt: Empowering large
+language models with intrinsic cross-modal conversational abilities</ref>.
+</bibblock>
+      </bibitem>
+      <bibitem key="damonlpsg2023videollama" xml:id="bib.bib30" fragid="bib.bib30">
+        <tags>
+          <tag role="number">30</tag>
+          <tag role="year">2023b</tag>
+          <tag role="authors">Zhang et al.</tag>
+          <tag role="fullauthors">Zhang, Li, and
+Bing</tag>
+          <tag role="refnum">Zhang et al. [2023b]</tag>
+          <tag role="key">damonlpsg2023videollama</tag>
+        </tags>
+        <bibblock>
+Hang Zhang, Xin Li, and Lidong Bing. 2023b.
+</bibblock>
+        <bibblock><ref class="ltx_href" href="https://github.com/DAMO-NLP-SG/Video-LLaMA">Video-llama: An
+instruction-finetuned visual language model for video understanding</ref>.
+</bibblock>
+      </bibitem>
+      <bibitem key="zhu2023minigpt" xml:id="bib.bib31" fragid="bib.bib31">
+        <tags>
+          <tag role="number">31</tag>
+          <tag role="year">2023</tag>
+          <tag role="authors">Zhu et al.</tag>
+          <tag role="fullauthors">Zhu, Chen, Shen, Li, and Elhoseiny</tag>
+          <tag role="refnum">Zhu et al. [2023]</tag>
+          <tag role="key">zhu2023minigpt</tag>
+        </tags>
+        <bibblock>
+Deyao Zhu, Jun Chen, Xiaoqian Shen, Xiang Li, and Mohamed Elhoseiny. 2023.
+</bibblock>
+        <bibblock>Minigpt-4: Enhancing vision-language understanding with advanced
+large language models.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:2304.10592</emph>.
+</bibblock>
+      </bibitem>
+    </biblist>
+  </bibliography>
+  <navigation>
+    <title>PandaGPT: One Model To Instruction-Follow Them All</title>
+  </navigation>
+</document>

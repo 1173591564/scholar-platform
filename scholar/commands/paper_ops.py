@@ -6,7 +6,7 @@ import typer
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.panel import Panel
 
-from .._shared import app, console, _get_db
+from .._shared import app, console
 from .. import config
 from ..tex_parser import parse_paper
 from .. import db as dbmod
@@ -29,15 +29,6 @@ def parse(paper_id: str = typer.Argument(help="Paper ID (ULID/arXiv/DOI/slug)"))
     try:
         data = parse_paper(paper_dir, ulid)
         out_path = dbmod.save_parsed(data)
-
-        database = _get_db()
-        if database:
-            data["parsed_path"] = str(out_path)
-            data["section_count"] = len(data.get("sections", []))
-            data["formula_count"] = len(data.get("formulas", []))
-            data["citation_count"] = len(data.get("citations", []))
-            database.ingest_paper(data)
-            console.print("[dim]Ingested into database[/]")
 
         console.print(Panel(
             f"Title:     {data.get('title', 'N/A')}\n"
@@ -91,15 +82,7 @@ def parse_all(
             progress.update(task, description=f"Parsing {ulid[:16]}...")
             try:
                 data = parse_paper(d, ulid)
-                out_path = dbmod.save_parsed(data)
-
-                database = _get_db()
-                if database:
-                    data["parsed_path"] = str(out_path)
-                    data["section_count"] = len(data.get("sections", []))
-                    data["formula_count"] = len(data.get("formulas", []))
-                    data["citation_count"] = len(data.get("citations", []))
-                    database.ingest_paper(data)
+                dbmod.save_parsed(data)
 
                 success += 1
             except Exception as e:
@@ -164,7 +147,7 @@ def export_bib(
 def ingest(
     paper_id: str = typer.Argument(help="Paper ID (ULID/arXiv/DOI/slug)"),
 ):
-    """Ingest a single new paper: parse -> author-fix -> auto-notes -> quality -> classify -> graph-update -> rag-index."""
+    """Ingest a single new paper: parse -> author-fix -> auto-notes -> quality -> classify."""
     from ..id_resolver import resolve_id
     from .. import auto_notes as an
     from .. import quality as q
@@ -230,26 +213,5 @@ def ingest(
     cl_result = cl.classify_single_paper(ulid)
     if cl_result:
         console.print(f"  Domains: {', '.join(cl_result['domains'])}")
-
-    # 6. Graph update + RAG reindex (best-effort)
-    console.print("  [6/6] Updating graph + RAG...")
-    try:
-        from .. import graph_mem
-        graph_mem.refresh()
-        console.print("  Graph cache refreshed")
-    except Exception as e:
-        console.print(f"  [yellow]Graph refresh skipped: {e}[/]")
-    except Exception as e:
-        console.print(f"  [yellow]Graph update skipped: {e}[/]")
-
-    if config.EMBEDDING_API_KEY:
-        try:
-            from .. import rag
-            rag.index_single_paper(ulid)
-            console.print("  RAG reindexed")
-        except Exception as e:
-            console.print(f"  [yellow]RAG reindex skipped: {e}[/]")
-    else:
-        console.print("  [yellow]No embedding key, RAG not updated[/]")
 
     console.print(f"\n[green]Ingested {ulid} successfully.[/]")

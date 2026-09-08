@@ -2,7 +2,7 @@
 Scholar Studio — Experiment Code Template Generator
 
 Generates a skeleton PyTorch project from paper JSON data.
-The AI brain (Claude Code / Qoder CLI) fills in the TODO sections.
+The AI assistant fills in the TODO sections.
 
 CLI: python -m scholar exp-codegen <paper_id>
 """

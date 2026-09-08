@@ -1,0 +1,629 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?latexml searchpaths="/opt/ar5iv-bindings/supported_originals,/opt/ar5iv-bindings/bindings,/custom-bindings,/work"?>
+<?latexml class="article" options="a4paper,11pt"?>
+<?latexml package="ieee6x9"?>
+<?latexml package="times,epsfig"?>
+<?latexml RelaxNGSchema="LaTeXML"?>
+<document xmlns="http://dlmf.nist.gov/LaTeXML" xmlns:m="http://www.w3.org/1998/Math/MathML" class="ltx_authors_1line" xml:id="Document">
+  <resource src="LaTeXML.css" type="text/css"/>
+  <resource src="ltx-article.css" type="text/css"/>
+  <title>Structure induction by lossless graph compression</title>
+  <creator role="author">
+    <personname>Leonid Peshkin<break/><text font="italic">Center for Biomedical Informatics <break/>Harvard Medical School <break/>Boston, MA 02115, USA<break/>pesha@hms.harvard.edu</text></personname>
+  </creator>
+  <abstract name="Abstract">
+    <p>This work is motivated by the necessity to automate the discovery of structure in vast and ever-growing collection of relational data commonly represented as graphs, for example genomic networks.
+A novel algorithm, dubbed <text font="italic">Graphitour</text>, for structure induction by lossless graph compression is presented and illustrated by a clear and broadly known case of nested structure in a DNA molecule.
+This work extends to graphs some well established approaches to grammatical inference previously applied only to strings. The bottom-up graph compression problem is related to the maximum cardinality (non-bipartite) maximum cardinality matching problem.
+The algorithm accepts a variety of graph types including directed graphs and graphs with labeled nodes and arcs.
+The resulting structure could be used for representation and classification of graphs.</p>
+  </abstract>
+  <section inlist="toc" xml:id="S1" fragid="S1">
+    <tags>
+      <tag>1</tag>
+      <tag role="refnum">1</tag>
+      <tag role="typerefnum">§1</tag>
+    </tags>
+    <title><tag close=" ">1</tag>Introduction</title>
+    <para xml:id="S1.p1" fragid="S1.p1">
+      <p>The explosive growth of relational data, for example data about genes, drug molecules and proteins, their functions and interactions, necessitates efficient mathematical algorithms and software tools to extract meaningful generalizations. There is a large body of literature on the subject coming from a variety of disciplines from Theoretical Computer Science to Computational Chemistry.
+However, one fundametal issue has so far remained unaddressed. Given a multi-level nested network of relations, such as a complex molecule, or a protein-protein interaction network, how can its structure be inferred from first principles. This paper is meant to fill this surprising gap in automated data processing.</p>
+    </para>
+    <para xml:id="S1.p2" fragid="S1.p2">
+      <p>Let us illustrate the purpose of this method through the description of DNA molecular structure, the way most of us learned it from a textbook or in class.</p>
+      <itemize xml:id="S1.I1" fragid="S1.I1">
+        <item xml:id="S1.I1.i1" fragid="S1.I1.i1">
+          <tags>
+            <tag>•</tag>
+            <tag role="typerefnum">1st item</tag>
+          </tags>
+          <para xml:id="S1.I1.i1.p1" fragid="S1.I1.i1.p1">
+            <p>The DNA molecule is a double chain made of four kinds of nucleotides: A, T, G, C;</p>
+          </para>
+        </item>
+        <item xml:id="S1.I1.i2" fragid="S1.I1.i2">
+          <tags>
+            <tag>•</tag>
+            <tag role="typerefnum">2nd item</tag>
+          </tags>
+          <para xml:id="S1.I1.i2.p1" fragid="S1.I1.i2.p1">
+            <p>Each of these is composed of two parts: one part—backbone—is identical among all the nucleotides (neglecting the difference between ribose and 2’-deoxyribose), another—heterocyclic base—is nucleotide-specific;</p>
+          </para>
+        </item>
+        <item xml:id="S1.I1.i3" fragid="S1.I1.i3">
+          <tags>
+            <tag>•</tag>
+            <tag role="typerefnum">3rd item</tag>
+          </tags>
+          <para xml:id="S1.I1.i3.p1" fragid="S1.I1.i3.p1">
+            <p>The backbone consists of sugar and phosphate;</p>
+          </para>
+        </item>
+        <item xml:id="S1.I1.i4" fragid="S1.I1.i4">
+          <tags>
+            <tag>•</tag>
+            <tag role="typerefnum">4th item</tag>
+          </tags>
+          <para xml:id="S1.I1.i4.p1" fragid="S1.I1.i4.p1">
+            <p>The heterocyclic bases (C,T-pyrimidines; A,G-purines) all contain a pyrimidine ring;</p>
+          </para>
+        </item>
+        <item xml:id="S1.I1.i5" fragid="S1.I1.i5">
+          <tags>
+            <tag>•</tag>
+            <tag role="typerefnum">5th item</tag>
+          </tags>
+          <para xml:id="S1.I1.i5.p1" fragid="S1.I1.i5.p1">
+            <p>The components can be further reduced to individual atoms and covalent bonds.</p>
+          </para>
+        </item>
+      </itemize>
+      <p>This way of description is not unique, and may be altered according to the desired level of detail, but crucially, it is a hieararchical description of the whole as a structure built from identifiable and repetitive subcomponents. The picture of this beautiful multi-level hierarchy has emerged after years of bio-chemical discovery by scientists who gradually applied their natural abstraction and generalization abilities. Hence, structural elements in this hierarchy also make functional sense from bio-chemical point of view.</p>
+    </para>
+    <figure inlist="lof" placement="tb" xml:id="S1.F1" labels="LABEL:fig40" fragid="S1.F1">
+      <tags>
+        <tag>Figure 1</tag>
+        <tag role="refnum">1</tag>
+        <tag role="typerefnum">Figure 1</tag>
+      </tags>
+      <p class="ltx_align_center">
+<graphics candidates="40.eps" graphic="40.eps" options="height=142.26378pt" xml:id="S1.F1.g1" fragid="S1.F1.g1"/></p>
+      <toccaption><tag close=" ">1</tag>A graph with repetative structure and a corresponding grammar.</toccaption>
+      <caption><tag close=": ">Figure 1</tag>A graph with repetative structure and a corresponding grammar.</caption>
+    </figure>
+    <para xml:id="S1.p3" fragid="S1.p3">
+      <p>The properties of hierarchical description are formally well-studied and applied in other scientific domains, such as linguistics and computer science. It is viewed as the result of a rule-driven generative process, which combines a finite set of undecomposable elements—<text font="italic">terminal symbols</text>—into novel complex objects—<text font="italic">non-terminal symbols</text>, which can be combined in turn to produce the next level of description. The rules and symbols on which the process operates are determined by a <text font="italic">grammar</text> and the process itself is termed a <text font="italic">grammatical derivation</text>. In the case of the DNA molecule above, the chemical elements correspond to terminal symbols. They are assembled into non-terminal symbols, i.e. compounds, according to some set of production rules defined by chemical properties.</p>
+    </para>
+    <para xml:id="S1.p4" fragid="S1.p4">
+      <p>Now, imagine receiving an alternative description of the same object, stripped off of any domain knowledge and context, simply as an enormous list of objects and binary relations on objects, corresponding to thousands of atoms and covalent bonds. Such a list would remain completely incomprehensible to a human mind, along with any repetitive hierarchical structure present in it. Discovering a hierarchy of nested elements without any prior knowledge of a kind, size and frequency of these constitutes a formidable challenge.</p>
+    </para>
+    <para xml:id="S1.p5" fragid="S1.p5">
+      <p>Remarkably, this is precisely the challenge which is undertaken by contemporary scientists trying to make sense of data, mounting up from small fragments, like protein interaction networks, regulatory and metabolic pathways, small molecule repositories, homology networks, etc. Our goal is to be able to approach such tasks in an automated fashion.</p>
+    </para>
+    <para xml:id="S1.p6" fragid="S1.p6">
+      <p>Figure <ref labelref="LABEL:fig40" idref="S1.F1" href="#S1.F1" title="Figure 1 ‣ 1 Introduction ‣ Structure induction by lossless graph compression"><text class="ltx_ref_tag">1</text></ref> illustrates the kind of induction we describe in this paper on a trivial example. We will use this as a running example throughout the paper, leaving more rigorous mathematical formulation out for the purpose of clarity and wider accessibility.
+To the left is a graph which contains repetitive structure. Let us imagine for a moment that the human researcher is not smart enough to comprehend a 6-node graph and find an explanatory layout. Thus, we would want to automatically translate such a graph into the graph grammar on the right. The graph grammar consist of two productions. The first expands a starting representation—a degenerate graph of a single node ”S”—into a graph connecting two nodes of the same type ”S1”. The second additionally defines a node ”S1” as a fully connected triple.</p>
+    </para>
+    <table inlist="lot" placement="thb" xml:id="S1.T1" labels="LABEL:alg_str" fragid="S1.T1">
+      <tags>
+        <tag>Table 1</tag>
+        <tag role="refnum">1</tag>
+        <tag role="typerefnum">Table 1</tag>
+      </tags>
+      <toccaption><tag close=" ">1</tag>Generalized string compression algorithm.</toccaption>
+      <caption><tag close=": ">Table 1</tag>Generalized string compression algorithm.</caption>
+      <rule height="1.0pt" width="433.6pt" class="ltx_figure_panel"/>
+      <break class="ltx_break"/>
+      <tabular class="ltx_figure_panel ltx_tabbing">
+        <tr>
+          <td align="left"><text font="bold">Input:</text> initial string;</td>
+        </tr>
+        <tr>
+          <td align="left"><text font="bold">Initialize:</text> empty grammar;</td>
+        </tr>
+        <tr>
+          <td align="left"><text font="bold">Loop:</text></td>
+        </tr>
+        <tr>
+          <td/>
+          <td align="left">Make a single left-to-right tour of the string, collecting sub-string statistics;</td>
+        </tr>
+        <tr>
+          <td/>
+          <td align="left">Introduce a new non-terminal symbol (compound) into the grammar,</td>
+        </tr>
+        <tr>
+          <td/>
+          <td/>
+          <td align="left">which agglomerates some sub-string of terminal and non-terminal symbols;</td>
+        </tr>
+        <tr>
+          <td/>
+          <td align="left">Substitute all occurrences of a new compound;</td>
+        </tr>
+        <tr>
+          <td align="left"><text font="bold">Until</text> no compression possible;</td>
+        </tr>
+        <tr>
+          <td align="left"><text font="bold">Output:</text> compressed string &amp; induced grammar;</td>
+        </tr>
+      </tabular>
+      <break class="ltx_break"/>
+      <rule height="1.0pt" width="433.6pt" class="ltx_figure_panel"/>
+    </table>
+    <para xml:id="S1.p7" fragid="S1.p7">
+      <p>Formal description of the relational data of such kind is known as graphs, while the hierarchical nested structures of such kind are described by graph grammars. It is outside the scope of this paper to survey a vast literature in the field of graph grammars; please refer to a book by G. Rozenberg <cite class="ltx_citemacro_cite">[<ref href="#bib.bibx3" idref="bib.bibx3">3</ref>]</cite> for extensive overview. It suffices to say that this field is mostly concerned with the transformation of the graphs, or parsing, i.e. explaining away a graph according to some known graph grammar, rather than with inducing such grammar from raw data.</p>
+    </para>
+    <para xml:id="S1.p8" fragid="S1.p8">
+      <p>The closest work related to the ideas presented here is due to D. Cook, L. Holder and their colleagues (e.g. see <cite class="ltx_citemacro_cite">[<ref href="#bib.bibx2" idref="bib.bibx2">2</ref>]</cite> and several follow-up papers). Their work however is not concerned with inducing a structure from given graph data. Rather, they induce a flat, context-free grammar, possibly with recursion, which is not only capable of, but is also bound to, generate objects not included in the original data. Thus, their approach defies the relation to compression exploited here. Moreover, the authors present the negative result of running their <text font="smallcaps">subdue</text> algorithm on just the kind of biological data we successfully use in this paper. Another remotely similar work is by Stolke <cite class="ltx_citemacro_cite">[<ref href="#bib.bibx10" idref="bib.bibx10">10</ref>]</cite> in application to inducing hidden Markov models.
+There are many other works attempting to induce structure from relational data or compress graphs, but none seem to relate closely to the method considered here.</p>
+    </para>
+    <para xml:id="S1.p9" fragid="S1.p9">
+      <p>Our method builds on the parallels between understanding and compression. Indeed, to understand some phenomenon from the raw data means to find some repetitive pattern and hierarchical structure, which in turn could be exploited to re-encode the data in a compact way. This work extends to graphs some well established approaches to grammatical inference previously applied only to strings.
+Two methods particularly worth mentioning in this context for grammar induction on sequences are <text font="italic">Sequitour</text> <cite class="ltx_citemacro_cite">[<ref href="#bib.bibx6" idref="bib.bibx6">6</ref>]</cite> and <text font="smallcaps">adios</text> <cite class="ltx_citemacro_cite">[<ref href="#bib.bibx8" idref="bib.bibx8">8</ref>]</cite>. We also take inspiration from a wealth
+of sequence compression algorithms, often unknowingly run daily by all computer users in a form of archival software like <text font="italic">pkzip</text> in Unix or <text font="italic">expand</text> for Mac OS X.</p>
+    </para>
+    <para xml:id="S1.p10" fragid="S1.p10">
+      <p>Let us briefly convey the intuition behind such algorithms, many of which are surveyed by Lehman and Shelat <cite class="ltx_citemacro_cite">[<ref href="#bib.bibx1" idref="bib.bibx1">1</ref>]</cite>.
+Although quite different in detail, all algorithms share common principles and have very similar compression ratio and computational complexity bounds.
+First, one has to remember that all such compression/discovery algorithms are bound to be heuristics, since finding the best compression is related to the so-called Kolmogorov complexity and is provably hard <cite class="ltx_citemacro_cite">[<ref href="#bib.bibx1" idref="bib.bibx1">1</ref>]</cite>. These heuristics are in turn related to the MDL (Minimum Description Length) principle, and work in the way described by Table <ref labelref="LABEL:alg_str" idref="S1.T1" href="#S1.T1" title="Table 1 ‣ 1 Introduction ‣ Structure induction by lossless graph compression"><text class="ltx_ref_tag">1</text></ref>.</p>
+    </para>
+    <table inlist="lot" placement="hbt" xml:id="S1.T2" labels="LABEL:alg_grph" fragid="S1.T2">
+      <tags>
+        <tag>Table 2</tag>
+        <tag role="refnum">2</tag>
+        <tag role="typerefnum">Table 2</tag>
+      </tags>
+      <toccaption><tag close=" ">2</tag><text font="italic">Graphitour</text>: graph compression algorithm.</toccaption>
+      <caption><tag close=": ">Table 2</tag><text font="italic">Graphitour</text>: graph compression algorithm.</caption>
+      <rule height="1.0pt" width="433.6pt" class="ltx_figure_panel"/>
+      <break class="ltx_break"/>
+      <tabular class="ltx_figure_panel ltx_tabbing">
+        <tr>
+          <td align="left"><text font="bold">Input:</text> initial graph: lists of (labeled) nodes and edges;</td>
+        </tr>
+        <tr>
+          <td align="left"><text font="bold">Initialize:</text> empty graph grammar, empty edge lexicon;</td>
+        </tr>
+        <tr>
+          <td align="left"><text font="bold">Build edge lexicon:</text> make a single tour of the graph, register the type of each edge</td>
+        </tr>
+        <tr>
+          <td/>
+          <td align="left">according to the edge label and types of its end nodes; collect type statistics;</td>
+        </tr>
+        <tr>
+          <td align="left"><text font="bold">Loop:</text></td>
+        </tr>
+        <tr>
+          <td/>
+          <td align="left"><text font="bold">Loop through edge types</text></td>
+        </tr>
+        <tr>
+          <td/>
+          <td/>
+          <td align="left">For a sub-graph induced by each edge type solve an instance of <text font="italic">maximum</text></td>
+        </tr>
+        <tr>
+          <td/>
+          <td/>
+          <td align="left"><text font="italic">cardinality matching</text> problem, which yields a number and list of edges</td>
+        </tr>
+        <tr>
+          <td/>
+          <td/>
+          <td align="left">that could be abstracted;</td>
+        </tr>
+        <tr>
+          <td/>
+          <td align="left"><text font="bold">Pick an edge type</text> which corresponds to the highest count;</td>
+        </tr>
+        <tr>
+          <td/>
+          <td align="left"><text font="bold">Introduce a new hyper-node</text> for the chosen edge type into the graph grammar;</td>
+        </tr>
+        <tr>
+          <td/>
+          <td align="left"><text font="bold">Loop</text> through edge occurrences of a chosen type throughout the graph;</td>
+        </tr>
+        <tr>
+          <td/>
+          <td/>
+          <td align="left">Substitute an occurrence of the edge type with a hyper-node;</td>
+        </tr>
+        <tr>
+          <td/>
+          <td/>
+          <td align="left"><text font="bold">Loop</text> through all edges incident to the end nodes of a given edge;</td>
+        </tr>
+        <tr>
+          <td/>
+          <td/>
+          <td/>
+          <td align="left">Substitute edges and introduce new edge types into edge lexicon;</td>
+        </tr>
+        <tr>
+          <td align="left"><text font="bold">Until</text> no compression possible;</td>
+        </tr>
+        <tr>
+          <td align="left"><text font="bold">Output:</text> compressed graph &amp; induced graph grammar;</td>
+        </tr>
+      </tabular>
+      <break class="ltx_break"/>
+      <rule height="1.0pt" width="433.6pt" class="ltx_figure_panel"/>
+    </table>
+    <para xml:id="S1.p11" fragid="S1.p11">
+      <p>Naturally, the difference is in how exactly statistics are used to pick which substring will be substituted by a new compound symbol. In some cases, a greedy strategy is used (see e.g. Apostolico &amp; Lonardi <cite class="ltx_citemacro_cite">[<ref href="#bib.bibx7" idref="bib.bibx7">7</ref>]</cite>), i.e. the substitution which will maximally reduce the size of the encoding at the current step is picked; in other cases, a simple first-come-first-served principle is used and any repetition is immediately eliminated (see e.g. Nevill-Manning &amp; Witten <cite class="ltx_citemacro_cite">[<ref href="#bib.bibx6" idref="bib.bibx6">6</ref>]</cite>).</p>
+    </para>
+    <para xml:id="S1.p12" fragid="S1.p12">
+      <p>Extending these methods to a graph structure turns out to be non-trivial for several reasons. First, maintaining a lexicon of strings and looking up entries is quite different for graphs. Second, directly extending the greedy approach <cite class="ltx_citemacro_cite">[<ref href="#bib.bibx7" idref="bib.bibx7">7</ref>]</cite> fails due to inherent non-linear entity interactions in a graph.</p>
+    </para>
+  </section>
+  <section inlist="toc" xml:id="S2" fragid="S2">
+    <tags>
+      <tag>2</tag>
+      <tag role="refnum">2</tag>
+      <tag role="typerefnum">§2</tag>
+    </tags>
+    <title><tag close=" ">2</tag>Algorithm</title>
+    <para xml:id="S2.p1" fragid="S2.p1">
+      <p>The algorithm we present is dubbed ”<text font="italic">Graphitour</text>” to acknowledge a strong influence of the Sequitour algorithm <cite class="ltx_citemacro_cite">[<ref href="#bib.bibx6" idref="bib.bibx6">6</ref>]</cite> for discovering the hierarchical structure in sequences. In particular, <text font="italic">Graphitour</text> just like Sequitour restricts the set of candidate structures to bigrams, which allows it to eliminate a rather costly lexicon lookup procedure, as well as sub-graph isomorphism resolution, which is NP-hard.
+Note that <text font="italic">Graphitour</text> in principle admits labeled nodes and edges, particularly since unlabeled graphs turn into labeled at the first iteration of the algorithm.</p>
+    </para>
+    <para xml:id="S2.p2" fragid="S2.p2">
+      <p>The algorithm is presented in Table <ref labelref="LABEL:alg_grph" idref="S1.T2" href="#S1.T2" title="Table 2 ‣ 1 Introduction ‣ Structure induction by lossless graph compression"><text class="ltx_ref_tag">2</text></ref> and best understood through the illustration of every step on a trivial example of Figure <ref labelref="LABEL:fig49" idref="S2.F2" href="#S2.F2" title="Figure 2 ‣ 2 Algorithm ‣ Structure induction by lossless graph compression"><text class="ltx_ref_tag">2</text></ref> as described below.</p>
+    </para>
+    <figure inlist="lof" placement="t" xml:id="S2.F2" labels="LABEL:fig49" fragid="S2.F2">
+      <tags>
+        <tag>Figure 2</tag>
+        <tag role="refnum">2</tag>
+        <tag role="typerefnum">Figure 2</tag>
+      </tags>
+      <p class="ltx_align_center"><graphics candidates="53.eps" graphic="53.eps" options="height=156.5pt,keepaspectratio=true" xml:id="S2.F2.g1" fragid="S2.F2.g1"/>       <graphics candidates="YX.eps" graphic="YX.eps" options="height=156.5pt,keepaspectratio=true" xml:id="S2.F2.g2" fragid="S2.F2.g2"/></p>
+      <toccaption><tag close=" ">2</tag><text font="bold">left:</text> A simple graph with labeled nodes corresponding to an imaginary small molecule and a corresponding sample edge lexicon with type frequency counts.
+<text font="bold">right:</text> Non-bipartite maximum cardinality matching.</toccaption>
+      <caption><tag close=": ">Figure 2</tag><text font="bold">left:</text> A simple graph with labeled nodes corresponding to an imaginary small molecule and a corresponding sample edge lexicon with type frequency counts.
+<text font="bold">right:</text> Non-bipartite maximum cardinality matching.</caption>
+    </figure>
+    <figure inlist="lof" placement="b" xml:id="S2.F3" labels="LABEL:fig54" fragid="S2.F3">
+      <tags>
+        <tag>Figure 3</tag>
+        <tag role="refnum">3</tag>
+        <tag role="typerefnum">Figure 3</tag>
+      </tags>
+      <p class="ltx_align_center">
+        <graphics candidates="54.eps" graphic="54.eps" options="height=150.8pt,keepaspectratio=true" xml:id="S2.F3.g1" fragid="S2.F3.g1"/>
+      </p>
+      <toccaption><tag close=" ">3</tag>A graph decomposition into subgraphs induced by edges of different type.</toccaption>
+      <caption><tag close=": ">Figure 3</tag>A graph decomposition into subgraphs induced by edges of different type.</caption>
+    </figure>
+    <para xml:id="S2.p3" fragid="S2.p3">
+      <p>Figure <ref labelref="LABEL:fig49" idref="S2.F2" href="#S2.F2" title="Figure 2 ‣ 2 Algorithm ‣ Structure induction by lossless graph compression"><text class="ltx_ref_tag">2</text></ref> presents an imaginary small molecule with two types of nodes-atoms: ”H” and ”C”. Each edge is typed according to its end nodes. The first iteration is to tour the graph making a lexicon of edge types and corresponding frequencies.
+Figure <ref labelref="LABEL:fig49" idref="S2.F2" href="#S2.F2" title="Figure 2 ‣ 2 Algorithm ‣ Structure induction by lossless graph compression"><text class="ltx_ref_tag">2</text></ref> shows three kinds of edges we observe: ”C-C”, ”C-H” and ”H-H” with corresponding counts.</p>
+    </para>
+    <figure inlist="lof" placement="th" xml:id="S2.F4" labels="LABEL:fig60" fragid="S2.F4">
+      <tags>
+        <tag>Figure 4</tag>
+        <tag role="refnum">4</tag>
+        <tag role="typerefnum">Figure 4</tag>
+      </tags>
+      <p class="ltx_align_center">
+        <graphics candidates="60.eps" graphic="60.eps" options="height=150.8pt,keepaspectratio=true" xml:id="S2.F4.g1" fragid="S2.F4.g1"/>
+      </p>
+      <toccaption><tag close=" ">4</tag>A sequence of abstraction steps, right to left: a new entry is made into the lexicon, called ”HC” which corresponds to an abstracted edge.</toccaption>
+      <caption><tag close=": ">Figure 4</tag>A sequence of abstraction steps, right to left: a new entry is made into the lexicon, called ”HC” which corresponds to an abstracted edge.</caption>
+    </figure>
+    <para xml:id="S2.p4" fragid="S2.p4">
+      <p>The next step is to select which kind of edge will be abstracted into a (hyper)node corresponding to a new compound element. A greedy choice would have picked the most frequent type of edge, disregarding potential conflicts due to shared node interactions. Instead <text font="italic">Graphitour</text> proceeds by decomposing the graph into three graphs each containing only edges of one type, which is illustrated by Figure <ref labelref="LABEL:fig54" idref="S2.F3" href="#S2.F3" title="Figure 3 ‣ 2 Algorithm ‣ Structure induction by lossless graph compression"><text class="ltx_ref_tag">3</text></ref>,
+and counting how many edges of each type could be abstracted, taking into account node interactions.</p>
+    </para>
+    <pagination role="newpage"/>
+    <para xml:id="S2.p5" fragid="S2.p5">
+      <p>One of the key contributions of the algorithm described here is in relating the graph grammar induction to the <text font="italic">maximum cardinality non-bipartite matching problem</text> for which there is a polynomial complexity algorithm due to Gabow <cite class="ltx_citemacro_cite">[<ref href="#bib.bibx4" idref="bib.bibx4">4</ref>]</cite>.
+The problem is formulated as follows: <text font="italic">given a graph, find the largest set of edges, such that no two edges share a node.</text> Figure <ref labelref="LABEL:fig49" idref="S2.F2" href="#S2.F2" title="Figure 2 ‣ 2 Algorithm ‣ Structure induction by lossless graph compression"><text class="ltx_ref_tag">2</text></ref>.right illustrates this on an arbitrary non-bipartite graph. Dashed edges represent a valid matching. The description and implementation of the algorithm is quite technically involved and does not belong to the scope of this paper. Note that while applying Gabow’s elegant algorithm essentially allows us to extend the horizon from one-step-look-ahead greedy to two-step-look-ahead, the bottom-up abstraction process still remains a greedy heuristic.
+Only one partial graph of Figure <ref labelref="LABEL:fig54" idref="S2.F3" href="#S2.F3" title="Figure 3 ‣ 2 Algorithm ‣ Structure induction by lossless graph compression"><text class="ltx_ref_tag">3</text></ref>, containg ”C-H” edges, makes a non-degenerate case for a maximal non-bipartite matching since edges interact at the node ”H”, obviously returning only two out of four edges subject to abstraction, marked with an oval shape on the figure. A new entry is made into the lexicon, called ”HC” which corresponds to an abstracted edge, as illustrated by two steps going right to left in Figure <ref labelref="LABEL:fig60" idref="S2.F4" href="#S2.F4" title="Figure 4 ‣ 2 Algorithm ‣ Structure induction by lossless graph compression"><text class="ltx_ref_tag">4</text></ref>.</p>
+    </para>
+    <para xml:id="S2.p6" fragid="S2.p6">
+      <p>The leftmost sub-figure of Figure <ref labelref="LABEL:fig60" idref="S2.F4" href="#S2.F4" title="Figure 4 ‣ 2 Algorithm ‣ Structure induction by lossless graph compression"><text class="ltx_ref_tag">4</text></ref> is an input for the next iteration of the algorithm, which detects the new repetitive compound: edge ”HC-C”, which is abstracted again, ultimately producing a graph grammar shown in the Figure <ref labelref="LABEL:fig40" idref="S1.F1" href="#S1.F1" title="Figure 1 ‣ 1 Introduction ‣ Structure induction by lossless graph compression"><text class="ltx_ref_tag">1</text></ref> on the right. Note that as the algorithm iterates through the graph, intermediate structures get merged with the higher level structures.</p>
+    </para>
+  </section>
+  <section inlist="toc" xml:id="S3" fragid="S3">
+    <tags>
+      <tag>3</tag>
+      <tag role="refnum">3</tag>
+      <tag role="typerefnum">§3</tag>
+    </tags>
+    <title><tag close=" ">3</tag>Results</title>
+    <para xml:id="S3.p1" fragid="S3.p1">
+      <p>In this section we take a closer look at the results of running <text font="italic">Graphitour</text>
+on raw data obtained from a PDB file of a DNA molecule by stripping
+off all the information except for the list of atoms and the list of of covalent bonds. To simplify the representation of results, hydrogen atoms and corresponding edges were removed from the graph. Additionally, to support the symmetry, we artificially linked the DNA into a loop by extra bonds from 3’ to 5’ ends.
+The resulting list of <Math mode="inline" xml:id="S3.p1.m1" tex="776" text="776" fragid="S3.p1.m1"><m:math alttext="776" display="inline"><m:semantics><m:mn xml:id="S3.p1.m1.1" xref="S3.p1.m1.1.cmml">776</m:mn><m:annotation-xml encoding="MathML-Content"><m:cn type="integer" xml:id="S3.p1.m1.1.cmml" xref="S3.p1.m1.1">776</m:cn></m:annotation-xml><m:annotation encoding="application/x-tex">776</m:annotation></m:semantics></m:math></Math> nodes and <Math mode="inline" xml:id="S3.p1.m2" tex="2328" text="2328" fragid="S3.p1.m2"><m:math alttext="2328" display="inline"><m:semantics><m:mn xml:id="S3.p1.m2.1" xref="S3.p1.m2.1.cmml">2328</m:mn><m:annotation-xml encoding="MathML-Content"><m:cn type="integer" xml:id="S3.p1.m2.1.cmml" xref="S3.p1.m2.1">2328</m:cn></m:annotation-xml><m:annotation encoding="application/x-tex">2328</m:annotation></m:semantics></m:math></Math> edges in the incidence matrix
+is presented as input to <text font="italic">Graphitour</text> and is depicted in Figure <ref labelref="LABEL:DNA" idref="S3.F5" href="#S3.F5" title="Figure 5 ‣ 3 Results ‣ Structure induction by lossless graph compression"><text class="ltx_ref_tag">5</text></ref>.
+Figure <ref labelref="LABEL:figX" idref="S3.F6" href="#S3.F6" title="Figure 6 ‣ 3 Results ‣ Structure induction by lossless graph compression"><text class="ltx_ref_tag">6</text></ref>.left and  <ref labelref="LABEL:figX" idref="S3.F6" href="#S3.F6" title="Figure 6 ‣ 3 Results ‣ Structure induction by lossless graph compression"><text class="ltx_ref_tag">6</text></ref>.right show two sample non-terminals
+from the actual output from the <text font="italic">Graphitour</text> software, illustrating the
+discovery of basic DNA elements.</p>
+    </para>
+    <figure inlist="lof" placement="bht" xml:id="S3.F5" labels="LABEL:DNA" fragid="S3.F5">
+      <tags>
+        <tag>Figure 5</tag>
+        <tag role="refnum">5</tag>
+        <tag role="typerefnum">Figure 5</tag>
+      </tags>
+      <p class="ltx_align_center">
+        <graphics candidates="WholeDNA.ps" graphic="WholeDNA.ps" options="width=355.7pt,height=256.1pt" xml:id="S3.F5.g1" fragid="S3.F5.g1"/>
+      </p>
+      <toccaption><tag close=" ">5</tag>
+Layout of original graph corresponding to a small DNA molecule.
+</toccaption>
+      <caption><tag close=": ">Figure 5</tag>
+Layout of original graph corresponding to a small DNA molecule.
+</caption>
+    </figure>
+    <figure inlist="lof" placement="bt" xml:id="S3.F6" labels="LABEL:figX" fragid="S3.F6">
+      <tags>
+        <tag>Figure 6</tag>
+        <tag role="refnum">6</tag>
+        <tag role="typerefnum">Figure 6</tag>
+      </tags>
+      <p class="ltx_align_center">
+        <graphics candidates="Guanine.eps" graphic="Guanine.eps" options="height=199.2pt,keepaspectratio=true" xml:id="S3.F6.g1" fragid="S3.F6.g1"/>
+        <graphics candidates="SugarPhosphate.eps" graphic="SugarPhosphate.eps" options="height=199.2pt,keepaspectratio=true" xml:id="S3.F6.g2" fragid="S3.F6.g2"/>
+      </p>
+      <toccaption><tag close=" ">6</tag><text font="bold">left:</text> The compound object induced by the <text font="italic">Graphitour</text> algorithm, which corresponds to the base of Guanine. All four DNA bases were identified
+as non-terminal nodes in the resulting graph grammar.
+<text font="bold">right:</text> The compound object induced by the <text font="italic">Graphitour</text> algorithm, which
+corresponds to the backbone of the molecule: phosphate and sugar</toccaption>
+      <caption><tag close=": ">Figure 6</tag><text font="bold">left:</text> The compound object induced by the <text font="italic">Graphitour</text> algorithm, which corresponds to the base of Guanine. All four DNA bases were identified
+as non-terminal nodes in the resulting graph grammar.
+<text font="bold">right:</text> The compound object induced by the <text font="italic">Graphitour</text> algorithm, which
+corresponds to the backbone of the molecule: phosphate and sugar</caption>
+    </figure>
+    <para xml:id="S3.p2" fragid="S3.p2">
+      <p>Figure <ref labelref="LABEL:figX" idref="S3.F6" href="#S3.F6" title="Figure 6 ‣ 3 Results ‣ Structure induction by lossless graph compression"><text class="ltx_ref_tag">6</text></ref>.left shows the compound object induced by the <text font="italic">Graphitour</text>
+algorithm, which corresponds to the base of Guanine. All four DNA bases
+were identified as non-terminal nodes in the resulting graph grammar.
+This particular structure is identified as a non-terminal by the number
+<Math mode="inline" xml:id="S3.p2.m1" tex="2152" text="2152" fragid="S3.p2.m1"><m:math alttext="2152" display="inline"><m:semantics><m:mn xml:id="S3.p2.m1.1" xref="S3.p2.m1.1.cmml">2152</m:mn><m:annotation-xml encoding="MathML-Content"><m:cn type="integer" xml:id="S3.p2.m1.1.cmml" xref="S3.p2.m1.1">2152</m:cn></m:annotation-xml><m:annotation encoding="application/x-tex">2152</m:annotation></m:semantics></m:math></Math> in a list of non-terminals and described as type <Math mode="inline" xml:id="S3.p2.m2" tex="263" text="263" fragid="S3.p2.m2"><m:math alttext="263" display="inline"><m:semantics><m:mn xml:id="S3.p2.m2.1" xref="S3.p2.m2.1.cmml">263</m:mn><m:annotation-xml encoding="MathML-Content"><m:cn type="integer" xml:id="S3.p2.m2.1.cmml" xref="S3.p2.m2.1">263</m:cn></m:annotation-xml><m:annotation encoding="application/x-tex">263</m:annotation></m:semantics></m:math></Math> in the
+lexicon of compounds. It is at the depth <Math mode="inline" xml:id="S3.p2.m3" tex="5" text="5" fragid="S3.p2.m3"><m:math alttext="5" display="inline"><m:semantics><m:mn xml:id="S3.p2.m3.1" xref="S3.p2.m3.1.cmml">5</m:mn><m:annotation-xml encoding="MathML-Content"><m:cn type="integer" xml:id="S3.p2.m3.1.cmml" xref="S3.p2.m3.1">5</m:cn></m:annotation-xml><m:annotation encoding="application/x-tex">5</m:annotation></m:semantics></m:math></Math> in the hierarchy tree of
+the whole graph, being joined with the corresponding backbone phosphate
+&amp; sugar one level higher in the upstream;
+subsequently joined with the complete nucleotide adjacent to it, and so forth.</p>
+    </para>
+    <para xml:id="S3.p3" fragid="S3.p3">
+      <p>Figure <ref labelref="LABEL:figX" idref="S3.F6" href="#S3.F6" title="Figure 6 ‣ 3 Results ‣ Structure induction by lossless graph compression"><text class="ltx_ref_tag">6</text></ref>.right shows the compound object induced by the <text font="italic">Graphitour</text>
+algorithm, which corresponds to the backbone of the molecule: joined phosphate
+and sugar. This particular structure is identified as a non-terminal by
+the number <Math mode="inline" xml:id="S3.p3.m1" tex="1984" text="1984" fragid="S3.p3.m1"><m:math alttext="1984" display="inline"><m:semantics><m:mn xml:id="S3.p3.m1.1" xref="S3.p3.m1.1.cmml">1984</m:mn><m:annotation-xml encoding="MathML-Content"><m:cn type="integer" xml:id="S3.p3.m1.1.cmml" xref="S3.p3.m1.1">1984</m:cn></m:annotation-xml><m:annotation encoding="application/x-tex">1984</m:annotation></m:semantics></m:math></Math> in a list of non-terminals and described as type
+<Math mode="inline" xml:id="S3.p3.m2" tex="143" text="143" fragid="S3.p3.m2"><m:math alttext="143" display="inline"><m:semantics><m:mn xml:id="S3.p3.m2.1" xref="S3.p3.m2.1.cmml">143</m:mn><m:annotation-xml encoding="MathML-Content"><m:cn type="integer" xml:id="S3.p3.m2.1.cmml" xref="S3.p3.m2.1">143</m:cn></m:annotation-xml><m:annotation encoding="application/x-tex">143</m:annotation></m:semantics></m:math></Math> in the lexicon of compounds. It is at the depth <Math mode="inline" xml:id="S3.p3.m3" tex="5" text="5" fragid="S3.p3.m3"><m:math alttext="5" display="inline"><m:semantics><m:mn xml:id="S3.p3.m3.1" xref="S3.p3.m3.1.cmml">5</m:mn><m:annotation-xml encoding="MathML-Content"><m:cn type="integer" xml:id="S3.p3.m3.1.cmml" xref="S3.p3.m3.1">5</m:cn></m:annotation-xml><m:annotation encoding="application/x-tex">5</m:annotation></m:semantics></m:math></Math> in the
+hierarchy tree of the whole graph, same depth as compound in
+Figure <ref labelref="LABEL:figX" idref="S3.F6" href="#S3.F6" title="Figure 6 ‣ 3 Results ‣ Structure induction by lossless graph compression"><text class="ltx_ref_tag">6</text></ref>.left which makes sense. Note that although the number of
+lexicon entries is over a hundred, the vast majority of numbers were only used for
+intermediate entries, which got merged into composite elements. There is no reusing of the available lexicon slots. Such re-use could give some extra compression efficiency (compare to <text font="italic">Sequitour</text> <cite class="ltx_citemacro_cite">[<ref href="#bib.bibx6" idref="bib.bibx6">6</ref>]</cite>). The resulting lexicon is small and all the entries in the final lexicon are biologically relevant compounds.</p>
+    </para>
+    <para xml:id="S3.p4" fragid="S3.p4">
+      <p><text font="italic">Graphitour</text> actually discovers the hierarchical structure corresponding
+to the kind of zoom-in hierarchical description we gave in the introduction. The algorithm identifies all of these structural elements without exception and does not select any elements which would not make biological sense. The
+significance of such result might not be immediately clear if one does
+not take into account that the algorithm does not have any background
+knowledge, any initial bias, nothing at all except for the list of
+nodes and edges.</p>
+    </para>
+    <figure inlist="lof" placement="bth" xml:id="S3.F7" labels="LABEL:alon" fragid="S3.F7">
+      <tags>
+        <tag>Figure 7</tag>
+        <tag role="refnum">7</tag>
+        <tag role="typerefnum">Figure 7</tag>
+      </tags>
+      <p class="ltx_align_center ltx_figure_panel">
+        <graphics candidates="Star4Alon.eps" graphic="Star4Alon.eps" options="width=170.7pt,keepaspectratio=true" xml:id="S3.F7.g1" fragid="S3.F7.g1"/>
+        <graphics candidates="Star3Alon.eps" graphic="Star3Alon.eps" options="width=170.7pt,keepaspectratio=true" xml:id="S3.F7.g2" fragid="S3.F7.g2"/>
+      </p>
+      <break class="ltx_break"/>
+      <p class="ltx_align_center ltx_figure_panel">
+        <graphics candidates="Star2Alon.eps" graphic="Star2Alon.eps" options="width=170.7pt,keepaspectratio=true" xml:id="S3.F7.g3" fragid="S3.F7.g3"/>
+        <graphics candidates="X1Alon.eps" graphic="X1Alon.eps" options="width=170.7pt,keepaspectratio=true" xml:id="S3.F7.g4" fragid="S3.F7.g4"/>
+      </p>
+      <toccaption><tag close=" ">7</tag>Compositional elements of E.coli regulatory network.</toccaption>
+      <caption><tag close=": ">Figure 7</tag>Compositional elements of E.coli regulatory network.</caption>
+    </figure>
+    <para xml:id="S3.p5" fragid="S3.p5">
+      <p>As an example of a rather different application domain, we tried <text font="italic">Graphitour</text> on <text font="italic">escherichia coli</text> transcriptional regulation network, since it is one of the well known attempts to discover ”network motifs” or building blocks in a graph as over-represented sub-graphs by Alon et al. <cite class="ltx_citemacro_cite">[<ref href="#bib.bibx9" idref="bib.bibx9">9</ref>]</cite>. In this network there are <Math mode="inline" xml:id="S3.p5.m1" tex="423" text="423" fragid="S3.p5.m1"><m:math alttext="423" display="inline"><m:semantics><m:mn xml:id="S3.p5.m1.1" xref="S3.p5.m1.1.cmml">423</m:mn><m:annotation-xml encoding="MathML-Content"><m:cn type="integer" xml:id="S3.p5.m1.1.cmml" xref="S3.p5.m1.1">423</m:cn></m:annotation-xml><m:annotation encoding="application/x-tex">423</m:annotation></m:semantics></m:math></Math> nodes corresponding to the genes or groups of genes jointly transcribed (operons). Edges correspond to the <Math mode="inline" xml:id="S3.p5.m2" tex="577" text="577" fragid="S3.p5.m2"><m:math alttext="577" display="inline"><m:semantics><m:mn xml:id="S3.p5.m2.1" xref="S3.p5.m2.1.cmml">577</m:mn><m:annotation-xml encoding="MathML-Content"><m:cn type="integer" xml:id="S3.p5.m2.1.cmml" xref="S3.p5.m2.1">577</m:cn></m:annotation-xml><m:annotation encoding="application/x-tex">577</m:annotation></m:semantics></m:math></Math> known interactions:
+each edge is directed from an operon that encodes a transcription factor to an operon that it directly regulates. For more information on the biological significance of the motif discovery in regulatory networks we refer you to the cited paper <cite class="ltx_citemacro_cite">[<ref href="#bib.bibx9" idref="bib.bibx9">9</ref>]</cite> and supplementary materials at the Nature Internet site.
+Alon et al. find that much of the network could be composed of repeated appearances of three highly significant motifs, that is a sub-graph, of a fixed topology, in which nodes are instantiated with different node labels. One example is what they call a feedforward loop <Math mode="inline" xml:id="S3.p5.m3" tex="X\rightarrow Y\rightarrow Z" text="X rightarrow Y rightarrow Z" fragid="S3.p5.m3"><m:math alttext="X\rightarrow Y\rightarrow Z" display="inline"><m:semantics><m:mrow xml:id="S3.p5.m3.6" xref="S3.p5.m3.6.cmml"><m:mi xml:id="S3.p5.m3.1" xref="S3.p5.m3.1.cmml">X</m:mi><m:mo stretchy="false" xml:id="S3.p5.m3.2" xref="S3.p5.m3.2.cmml">→</m:mo><m:mi xml:id="S3.p5.m3.3" xref="S3.p5.m3.3.cmml">Y</m:mi><m:mo stretchy="false" xml:id="S3.p5.m3.4" xref="S3.p5.m3.4.cmml">→</m:mo><m:mi xml:id="S3.p5.m3.5" xref="S3.p5.m3.5.cmml">Z</m:mi></m:mrow><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S3.p5.m3.6.cmml" xref="S3.p5.m3.6"><m:and xml:id="S3.p5.m3.6a.cmml" xref="S3.p5.m3.6"/><m:apply xml:id="S3.p5.m3.6b.cmml" xref="S3.p5.m3.6"><m:ci xml:id="S3.p5.m3.2.cmml" xref="S3.p5.m3.2">→</m:ci><m:ci xml:id="S3.p5.m3.1.cmml" xref="S3.p5.m3.1">𝑋</m:ci><m:ci xml:id="S3.p5.m3.3.cmml" xref="S3.p5.m3.3">𝑌</m:ci></m:apply><m:apply xml:id="S3.p5.m3.6c.cmml" xref="S3.p5.m3.6"><m:ci xml:id="S3.p5.m3.4.cmml" xref="S3.p5.m3.4">→</m:ci><m:share href="#S3.p5.m3.3.cmml" xml:id="S3.p5.m3.6d.cmml" xref="S3.p5.m3.6"/><m:ci xml:id="S3.p5.m3.5.cmml" xref="S3.p5.m3.5">𝑍</m:ci></m:apply></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">X\rightarrow Y\rightarrow Z</m:annotation></m:semantics></m:math></Math> combined with <Math mode="inline" xml:id="S3.p5.m4" tex="X\rightarrow Z" text="X rightarrow Z" fragid="S3.p5.m4"><m:math alttext="X\rightarrow Z" display="inline"><m:semantics><m:mrow xml:id="S3.p5.m4.4" xref="S3.p5.m4.4.cmml"><m:mi xml:id="S3.p5.m4.1" xref="S3.p5.m4.1.cmml">X</m:mi><m:mo stretchy="false" xml:id="S3.p5.m4.2" xref="S3.p5.m4.2.cmml">→</m:mo><m:mi xml:id="S3.p5.m4.3" xref="S3.p5.m4.3.cmml">Z</m:mi></m:mrow><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S3.p5.m4.4.cmml" xref="S3.p5.m4.4"><m:ci xml:id="S3.p5.m4.2.cmml" xref="S3.p5.m4.2">→</m:ci><m:ci xml:id="S3.p5.m4.1.cmml" xref="S3.p5.m4.1">𝑋</m:ci><m:ci xml:id="S3.p5.m4.3.cmml" xref="S3.p5.m4.3">𝑍</m:ci></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">X\rightarrow Z</m:annotation></m:semantics></m:math></Math>, where <Math mode="inline" xml:id="S3.p5.m5" tex="X,Y,Z" text="list@(X, Y, Z)" fragid="S3.p5.m5"><m:math alttext="X,Y,Z" display="inline"><m:semantics><m:mrow xml:id="S3.p5.m5.5" xref="S3.p5.m5.5.cmml"><m:mi xml:id="S3.p5.m5.1" xref="S3.p5.m5.1.cmml">X</m:mi><m:mo xml:id="S3.p5.m5.4" xref="S3.p5.m5.5.cmml">,</m:mo><m:mi xml:id="S3.p5.m5.2" xref="S3.p5.m5.2.cmml">Y</m:mi><m:mo xml:id="S3.p5.m5.4a" xref="S3.p5.m5.5.cmml">,</m:mo><m:mi xml:id="S3.p5.m5.3" xref="S3.p5.m5.3.cmml">Z</m:mi></m:mrow><m:annotation-xml encoding="MathML-Content"><m:list xml:id="S3.p5.m5.5.cmml" xref="S3.p5.m5.5"><m:ci xml:id="S3.p5.m5.1.cmml" xref="S3.p5.m5.1">𝑋</m:ci><m:ci xml:id="S3.p5.m5.2.cmml" xref="S3.p5.m5.2">𝑌</m:ci><m:ci xml:id="S3.p5.m5.3.cmml" xref="S3.p5.m5.3">𝑍</m:ci></m:list></m:annotation-xml><m:annotation encoding="application/x-tex">X,Y,Z</m:annotation></m:semantics></m:math></Math> are instantiated by particular genes.
+In order to compare to the results of Alon et al. we label nodes simply according to cardinality, omitting gene identities, and take into account directionality of the edges. No hierarchical structure or feedforward loops were distilled from the data. Rather, <text font="italic">Graphitour</text> curiously disassembled the network back into the sets of star-like components as illustrated by Figure <ref labelref="LABEL:alon" idref="S3.F7" href="#S3.F7" title="Figure 7 ‣ 3 Results ‣ Structure induction by lossless graph compression"><text class="ltx_ref_tag">7</text></ref>, which ought to have been initially put together to create such network. It leaves open the question of what is a useful definition of a network component in biological networks, if not the one requiring the most parsimonious description of the network.</p>
+    </para>
+  </section>
+  <section inlist="toc" xml:id="S4" fragid="S4">
+    <tags>
+      <tag>4</tag>
+      <tag role="refnum">4</tag>
+      <tag role="typerefnum">§4</tag>
+    </tags>
+    <title><tag close=" ">4</tag>Implementation</title>
+    <para xml:id="S4.p1" fragid="S4.p1">
+      <p>The implementation of this algorithm was done in Matlab version 6.5 and relies on two other important components also developed by the author. The first is a maximum cardinality non-bipartite matching algorithm by Gabow <cite class="ltx_citemacro_cite">[<ref href="#bib.bibx4" idref="bib.bibx4">4</ref>]</cite> implemented by the author in Matlab. The other component is a graph layout and plotting routine. Representing the original input graph as well as the resulting graph grammar is a challenging task and is well outside the scope of this paper. For the purposes of this study we took advantage of existing graph layout package from AT&amp;T called GraphViz <cite class="ltx_citemacro_cite">[<ref href="#bib.bibx5" idref="bib.bibx5">5</ref>]</cite>. The author has also developed a library for general Matlab-GraphViz interaction, i.e. converting the graph structure into GraphViz format and converting the layout back into Matlab format for visualization from within Matlab.
+Supplementary materials available upon request contain several screen-shots of executing the algorithm on various sample graphs, including regular rectangular and hexagonal grids, synthetic floor plans and trees with repetitive nested branch structure. These are meant to both illustrate the details of our approach and provide a better intuition of iterative analysis.</p>
+    </para>
+  </section>
+  <section inlist="toc" xml:id="S5" fragid="S5">
+    <tags>
+      <tag>5</tag>
+      <tag role="refnum">5</tag>
+      <tag role="typerefnum">§5</tag>
+    </tags>
+    <title><tag close=" ">5</tag>Discussion</title>
+    <para xml:id="S5.p1" fragid="S5.p1">
+      <p>We presented a novel algorithm for the induction of hierarchical structure in labeled graphs and demonstrated successful induction of a multi-level structure of a DNA molecule from raw data—a PDB file stripped down to the list of atoms and covalent bonds.</p>
+    </para>
+    <para xml:id="S5.p2" fragid="S5.p2">
+      <p>The significance of this result is that the hierarchical structure inherent in a multi-level nested network can indeed be inferred from first principles with no domain knowledge or context required. It is particularly surprising that the result is obtained in the absence of any kind of functional information on the structural units. Thus, <text font="italic">Graphitour</text> can automatically uncover the structure of unknown complex molecules and “suggest” functional units to human investigators.
+While, there is no universal way to decide which components of the resulting structure are ”important” across all domains and data, frequencies of occurrence is one natural indicator.</p>
+    </para>
+    <para xml:id="S5.p3" fragid="S5.p3">
+      <p>One exciting area of application which would naturally benefit from <text font="italic">Graphitour</text> is automated drug discovery. Re-encoding large lists of small molecules from PBD-like format into grammar-like representation would allow for a very efficient candidate filtering at the top levels of hierarchy with the added benefit of creating structural descriptors to be matched to functional features with machine learning approaches.</p>
+    </para>
+    <para xml:id="S5.p4" fragid="S5.p4">
+      <p>Analysis of proteins benefits from the same multi-level repetition of structure as DNA, and <text font="italic">Graphitour</text> gets similar results for individual peptides. Analyzing a large set of protein structures together is our work in progress. The hope is to reconstruct some of the domain nomenclature and possibly re-define the hierarchy of the domain assembly.</p>
+    </para>
+    <para xml:id="S5.p5" fragid="S5.p5">
+      <p>The current version of the <text font="italic">Graphitour</text> corresponds to a so-called non-lossy or lossless compression. This guarantees that the algorithm will induce a grammar corresponding precisely to the input data, without over- or under-generating. The drawback of this approach is that the algorithm is sensitive to noise and has rather poor abstraction properties. Future work would require developing lossy compression variants, based on the approximation of description length minimization.</p>
+    </para>
+    <para xml:id="S5.p6" fragid="S5.p6">
+      <p>Finally, it would be quite interesting to analyze the outcome of the algorithm from a cognitive plausibility point of view, that is to compare structures found by human investigator to these descovered by the algorithm on various application examples.</p>
+    </para>
+  </section>
+  <section xml:id="Sx1" fragid="Sx1">
+    <title>Acknowledgement</title>
+    <para xml:id="Sx1.p1" fragid="Sx1.p1">
+      <p>A substantial part of this work was done while the author was visiting MIT CSAIL with Prof. Leslie Kaelbling, supported by the
+DARPA through the Department of the Interior, NBC, Acquisition Services Division, under Contract No. NBCHD030010.</p>
+    </para>
+  </section>
+  <bibliography xml:id="bib" fragid="bib">
+    <title fontsize="80%">References</title>
+    <biblist>
+      <bibitem key="Lehman02" xml:id="bib.bibx1" fragid="bib.bibx1">
+        <tags>
+          <tag>[1]</tag>
+          <tag role="refnum">1</tag>
+        </tags>
+        <bibblock>
+          <text fontsize="80%"> E. Lehman, and A. Shelat,
+”Approximations algorithms for grammar-based compression”,
+</text>
+          <text font="italic" fontsize="80%">In Thirteenth Annual Symposium on Discrete Algorithms (SODA)</text>
+          <text fontsize="80%">, 2002.
+</text>
+        </bibblock>
+      </bibitem>
+      <bibitem key="Cook94" xml:id="bib.bibx2" fragid="bib.bibx2">
+        <tags>
+          <tag>[2]</tag>
+          <tag role="refnum">2</tag>
+        </tags>
+        <bibblock>
+          <text fontsize="80%"> D. Cook, and L. Holder, ”Substructure Discovery Using Minimum Description Length and Background Knowledge”, </text>
+          <text font="italic" fontsize="80%">Journal of Artificial Intelligence Research</text>
+          <text fontsize="80%">, 1994, </text>
+          <text font="bold" fontsize="80%">1</text>
+          <text fontsize="80%">, pp. 231-255.
+</text>
+        </bibblock>
+      </bibitem>
+      <bibitem key="Rozenberg97" xml:id="bib.bibx3" fragid="bib.bibx3">
+        <tags>
+          <tag>[3]</tag>
+          <tag role="refnum">3</tag>
+        </tags>
+        <bibblock>
+          <text fontsize="80%"> G. Rozenberg (Ed.) ”Handbook of graph grammars and computing by graph transformation: Foundations”, </text>
+          <text fontsize="80%" font="italic">World Scientific Publishing Company</text>
+          <text fontsize="80%">, 1997.
+</text>
+        </bibblock>
+      </bibitem>
+      <bibitem key="Gabow73" xml:id="bib.bibx4" fragid="bib.bibx4">
+        <tags>
+          <tag>[4]</tag>
+          <tag role="refnum">4</tag>
+        </tags>
+        <bibblock>
+          <text fontsize="80%"> H. Gabow, ”Implementation of Algorithms for Maximum Matching on Nonbipartite Graphs”, </text>
+          <text fontsize="80%" font="italic">Ph.D. thesis, Stanford University</text>
+          <text fontsize="80%">, 1973.
+</text>
+        </bibblock>
+      </bibitem>
+      <bibitem key="GraphViz" xml:id="bib.bibx5" fragid="bib.bibx5">
+        <tags>
+          <tag>[5]</tag>
+          <tag role="refnum">5</tag>
+        </tags>
+        <bibblock>
+          <text fontsize="80%"> J. Ellson, E. Gansner, E. Koutsofios, S. North, and G. Woodhull, ”Graphviz and Dynagraph - Static and Dynamic Graph Drawing Tools”, </text>
+          <text fontsize="80%" font="italic">Graph Drawing Software</text>
+          <text fontsize="80%">, Springer Verlag, 2003.
+</text>
+        </bibblock>
+      </bibitem>
+      <bibitem key="Sequitour" xml:id="bib.bibx6" fragid="bib.bibx6">
+        <tags>
+          <tag>[6]</tag>
+          <tag role="refnum">6</tag>
+        </tags>
+        <bibblock>
+          <text fontsize="80%"> C. Nevill-Manning, and I. Witten,
+”Identifying Hierarchical Structure in Sequences: A linear-time algorithm”,
+</text>
+          <text fontsize="80%" font="italic">Journal of Artificial Intelligence Research</text>
+          <text fontsize="80%">, 1997, </text>
+          <text font="bold" fontsize="80%">7</text>
+          <text fontsize="80%">, pp. 67-82.
+</text>
+        </bibblock>
+      </bibitem>
+      <bibitem key="Apostolico" xml:id="bib.bibx7" fragid="bib.bibx7">
+        <tags>
+          <tag>[7]</tag>
+          <tag role="refnum">7</tag>
+        </tags>
+        <bibblock>
+          <text fontsize="80%"> A. Apostolico, and S. Lonardi, ”Off-line Compression by Greedy Textual Substitution”, </text>
+          <text font="italic" fontsize="80%">Proceedings of the IEEE DCC Data Compression Conference</text>
+          <text fontsize="80%">, 2000, </text>
+          <text font="bold" fontsize="80%">88</text>
+          <text fontsize="80%">, pp. 1733-44.
+</text>
+        </bibblock>
+      </bibitem>
+      <bibitem key="ADIOS" xml:id="bib.bibx8" fragid="bib.bibx8">
+        <tags>
+          <tag>[8]</tag>
+          <tag role="refnum">8</tag>
+        </tags>
+        <bibblock>
+          <text fontsize="80%"> Z. Solan, D. Horn, I. Ruppin, and S. Edelman, ”Unsupervised learning of natural languages”, </text>
+          <text font="italic" fontsize="80%">Proceedings of the National Academy of Sciences</text>
+          <text fontsize="80%">, 2005, </text>
+          <text fontsize="80%" font="bold">102</text>
+          <text fontsize="80%">, pp. 11629–34.
+</text>
+        </bibblock>
+      </bibitem>
+      <bibitem key="Alon02" xml:id="bib.bibx9" fragid="bib.bibx9">
+        <tags>
+          <tag>[9]</tag>
+          <tag role="refnum">9</tag>
+        </tags>
+        <bibblock>
+          <text fontsize="80%">O. Shen-Orr, R. Milo, S. Mangan, and U. Alon,
+”Network motifs in the transcriptional regulation network of Escherichia coli”,
+</text>
+          <text fontsize="80%" font="italic">Nature Genetics</text>
+          <text fontsize="80%">, 2002, </text>
+          <text fontsize="80%" font="bold">31</text>
+          <text fontsize="80%">, pp. 64-68.
+</text>
+        </bibblock>
+      </bibitem>
+      <bibitem key="Stolke93" xml:id="bib.bibx10" fragid="bib.bibx10">
+        <tags>
+          <tag>[10]</tag>
+          <tag role="refnum">10</tag>
+        </tags>
+        <bibblock>
+          <text fontsize="80%">A. Stolcke, and S. Omoho, ”Hidden Markov model induction by Bayesian model merging”, </text>
+          <text font="italic" fontsize="80%">Advances in Neural Information Processing Systems</text>
+          <text fontsize="80%">, 1993, </text>
+          <text font="bold" fontsize="80%">5</text>
+          <text fontsize="80%">, pp. 11–18.
+</text>
+        </bibblock>
+      </bibitem>
+    </biblist>
+  </bibliography>
+  <navigation>
+    <title>Structure induction by lossless graph compression</title>
+  </navigation>
+</document>

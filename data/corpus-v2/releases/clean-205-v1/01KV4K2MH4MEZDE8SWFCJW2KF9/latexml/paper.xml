@@ -1,0 +1,1471 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?latexml searchpaths="/opt/ar5iv-bindings/supported_originals,/opt/ar5iv-bindings/bindings,/custom-bindings,/work"?>
+<?latexml class="acmart" options="sigconf, 10pt, authorversion, nonacm"?>
+<?latexml package="graphicx"?>
+<?latexml package="listings"?>
+<?latexml package="mathtools"?>
+<?latexml package="multirow"?>
+<?latexml package="wrapfig"?>
+<?latexml package="url"?>
+<?latexml package="xcolor"?>
+<?latexml package="enumitem"?>
+<?latexml package="capt-of"?>
+<?latexml package="booktabs"?>
+<?latexml package="subcaption"?>
+<?latexml package="calrsfs"?>
+<?latexml package="xspace"?>
+<?latexml package="soul"?>
+<?latexml package="cleveref" options="noabbrev"?>
+<?latexml package="graphicx"?>
+<?latexml graphicspath="/work/images"?>
+<?latexml RelaxNGSchema="LaTeXML"?>
+<document xmlns="http://dlmf.nist.gov/LaTeXML" xmlns:m="http://www.w3.org/1998/Math/MathML" class="ltx_authors_1line ltx_leqno" xml:id="Document">
+  <resource src="LaTeXML.css" type="text/css"/>
+  <resource src="ltx-article.css" type="text/css"/>
+  <resource src="ltx-amsart.css" type="text/css"/>
+  <resource src="ltx-listings.css" type="text/css"/>
+  <title>Software-Defined Agentic Serving</title>
+  <creator role="author">
+    <personname>Saurabh Agarwal</personname>
+    <contact role="affiliation">
+<text class="ltx_affiliation_institution">University of Texas-Austin</text>
+<text class="ltx_affiliation_country"/>
+</contact>
+  </creator>
+  <creator role="author" before=", ">
+    <personname>Marco Laju</personname>
+    <contact role="affiliation">
+<text class="ltx_affiliation_institution">University of Texas-Austin</text>
+<text class="ltx_affiliation_country"/>
+</contact>
+  </creator>
+  <creator role="author" before=", ">
+    <personname>Jayanth Srinivasa</personname>
+    <contact role="affiliation">
+<text class="ltx_affiliation_institution">Cisco-Research</text>
+<text class="ltx_affiliation_country"/>
+</contact>
+  </creator>
+  <creator role="author" before=", ">
+    <personname>Myungjin Lee</personname>
+    <contact role="affiliation">
+<text class="ltx_affiliation_institution">Cisco-Research</text>
+<text class="ltx_affiliation_country"/>
+</contact>
+  </creator>
+  <creator role="author" before=" and ">
+    <personname>Aditya Akella</personname>
+    <contact role="affiliation">
+<text class="ltx_affiliation_institution">University of Texas-Austin</text>
+<text class="ltx_affiliation_country"/>
+</contact>
+  </creator>
+  <abstract name="Abstract.">
+    <p>As multi-agent LLM pipelines grow in complexity, existing serving paradigms fail to adapt to the dynamic serving conditions. We argue that agentic serving systems should be programmable and system-aware, unlike existing serving which statically encode the parameters.
+In this work, we propose a new SDN-inspired agentic serving framework that helps control the key attributes of communication based on runtime state. This architecture enables serving-efficient, responsive agent systems and paves the way for high-level intent-driven agentic serving.</p>
+  </abstract>
+  <section inlist="toc" xml:id="S1" fragid="S1">
+    <tags>
+      <tag>1</tag>
+      <tag role="autoref">section 1</tag>
+      <tag role="creftype">section</tag>
+      <tag role="creftypecap">Section</tag>
+      <tag role="creftypeplural">sections</tag>
+      <tag role="creftypepluralcap">Sections</tag>
+      <tag role="refnum">1</tag>
+      <tag role="typerefnum">§1</tag>
+    </tags>
+    <title><tag close=". ">1</tag>Introduction</title>
+    <toctitle><tag close=" ">1</tag>Introduction</toctitle>
+    <para xml:id="S1.p1" fragid="S1.p1">
+      <p>The rise of Large Language Models (LLMs) has catalyzed a growing ecosystem of intelligent LLM-powered agents—each acting as a specialized model for tasks such as code generation, testing, retrieval, and planning. To accomplish these complex tasks, these agents need to
+routinely invoke APIs, tools, and other models in ”agentic pipelines” <cite class="ltx_citemacro_citep">(<ref href="#bib.bib11" idref="bib.bib11">park2023generative, </ref>; <ref href="#bib.bib14" idref="bib.bib14">talebirad2023multi, </ref>)</cite>.</p>
+    </para>
+    <para xml:id="S1.p2" fragid="S1.p2">
+      <p>Consider an agentic software development pipeline illustrated in Figure <ref labelref="LABEL:fig:workflow_agent" idref="S1.F3" href="#S1.F3" title="Figure 3 ‣ 1. Introduction ‣ Software-Defined Agentic Serving"><text class="ltx_ref_tag">3</text></ref>. The workflow involves communication between two agents: a ”developer” agent that emits functions, and a ”tester” agent that provides feedback.
+There are several possible communication strategies between the agents: (a) <emph font="italic">Batching</emph> all functions in one call, which can reduce overhead and improves throughput. (b) <emph font="italic">Function-by-function</emph> pipelining, which enables early feedback and concurrency. (c) <emph font="italic">Token-level streaming</emph>, which minimizes latency for interactive responsiveness.
+In this example, the “best” strategy depends as much on the application needs as on the <text font="italic">current system state</text>. For example, batching may preserve throughput under high load and reduce backlogs; streaming improves app responsiveness under low load.
+More crucially, the agnetic serving decisions— regarding batch size, routing, communication granularity—both influence and are influenced by runtime system factors, e.g., load, queue lengths, model latency, token generation rates, user responsiveness goals, SLOs, etc. (§<ref labelref="LABEL:sec:motivation" idref="S2" href="#S2" title="2. Agentic Serving ‣ Software-Defined Agentic Serving"><text class="ltx_ref_tag">2</text></ref>). Ideally, the decisions should thus be <text font="italic">dynamic and adaptive to serving-system state.</text></p>
+    </para>
+    <figure inlist="lof" placement="t" xml:id="S1.F3" labels="LABEL:fig:commpattern LABEL:fig:request_rate LABEL:fig:workflow_agent" fragid="S1.F3">
+      <tags>
+        <tag>
+          <text fontsize="90%">Figure 3</text>
+        </tag>
+        <tag role="autoref">Figure 3</tag>
+        <tag role="creftype">figure</tag>
+        <tag role="creftypecap">Figure</tag>
+        <tag role="creftypeplural">figures</tag>
+        <tag role="creftypepluralcap">Figures</tag>
+        <tag role="refnum">3</tag>
+        <tag role="typerefnum">Figure 3</tag>
+      </tags>
+      <figure class="ltx_figure_panel ltx_minipage" vattach="top" width="110.4pt" xml:id="S1.F3.fig1" fragid="S1.F3.fig1">
+        <graphics candidates="figures/communicationoverview.pdf" graphic="figures/communicationoverview.pdf" options="width=390.3pt,keepaspectratio=true" xml:id="S1.F3.g1" fragid="S1.F3.g1"/>
+        <toccaption>
+          <tag close=" ">1</tag>
+          <text font="bold" fontsize="90%">Agentic Software Developer:<text font="medium"> The above highlights a software agent workflow where the developer agent is responsible for generating functions and the testing agent generates testing code. </text></text>
+        </toccaption>
+        <caption>
+          <tag close=". ">
+            <text fontsize="90%">Figure 1</text>
+          </tag>
+          <text fontsize="90%" font="bold">Agentic Software Developer:<text font="medium"> The above highlights a software agent workflow where the developer agent is responsible for generating functions and the testing agent generates testing code. </text></text>
+        </caption>
+      </figure>
+      <figure class="ltx_figure_panel ltx_minipage" vattach="top" width="110.4pt" xml:id="S1.F3.fig2" fragid="S1.F3.fig2">
+        <graphics candidates="figures/comm_pattern.pdf" graphic="figures/comm_pattern.pdf" options="width=390.3pt,keepaspectratio=true" xml:id="S1.F3.g2" fragid="S1.F3.g2"/>
+        <toccaption>
+          <tag close=" ">2</tag>
+          <text font="bold" fontsize="90%">Communication Pattern:<text font="medium"> The above schematic provides an approximate timeline for the communication pattern for a possible different communication pattern.</text></text>
+        </toccaption>
+        <caption>
+          <tag close=". ">
+            <text fontsize="90%">Figure 2</text>
+          </tag>
+          <text font="bold" fontsize="90%">Communication Pattern:<text font="medium"> The above schematic provides an approximate timeline for the communication pattern for a possible different communication pattern.</text></text>
+        </caption>
+      </figure>
+      <figure class="ltx_figure_panel ltx_minipage" vattach="top" width="110.4pt" xml:id="S1.F3.fig3" fragid="S1.F3.fig3">
+        <graphics candidates="figures/request_rate_a2a.pdf" graphic="figures/request_rate_a2a.pdf" options="width=390.3pt,keepaspectratio=true" xml:id="S1.F3.g3" fragid="S1.F3.g3"/>
+        <toccaption>
+          <tag close=" ">3</tag>
+          <text fontsize="90%" font="bold">Serving throughput using A2A:<text font="medium"> We serve two agents using three different communication mechanisms under varying load. No one configuration consistently outperforms another.</text></text>
+        </toccaption>
+        <caption>
+          <tag close=". ">
+            <text fontsize="90%">Figure 3</text>
+          </tag>
+          <text fontsize="90%" font="bold">Serving throughput using A2A:<text font="medium"> We serve two agents using three different communication mechanisms under varying load. No one configuration consistently outperforms another.</text></text>
+        </caption>
+      </figure>
+    </figure>
+    <para xml:id="S1.p3" fragid="S1.p3">
+      <p>Unfortunately, today’s agentic serving architectures make optimal strategy selection difficult, especially as system dynamics change. This is due to three fundamental drawbacks in existing agentic serving designs.
+<emph font="italic">First</emph>, agentic communication protocols today, such as Anthropic’s Model Context Protocol (MCP) <cite class="ltx_citemacro_citep">(<ref href="#bib.bib3" idref="bib.bib3">mcp, </ref>)</cite>, Google’s Agent2Agent (A2A) <cite class="ltx_citemacro_citep">(<ref href="#bib.bib4" idref="bib.bib4">a2a, </ref>)</cite>, IBM’s Agent Connection Protocol (ACP) <cite class="ltx_citemacro_citep">(<ref href="#bib.bib6" idref="bib.bib6">acp, </ref>)</cite>, and others <cite class="ltx_citemacro_citep">(<ref href="#bib.bib2" idref="bib.bib2">agntcy, </ref>)</cite>,
+require developers to <emph font="italic">early bind</emph> to a strategy at design time—such as choosing batching, streaming, or pipelined sends.
+<emph font="italic">Second</emph>, serving parameters like batch size, communication frequency, routing strategy, model selection are <text font="italic">unaware of serving-layer parameters like</text> – model latency, queue times, cost per inference, or cross-agent resource contention –
+on which performance critically depends.
+<emph font="italic">Finally</emph>, today’s communication architectures <text font="italic">lack interfaces for cross-agent and pipeline-wide optimization</text>, e.g., for prioritization at downstream agents, or balancing user experience with end-to-end system throughput.</p>
+    </para>
+    <para xml:id="S1.p4" fragid="S1.p4">
+      <p>Taken together, these attributes make agentic serving architectures both a burden on developers of agentic pipelines–it is difficult to ensure and control performance–and a source of serious run-time inefficiency.</p>
+    </para>
+    <para xml:id="S1.p5" fragid="S1.p5">
+      <p><text font="italic">We advocate for a new agentic serving architecture where the agent communication is dynamically controllable and strongly coupled with the serving system.</text> Specifically, inspired by SDN, we argue for a programmable agentic substrate. However, distinct from SDN, we require the substrate to go beyond communication and also interface directly with applications to enable better control over serving, ensuring efficiency and performance.</p>
+    </para>
+    <para xml:id="S1.p6" fragid="S1.p6">
+      <p>We envision a ”software-defined agentic serving stack” with three components:</p>
+      <itemize xml:id="S1.I1" fragid="S1.I1">
+        <item xml:id="S1.I1.i1" fragid="S1.I1.i1">
+          <tags>
+            <tag>•</tag>
+            <tag role="autoref">item </tag>
+            <tag role="typerefnum">1st item</tag>
+          </tags>
+          <para xml:id="S1.I1.i1.p1" fragid="S1.I1.i1.p1">
+            <p>A <text font="bold">data plane</text> that supports fine-grained, dynamically adjustable agentic message granularities spanning token-level streaming to batched contexts.</p>
+          </para>
+        </item>
+        <item xml:id="S1.I1.i2" fragid="S1.I1.i2">
+          <tags>
+            <tag>•</tag>
+            <tag role="autoref">item </tag>
+            <tag role="typerefnum">2nd item</tag>
+          </tags>
+          <para xml:id="S1.I1.i2.p1" fragid="S1.I1.i2.p1">
+            <p>A <text font="bold">metrics plane</text> which provides low-overhead access to metrics via a simple, cross-agent/tool uniform data collection interface.</p>
+          </para>
+        </item>
+        <item xml:id="S1.I1.i3" fragid="S1.I1.i3">
+          <tags>
+            <tag>•</tag>
+            <tag role="autoref">item </tag>
+            <tag role="typerefnum">3rd item</tag>
+          </tags>
+          <para xml:id="S1.I1.i3.p1" fragid="S1.I1.i3.p1">
+            <p>A <text font="bold">control plane</text> that leverages metrics to dynamically govern inter-agent communication strategies, batch size, routing, and model selection across agent pipelines. It systematically evolves system-wide state to a target that meets operator-specified goals. Control decisions account for both system- and application-level metrics.</p>
+          </para>
+        </item>
+      </itemize>
+    </para>
+    <para xml:id="S1.p7" fragid="S1.p7">
+      <p>We envision such a stack to support high-level declarative languages for agent communication and serving policy. These languages could allow infrastructure engineers to express goals—such as ”minimize end-to-end latency,” ”batch unless load is low,” or ”stream only for interactive or high-priority tasks”—without needing to manage the low-level implementation details. The control plane translates these intents into real-time decisions based on the current serving state. The architecture frees agentic workflow developers from implementing bespoke approaches for controlling application performance; instead, agentic pipelines simply offer the control plane the appropriate hints.</p>
+    </para>
+    <para xml:id="S1.p8" fragid="S1.p8">
+      <p>We discuss challenges arising from tool/agent heterogeneity and churn in realizing the above vision. We present simple unified interfaces and design ideas for the three planes that can enable effective control despite these attributes.</p>
+    </para>
+    <para xml:id="S1.p9" fragid="S1.p9">
+      <p>Our preliminary prototype shows that our architecture can improve agentic serving throughput by up to <Math mode="inline" xml:id="S1.p9.m1" tex="3.6\times" class="ltx_math_unparsed" fragid="S1.p9.m1"><m:math alttext="3.6\times" class="ltx_math_unparsed" display="inline"><m:semantics><m:mrow><m:mn xml:id="S1.p9.m1.1">3.6</m:mn><m:mo lspace="0.222em" xml:id="S1.p9.m1.2">×</m:mo></m:mrow><m:annotation encoding="application/x-tex">3.6\times</m:annotation></m:semantics></m:math></Math> by fine-grained control of the communication granularity. Further, when additional control is exercised over the serving system, the serving throughput improves by another <Math mode="inline" xml:id="S1.p9.m2" tex="2.3\times" class="ltx_math_unparsed" fragid="S1.p9.m2"><m:math alttext="2.3\times" class="ltx_math_unparsed" display="inline"><m:semantics><m:mrow><m:mn xml:id="S1.p9.m2.1">2.3</m:mn><m:mo lspace="0.222em" xml:id="S1.p9.m2.2">×</m:mo></m:mrow><m:annotation encoding="application/x-tex">2.3\times</m:annotation></m:semantics></m:math></Math>.</p>
+    </para>
+    <para xml:id="S1.p10" fragid="S1.p10">
+      <p>More than a specific proposal, the main aim of our work is to kickstart a discussion around addressing fundamental issues in emerging agentic architectures. We present a framework inspired by SDN, along with APIs that integrate with current and future tools and agents, to overcome these issues. But we recognize that these are mere starting points in an interesting design space. We conclude by identifying key future directions in §<ref labelref="LABEL:sec:discussion" idref="S5" href="#S5" title="5. Discussion and Conclusion ‣ Software-Defined Agentic Serving"><text class="ltx_ref_tag">5</text></ref>.</p>
+    </para>
+  </section>
+  <section inlist="toc" xml:id="S2" labels="LABEL:sec:motivation" fragid="S2">
+    <tags>
+      <tag>2</tag>
+      <tag role="autoref">section 2</tag>
+      <tag role="creftype">section</tag>
+      <tag role="creftypecap">Section</tag>
+      <tag role="creftypeplural">sections</tag>
+      <tag role="creftypepluralcap">Sections</tag>
+      <tag role="refnum">2</tag>
+      <tag role="typerefnum">§2</tag>
+    </tags>
+    <title><tag close=". ">2</tag>Agentic Serving </title>
+    <toctitle><tag close=" ">2</tag>Agentic Serving </toctitle>
+    <figure xml:id="S2.fig1" fragid="S2.fig1"/>
+    <para xml:id="S2.p1" fragid="S2.p1">
+      <p>LLMs are rapidly evolving beyond
+their basic use as chatbots, increasingly serving as full-scale digital assistants.
+In particular, LLMs are being given access to additional tools <cite class="ltx_citemacro_citep">(<ref href="#bib.bib12" idref="bib.bib12">qin2023toolllm, </ref>; <ref href="#bib.bib17" idref="bib.bib17">yang2023gpt4tools, </ref>; <ref href="#bib.bib13" idref="bib.bib13">schick2023toolformer, </ref>)</cite> (<text font="italic">e.g.</text>, calculators, web search engines, databases, file systems, to name a few) and being treated as autonomous agents cooperating with other agents to fulfill complex tasks (e.g., software development <cite class="ltx_citemacro_citep">(<ref href="#bib.bib5" idref="bib.bib5">hong2023metagpt, </ref>)</cite> and problem solving <cite class="ltx_citemacro_citep">(<ref href="#bib.bib15" idref="bib.bib15">tan2024taskgen, </ref>)</cite>). Such workflows necessitate LLMs communicating with other tools and LLMs.</p>
+    </para>
+    <para xml:id="S2.p2" fragid="S2.p2">
+      <p>Unfortunately, today’s <text font="italic">agentic serving systems</text> have fundamental limitations. We start by describing how these systems work.</p>
+    </para>
+    <figure inlist="lof" placement="t!" xml:id="S2.F4" labels="LABEL:fig:code_listing" fragid="S2.F4">
+      <tags>
+        <tag>
+          <text fontsize="90%">Figure 4</text>
+        </tag>
+        <tag role="autoref">Figure 4</tag>
+        <tag role="creftype">figure</tag>
+        <tag role="creftypecap">Figure</tag>
+        <tag role="creftypeplural">figures</tag>
+        <tag role="creftypepluralcap">Figures</tag>
+        <tag role="refnum">4</tag>
+        <tag role="typerefnum">Figure 4</tag>
+      </tags>
+      <inline-block depth="2533.5pt" height="6.1pt" width="411.9pt" xscale="0.94274982205199" xtranslate="-12.5pt" yscale="0.94274982205199" ytranslate="77.1pt" align="center">
+        <float class="ltx_lstlisting" inlist="lol" xml:id="S2.F4.tab1" fragid="S2.F4.tab1">
+          <toccaption>code/code_simple.tex</toccaption>
+          <listing class="ltx_lst_language_Python ltx_lst_numbers_left ltx_lstlisting" data="IyBDbGllbnQgaW5pdGlhbGl6YXRpb24gYW5kIGNhcGFiaWxpdHkgZGV0ZXJtaW5hdGlvbgp3aXRoIGh0dHB4LmNsaWVudCgpIGFzIGh0dHB4X2NsaWVudDoKICAgIGRldmVsb3Blcl9hZ2VudCA9IEEyQUNsaWVudC5nZXRfY2xpZW50X2Zyb21fYWdlbnRfY2FyZF91cmwoCiAgICBodHRweF9jbGllbnQsICJodHRwOi8vbG9jYWxob3N0OjYwNjkiCikgICAKCiAgICB0ZXN0aW5nX2FnZW50ID0gQTJBQ2xpZW50LmdldF9jbGllbnRfZnJvbV9hZ2VudF9jYXJkX3VybCgKICAgIGh0dHB4X2NsaWVudCwgImh0dHA6Ly9sb2NhbGhvc3Q6NjA3MCIKKSAgCiAgICBwcm9tcHQgPSAiV3JpdGUgdGhyZWUgZnVuY3Rpb25zIHRvIGNyZWF0aW5nIGFuIGVudHJ5LCAKICAgIHVwZGF0ZSBpdCBhbmQgZGVsZXRlIGl0IgogICAgCiAgICBzZW5kX21lc3NhZ2VfcGF5bG9hZCA9IG1lc3NhZ2V7CiAgICAgICAgJ3JvbGUnOiAidXNlciIsCiAgICAgICAgJ3BhcnRzJzogW3sndHlwZSc6ICd0ZXh0JywgJ3RleHQnOiBwcm9tcHR9XSwKICAgIH0KICAgCiAgICBzdHJlYW1pbmdfcmVxdWVzdCA9IFNlbmRTdHJlYW1pbmdNZXNzYWdlUmVxdWVzdCgKICAgICAgICAgICAgICAgIHBhcmFtcz1NZXNzYWdlU2VuZFBhcmFtcygqKnNlbmRfbWVzc2FnZV9wYXlsb2FkKQogICAgICAgICAgICApIAoJIyBwZXJmb3JtIHN0cmVhbWluZyBtZXNzYWdlIAogICAgc3RyZWFtX3Jlc3BvbnNlID0gZGV2ZWxvcGVyX2FnZW50LnNlbmRfbWVzc2FnZV9zdHJlYW1pbmcoCiAgICAgICAgc3RyZWFtaW5nX3JlcXVlc3QpCgkjIHdhaXRpbmcgZm9yIHN0cmVhbWluZyByZXNwb25zZQogICAgYXN5bmMgZm9yIGNodW5rIGluIHN0cmVhbV9yZXNwb25zZToKICAgICAgICAjIHN0cmVhbSB0byB0ZXN0aW5nIGFnZW50CiAgICAgICAgIHRlc3RpbmdfcmVxdWVzdCA9U2VuZFN0cmVhbWluZ01lc3NhZ2VSZXF1ZXN0KAogICAgICAgICAgICAgICAgcGFyYW1zPU1lc3NhZ2VTZW5kUGFyYW1zKCoqY2h1bmspCiAgICAgICAgKQogICAgICAgIHRlc3RfZnVudGlvbiA9IHRlc3RpbmdfYWdlbnQuc2VuZF9tZXNzYWdlX3N0cmVhbWluZyhjaHVuaykKICAgICAgICBhd2FpdCBhc3luY2lvLnNsZWVwKDAuMSkK" dataencoding="base64" datamimetype="text/plain" dataname="code/code_simple.tex">
+            <listingline xml:id="lstnumberx1" fragid="lstnumberx1">
+              <tags>
+                <tag>1</tag>
+                <tag role="autoref">1</tag>
+                <tag role="creftype">line</tag>
+                <tag role="creftypecap">Line</tag>
+                <tag role="creftypeplural">lines</tag>
+                <tag role="creftypepluralcap">Lines</tag>
+                <tag role="refnum">1</tag>
+                <tag role="typerefnum">line 1</tag>
+              </tags>
+              <text class="ltx_lst_comment" color="#009B55" fontsize="70%" font="typewriter italic">#<text class="ltx_lst_space"> </text>Client<text class="ltx_lst_space"> </text>initialization<text class="ltx_lst_space"> </text>and<text class="ltx_lst_space"> </text>capability<text class="ltx_lst_space"> </text>determination</text>
+            </listingline>
+            <listingline xml:id="lstnumberx2" fragid="lstnumberx2">
+              <tags>
+                <tag>2</tag>
+                <tag role="autoref">2</tag>
+                <tag role="creftype">line</tag>
+                <tag role="creftypecap">Line</tag>
+                <tag role="creftypeplural">lines</tag>
+                <tag role="creftypepluralcap">Lines</tag>
+                <tag role="refnum">2</tag>
+                <tag role="typerefnum">line 2</tag>
+              </tags>
+              <text class="ltx_lst_identifier" font="typewriter" fontsize="70%">with</text>
+              <text class="ltx_lst_space" fontsize="70%" font="typewriter"> </text>
+              <text class="ltx_lst_identifier" fontsize="70%" font="typewriter">httpx</text>
+              <text fontsize="70%" font="typewriter">.</text>
+              <text class="ltx_lst_identifier" fontsize="70%" font="typewriter">client</text>
+              <text fontsize="70%" font="typewriter">()</text>
+              <text class="ltx_lst_space" font="typewriter" fontsize="70%"> </text>
+              <text class="ltx_lst_identifier" fontsize="70%" font="typewriter">as</text>
+              <text class="ltx_lst_space" font="typewriter" fontsize="70%"> </text>
+              <text class="ltx_lst_identifier" fontsize="70%" font="typewriter">httpx_client</text>
+              <text fontsize="70%" font="typewriter">:</text>
+            </listingline>
+            <listingline xml:id="lstnumberx3" fragid="lstnumberx3">
+              <tags>
+                <tag>3</tag>
+                <tag role="autoref">3</tag>
+                <tag role="creftype">line</tag>
+                <tag role="creftypecap">Line</tag>
+                <tag role="creftypeplural">lines</tag>
+                <tag role="creftypepluralcap">Lines</tag>
+                <tag role="refnum">3</tag>
+                <tag role="typerefnum">line 3</tag>
+              </tags>
+              <text class="ltx_lst_space" font="typewriter" fontsize="70%">    </text>
+              <text class="ltx_lst_identifier" fontsize="70%" font="typewriter">developer_agent</text>
+              <text class="ltx_lst_space" fontsize="70%" font="typewriter"> </text>
+              <text fontsize="70%" font="typewriter">=</text>
+              <text class="ltx_lst_space" fontsize="70%" font="typewriter"> </text>
+              <text class="ltx_lst_identifier" fontsize="70%" font="typewriter">A2AClient</text>
+              <text fontsize="70%" font="typewriter">.</text>
+              <text class="ltx_lst_identifier" fontsize="70%" font="typewriter">get_client_from_agent_card_url</text>
+              <text fontsize="70%" font="typewriter">(</text>
+            </listingline>
+            <listingline xml:id="lstnumberx4" fragid="lstnumberx4">
+              <tags>
+                <tag>4</tag>
+                <tag role="autoref">4</tag>
+                <tag role="creftype">line</tag>
+                <tag role="creftypecap">Line</tag>
+                <tag role="creftypeplural">lines</tag>
+                <tag role="creftypepluralcap">Lines</tag>
+                <tag role="refnum">4</tag>
+                <tag role="typerefnum">line 4</tag>
+              </tags>
+              <text class="ltx_lst_space" font="typewriter" fontsize="70%">    </text>
+              <text class="ltx_lst_identifier" font="typewriter" fontsize="70%">httpx_client</text>
+              <text font="typewriter" fontsize="70%">,</text>
+              <text class="ltx_lst_space" font="typewriter" fontsize="70%"> </text>
+              <text class="ltx_lst_string" fontsize="70%" font="typewriter" color="#FF0000">"http://localhost:6069"</text>
+            </listingline>
+            <listingline xml:id="lstnumberx5" fragid="lstnumberx5">
+              <tags>
+                <tag>5</tag>
+                <tag role="autoref">5</tag>
+                <tag role="creftype">line</tag>
+                <tag role="creftypecap">Line</tag>
+                <tag role="creftypeplural">lines</tag>
+                <tag role="creftypepluralcap">Lines</tag>
+                <tag role="refnum">5</tag>
+                <tag role="typerefnum">line 5</tag>
+              </tags>
+              <text fontsize="70%" font="typewriter">)</text>
+            </listingline>
+            <listingline xml:id="lstnumberx6" fragid="lstnumberx6">
+              <tags>
+                <tag>6</tag>
+                <tag role="autoref">6</tag>
+                <tag role="creftype">line</tag>
+                <tag role="creftypecap">Line</tag>
+                <tag role="creftypeplural">lines</tag>
+                <tag role="creftypepluralcap">Lines</tag>
+                <tag role="refnum">6</tag>
+                <tag role="typerefnum">line 6</tag>
+              </tags>
+            </listingline>
+            <listingline xml:id="lstnumberx7" fragid="lstnumberx7">
+              <tags>
+                <tag>7</tag>
+                <tag role="autoref">7</tag>
+                <tag role="creftype">line</tag>
+                <tag role="creftypecap">Line</tag>
+                <tag role="creftypeplural">lines</tag>
+                <tag role="creftypepluralcap">Lines</tag>
+                <tag role="refnum">7</tag>
+                <tag role="typerefnum">line 7</tag>
+              </tags>
+              <text class="ltx_lst_space" font="typewriter" fontsize="70%">    </text>
+              <text class="ltx_lst_identifier" fontsize="70%" font="typewriter">testing_agent</text>
+              <text class="ltx_lst_space" font="typewriter" fontsize="70%"> </text>
+              <text font="typewriter" fontsize="70%">=</text>
+              <text class="ltx_lst_space" font="typewriter" fontsize="70%"> </text>
+              <text class="ltx_lst_identifier" fontsize="70%" font="typewriter">A2AClient</text>
+              <text font="typewriter" fontsize="70%">.</text>
+              <text class="ltx_lst_identifier" font="typewriter" fontsize="70%">get_client_from_agent_card_url</text>
+              <text font="typewriter" fontsize="70%">(</text>
+            </listingline>
+            <listingline xml:id="lstnumberx8" fragid="lstnumberx8">
+              <tags>
+                <tag>8</tag>
+                <tag role="autoref">8</tag>
+                <tag role="creftype">line</tag>
+                <tag role="creftypecap">Line</tag>
+                <tag role="creftypeplural">lines</tag>
+                <tag role="creftypepluralcap">Lines</tag>
+                <tag role="refnum">8</tag>
+                <tag role="typerefnum">line 8</tag>
+              </tags>
+              <text class="ltx_lst_space" fontsize="70%" font="typewriter">    </text>
+              <text class="ltx_lst_identifier" fontsize="70%" font="typewriter">httpx_client</text>
+              <text font="typewriter" fontsize="70%">,</text>
+              <text class="ltx_lst_space" font="typewriter" fontsize="70%"> </text>
+              <text class="ltx_lst_string" color="#FF0000" fontsize="70%" font="typewriter">"http://localhost:6070"</text>
+            </listingline>
+            <listingline xml:id="lstnumberx9" fragid="lstnumberx9">
+              <tags>
+                <tag>9</tag>
+                <tag role="autoref">9</tag>
+                <tag role="creftype">line</tag>
+                <tag role="creftypecap">Line</tag>
+                <tag role="creftypeplural">lines</tag>
+                <tag role="creftypepluralcap">Lines</tag>
+                <tag role="refnum">9</tag>
+                <tag role="typerefnum">line 9</tag>
+              </tags>
+              <text fontsize="70%" font="typewriter">)</text>
+            </listingline>
+            <listingline xml:id="lstnumberx10" fragid="lstnumberx10">
+              <tags>
+                <tag>10</tag>
+                <tag role="autoref">10</tag>
+                <tag role="creftype">line</tag>
+                <tag role="creftypecap">Line</tag>
+                <tag role="creftypeplural">lines</tag>
+                <tag role="creftypepluralcap">Lines</tag>
+                <tag role="refnum">10</tag>
+                <tag role="typerefnum">line 10</tag>
+              </tags>
+              <text class="ltx_lst_space" fontsize="70%" font="typewriter">    </text>
+              <text class="ltx_lst_identifier" fontsize="70%" font="typewriter">prompt</text>
+              <text class="ltx_lst_space" fontsize="70%" font="typewriter"> </text>
+              <text font="typewriter" fontsize="70%">=</text>
+              <text class="ltx_lst_space" font="typewriter" fontsize="70%"> </text>
+              <text class="ltx_lst_string" color="#FF0000" font="typewriter" fontsize="70%">"Write<text class="ltx_lst_space">␣</text>three<text class="ltx_lst_space">␣</text>functions<text class="ltx_lst_space">␣</text>to<text class="ltx_lst_space">␣</text>creating<text class="ltx_lst_space">␣</text>an<text class="ltx_lst_space">␣</text>entry,</text>
+            </listingline>
+            <listingline xml:id="lstnumberx11" fragid="lstnumberx11">
+              <tags>
+                <tag>11</tag>
+                <tag role="autoref">11</tag>
+                <tag role="creftype">line</tag>
+                <tag role="creftypecap">Line</tag>
+                <tag role="creftypeplural">lines</tag>
+                <tag role="creftypepluralcap">Lines</tag>
+                <tag role="refnum">11</tag>
+                <tag role="typerefnum">line 11</tag>
+              </tags>
+              <text class="ltx_lst_space" fontsize="70%" font="typewriter" color="#FF0000">␣␣␣␣</text>
+              <text font="typewriter" fontsize="70%" color="#FF0000">update</text>
+              <text class="ltx_lst_space" color="#FF0000" fontsize="70%" font="typewriter">␣</text>
+              <text color="#FF0000" font="typewriter" fontsize="70%">it</text>
+              <text class="ltx_lst_space" color="#FF0000" fontsize="70%" font="typewriter">␣</text>
+              <text color="#FF0000" font="typewriter" fontsize="70%">and</text>
+              <text class="ltx_lst_space" font="typewriter" fontsize="70%" color="#FF0000">␣</text>
+              <text color="#FF0000" font="typewriter" fontsize="70%">delete</text>
+              <text class="ltx_lst_space" font="typewriter" fontsize="70%" color="#FF0000">␣</text>
+              <text color="#FF0000" font="typewriter" fontsize="70%">it"</text>
+            </listingline>
+            <listingline xml:id="lstnumberx12" fragid="lstnumberx12">
+              <tags>
+                <tag>12</tag>
+                <tag role="autoref">12</tag>
+                <tag role="creftype">line</tag>
+                <tag role="creftypecap">Line</tag>
+                <tag role="creftypeplural">lines</tag>
+                <tag role="creftypepluralcap">Lines</tag>
+                <tag role="refnum">12</tag>
+                <tag role="typerefnum">line 12</tag>
+              </tags>
+            </listingline>
+            <listingline xml:id="lstnumberx13" fragid="lstnumberx13">
+              <tags>
+                <tag>13</tag>
+                <tag role="autoref">13</tag>
+                <tag role="creftype">line</tag>
+                <tag role="creftypecap">Line</tag>
+                <tag role="creftypeplural">lines</tag>
+                <tag role="creftypepluralcap">Lines</tag>
+                <tag role="refnum">13</tag>
+                <tag role="typerefnum">line 13</tag>
+              </tags>
+              <text class="ltx_lst_space" fontsize="70%" font="typewriter">    </text>
+              <text class="ltx_lst_identifier" font="typewriter" fontsize="70%">send_message_payload</text>
+              <text class="ltx_lst_space" fontsize="70%" font="typewriter"> </text>
+              <text fontsize="70%" font="typewriter">=</text>
+              <text class="ltx_lst_space" fontsize="70%" font="typewriter"> </text>
+              <text class="ltx_lst_identifier" fontsize="70%" font="typewriter">message</text>
+              <text fontsize="70%" font="typewriter">{</text>
+            </listingline>
+            <listingline xml:id="lstnumberx14" fragid="lstnumberx14">
+              <tags>
+                <tag>14</tag>
+                <tag role="autoref">14</tag>
+                <tag role="creftype">line</tag>
+                <tag role="creftypecap">Line</tag>
+                <tag role="creftypeplural">lines</tag>
+                <tag role="creftypepluralcap">Lines</tag>
+                <tag role="refnum">14</tag>
+                <tag role="typerefnum">line 14</tag>
+              </tags>
+              <text class="ltx_lst_space" fontsize="70%" font="typewriter">        </text>
+              <text class="ltx_lst_literate" font="typewriter" fontsize="70%">'</text>
+              <text class="ltx_lst_identifier" fontsize="70%" font="typewriter">role</text>
+              <text class="ltx_lst_literate" fontsize="70%" font="typewriter">'</text>
+              <text font="typewriter" fontsize="70%">:</text>
+              <text class="ltx_lst_space" fontsize="70%" font="typewriter"> </text>
+              <text class="ltx_lst_string" color="#FF0000" font="typewriter" fontsize="70%">"user"</text>
+              <text font="typewriter" fontsize="70%">,</text>
+            </listingline>
+            <listingline xml:id="lstnumberx15" fragid="lstnumberx15">
+              <tags>
+                <tag>15</tag>
+                <tag role="autoref">15</tag>
+                <tag role="creftype">line</tag>
+                <tag role="creftypecap">Line</tag>
+                <tag role="creftypeplural">lines</tag>
+                <tag role="creftypepluralcap">Lines</tag>
+                <tag role="refnum">15</tag>
+                <tag role="typerefnum">line 15</tag>
+              </tags>
+              <text class="ltx_lst_space" font="typewriter" fontsize="70%">        </text>
+              <text class="ltx_lst_literate" font="typewriter" fontsize="70%">'</text>
+              <text class="ltx_lst_identifier" fontsize="70%" font="typewriter">parts</text>
+              <text class="ltx_lst_literate" fontsize="70%" font="typewriter">'</text>
+              <text font="typewriter" fontsize="70%">:</text>
+              <text class="ltx_lst_space" font="typewriter" fontsize="70%"> </text>
+              <text font="typewriter" fontsize="70%">[{</text>
+              <text class="ltx_lst_literate" fontsize="70%" font="typewriter">'</text>
+              <text class="ltx_lst_keyword ltx_lst_keywords2" color="#006600" font="typewriter bold" fontsize="70%">type</text>
+              <text class="ltx_lst_literate" font="typewriter" fontsize="70%">'</text>
+              <text font="typewriter" fontsize="70%">:</text>
+              <text class="ltx_lst_space" font="typewriter" fontsize="70%"> </text>
+              <text class="ltx_lst_literate" font="typewriter" fontsize="70%">'</text>
+              <text class="ltx_lst_identifier" font="typewriter" fontsize="70%">text</text>
+              <text class="ltx_lst_literate" fontsize="70%" font="typewriter">'</text>
+              <text font="typewriter" fontsize="70%">,</text>
+              <text class="ltx_lst_space" font="typewriter" fontsize="70%"> </text>
+              <text class="ltx_lst_literate" font="typewriter" fontsize="70%">'</text>
+              <text class="ltx_lst_identifier" fontsize="70%" font="typewriter">text</text>
+              <text class="ltx_lst_literate" font="typewriter" fontsize="70%">'</text>
+              <text font="typewriter" fontsize="70%">:</text>
+              <text class="ltx_lst_space" fontsize="70%" font="typewriter"> </text>
+              <text class="ltx_lst_identifier" font="typewriter" fontsize="70%">prompt</text>
+              <text font="typewriter" fontsize="70%">}],</text>
+            </listingline>
+            <listingline xml:id="lstnumberx16" fragid="lstnumberx16">
+              <tags>
+                <tag>16</tag>
+                <tag role="autoref">16</tag>
+                <tag role="creftype">line</tag>
+                <tag role="creftypecap">Line</tag>
+                <tag role="creftypeplural">lines</tag>
+                <tag role="creftypepluralcap">Lines</tag>
+                <tag role="refnum">16</tag>
+                <tag role="typerefnum">line 16</tag>
+              </tags>
+              <text class="ltx_lst_space" fontsize="70%" font="typewriter">    </text>
+              <text fontsize="70%" font="typewriter">}</text>
+            </listingline>
+            <listingline xml:id="lstnumberx17" fragid="lstnumberx17">
+              <tags>
+                <tag>17</tag>
+                <tag role="autoref">17</tag>
+                <tag role="creftype">line</tag>
+                <tag role="creftypecap">Line</tag>
+                <tag role="creftypeplural">lines</tag>
+                <tag role="creftypepluralcap">Lines</tag>
+                <tag role="refnum">17</tag>
+                <tag role="typerefnum">line 17</tag>
+              </tags>
+            </listingline>
+            <listingline xml:id="lstnumberx18" fragid="lstnumberx18">
+              <tags>
+                <tag>18</tag>
+                <tag role="autoref">18</tag>
+                <tag role="creftype">line</tag>
+                <tag role="creftypecap">Line</tag>
+                <tag role="creftypeplural">lines</tag>
+                <tag role="creftypepluralcap">Lines</tag>
+                <tag role="refnum">18</tag>
+                <tag role="typerefnum">line 18</tag>
+              </tags>
+              <text class="ltx_lst_space" fontsize="70%" font="typewriter">    </text>
+              <text class="ltx_lst_identifier" font="typewriter" fontsize="70%">streaming_request</text>
+              <text class="ltx_lst_space" fontsize="70%" font="typewriter"> </text>
+              <text fontsize="70%" font="typewriter">=</text>
+              <text class="ltx_lst_space" fontsize="70%" font="typewriter"> </text>
+              <text class="ltx_lst_identifier" fontsize="70%" font="typewriter">SendStreamingMessageRequest</text>
+              <text fontsize="70%" font="typewriter">(</text>
+            </listingline>
+            <listingline xml:id="lstnumberx19" fragid="lstnumberx19">
+              <tags>
+                <tag>19</tag>
+                <tag role="autoref">19</tag>
+                <tag role="creftype">line</tag>
+                <tag role="creftypecap">Line</tag>
+                <tag role="creftypeplural">lines</tag>
+                <tag role="creftypepluralcap">Lines</tag>
+                <tag role="refnum">19</tag>
+                <tag role="typerefnum">line 19</tag>
+              </tags>
+              <text class="ltx_lst_space" fontsize="70%" font="typewriter">                </text>
+              <text class="ltx_lst_identifier" font="typewriter" fontsize="70%">params</text>
+              <text fontsize="70%" font="typewriter">=</text>
+              <text class="ltx_lst_identifier" fontsize="70%" font="typewriter">MessageSendParams</text>
+              <text fontsize="70%" font="typewriter">(**</text>
+              <text class="ltx_lst_identifier" font="typewriter" fontsize="70%">send_message_payload</text>
+              <text fontsize="70%" font="typewriter">)</text>
+            </listingline>
+            <listingline xml:id="lstnumberx20" fragid="lstnumberx20">
+              <tags>
+                <tag>20</tag>
+                <tag role="autoref">20</tag>
+                <tag role="creftype">line</tag>
+                <tag role="creftypecap">Line</tag>
+                <tag role="creftypeplural">lines</tag>
+                <tag role="creftypepluralcap">Lines</tag>
+                <tag role="refnum">20</tag>
+                <tag role="typerefnum">line 20</tag>
+              </tags>
+              <text class="ltx_lst_space" fontsize="70%" font="typewriter">            </text>
+              <text font="typewriter" fontsize="70%">)</text>
+            </listingline>
+            <listingline xml:id="lstnumberx21" fragid="lstnumberx21">
+              <tags>
+                <tag>21</tag>
+                <tag role="autoref">21</tag>
+                <tag role="creftype">line</tag>
+                <tag role="creftypecap">Line</tag>
+                <tag role="creftypeplural">lines</tag>
+                <tag role="creftypepluralcap">Lines</tag>
+                <tag role="refnum">21</tag>
+                <tag role="typerefnum">line 21</tag>
+              </tags>
+              <text class="ltx_lst_space" font="typewriter" fontsize="70%">        </text>
+              <text class="ltx_lst_comment" color="#009B55" font="typewriter italic" fontsize="70%">#<text class="ltx_lst_space"> </text>perform<text class="ltx_lst_space"> </text>streaming<text class="ltx_lst_space"> </text>message</text>
+            </listingline>
+            <listingline xml:id="lstnumberx22" fragid="lstnumberx22">
+              <tags>
+                <tag>22</tag>
+                <tag role="autoref">22</tag>
+                <tag role="creftype">line</tag>
+                <tag role="creftypecap">Line</tag>
+                <tag role="creftypeplural">lines</tag>
+                <tag role="creftypepluralcap">Lines</tag>
+                <tag role="refnum">22</tag>
+                <tag role="typerefnum">line 22</tag>
+              </tags>
+              <text class="ltx_lst_space" font="typewriter italic" fontsize="70%" color="#009B55">    </text>
+              <text font="typewriter italic" fontsize="70%" color="#009B55">stream_response</text>
+              <text class="ltx_lst_space" fontsize="70%" font="typewriter italic" color="#009B55"> </text>
+              <text color="#009B55" font="typewriter italic" fontsize="70%">=</text>
+              <text class="ltx_lst_space" color="#009B55" font="typewriter italic" fontsize="70%"> </text>
+              <text color="#009B55" font="typewriter italic" fontsize="70%">developer_agent.send_message_streaming(</text>
+            </listingline>
+            <listingline xml:id="lstnumberx23" fragid="lstnumberx23">
+              <tags>
+                <tag>23</tag>
+                <tag role="autoref">23</tag>
+                <tag role="creftype">line</tag>
+                <tag role="creftypecap">Line</tag>
+                <tag role="creftypeplural">lines</tag>
+                <tag role="creftypepluralcap">Lines</tag>
+                <tag role="refnum">23</tag>
+                <tag role="typerefnum">line 23</tag>
+              </tags>
+              <text class="ltx_lst_space" fontsize="70%" font="typewriter">        </text>
+              <text class="ltx_lst_identifier" font="typewriter" fontsize="70%">streaming_request</text>
+              <text fontsize="70%" font="typewriter">)</text>
+            </listingline>
+            <listingline xml:id="lstnumberx24" fragid="lstnumberx24">
+              <tags>
+                <tag>24</tag>
+                <tag role="autoref">24</tag>
+                <tag role="creftype">line</tag>
+                <tag role="creftypecap">Line</tag>
+                <tag role="creftypeplural">lines</tag>
+                <tag role="creftypepluralcap">Lines</tag>
+                <tag role="refnum">24</tag>
+                <tag role="typerefnum">line 24</tag>
+              </tags>
+              <text class="ltx_lst_space" font="typewriter" fontsize="70%">        </text>
+              <text class="ltx_lst_comment" font="typewriter italic" fontsize="70%" color="#009B55">#<text class="ltx_lst_space"> </text>waiting<text class="ltx_lst_space"> </text>for<text class="ltx_lst_space"> </text>streaming<text class="ltx_lst_space"> </text>response</text>
+            </listingline>
+            <listingline xml:id="lstnumberx25" fragid="lstnumberx25">
+              <tags>
+                <tag>25</tag>
+                <tag role="autoref">25</tag>
+                <tag role="creftype">line</tag>
+                <tag role="creftypecap">Line</tag>
+                <tag role="creftypeplural">lines</tag>
+                <tag role="creftypepluralcap">Lines</tag>
+                <tag role="refnum">25</tag>
+                <tag role="typerefnum">line 25</tag>
+              </tags>
+              <text class="ltx_lst_space" fontsize="70%" font="typewriter">    </text>
+              <text class="ltx_lst_identifier" fontsize="70%" font="typewriter">async</text>
+              <text class="ltx_lst_space" font="typewriter" fontsize="70%"> </text>
+              <text class="ltx_lst_keyword" fontsize="70%" font="typewriter bold" color="#006600">for</text>
+              <text class="ltx_lst_space" font="typewriter" fontsize="70%"> </text>
+              <text class="ltx_lst_identifier" font="typewriter" fontsize="70%">chunk</text>
+              <text class="ltx_lst_space" font="typewriter" fontsize="70%"> </text>
+              <text class="ltx_lst_keyword" fontsize="70%" font="typewriter bold" color="#006600">in</text>
+              <text class="ltx_lst_space" fontsize="70%" font="typewriter"> </text>
+              <text class="ltx_lst_identifier" fontsize="70%" font="typewriter">stream_response</text>
+              <text font="typewriter" fontsize="70%">:</text>
+            </listingline>
+            <listingline xml:id="lstnumberx26" fragid="lstnumberx26">
+              <tags>
+                <tag>26</tag>
+                <tag role="autoref">26</tag>
+                <tag role="creftype">line</tag>
+                <tag role="creftypecap">Line</tag>
+                <tag role="creftypeplural">lines</tag>
+                <tag role="creftypepluralcap">Lines</tag>
+                <tag role="refnum">26</tag>
+                <tag role="typerefnum">line 26</tag>
+              </tags>
+              <text class="ltx_lst_space" fontsize="70%" font="typewriter">        </text>
+              <text class="ltx_lst_comment" color="#009B55" fontsize="70%" font="typewriter italic">#<text class="ltx_lst_space"> </text>stream<text class="ltx_lst_space"> </text>to<text class="ltx_lst_space"> </text>testing<text class="ltx_lst_space"> </text>agent</text>
+            </listingline>
+            <listingline xml:id="lstnumberx27" fragid="lstnumberx27">
+              <tags>
+                <tag>27</tag>
+                <tag role="autoref">27</tag>
+                <tag role="creftype">line</tag>
+                <tag role="creftypecap">Line</tag>
+                <tag role="creftypeplural">lines</tag>
+                <tag role="creftypepluralcap">Lines</tag>
+                <tag role="refnum">27</tag>
+                <tag role="typerefnum">line 27</tag>
+              </tags>
+              <text class="ltx_lst_space" fontsize="70%" font="typewriter">         </text>
+              <text class="ltx_lst_identifier" fontsize="70%" font="typewriter">testing_request</text>
+              <text class="ltx_lst_space" fontsize="70%" font="typewriter"> </text>
+              <text fontsize="70%" font="typewriter">=</text>
+              <text class="ltx_lst_identifier" font="typewriter" fontsize="70%">SendStreamingMessageRequest</text>
+              <text fontsize="70%" font="typewriter">(</text>
+            </listingline>
+            <listingline xml:id="lstnumberx28" fragid="lstnumberx28">
+              <tags>
+                <tag>28</tag>
+                <tag role="autoref">28</tag>
+                <tag role="creftype">line</tag>
+                <tag role="creftypecap">Line</tag>
+                <tag role="creftypeplural">lines</tag>
+                <tag role="creftypepluralcap">Lines</tag>
+                <tag role="refnum">28</tag>
+                <tag role="typerefnum">line 28</tag>
+              </tags>
+              <text class="ltx_lst_space" font="typewriter" fontsize="70%">                </text>
+              <text class="ltx_lst_identifier" font="typewriter" fontsize="70%">params</text>
+              <text font="typewriter" fontsize="70%">=</text>
+              <text class="ltx_lst_identifier" fontsize="70%" font="typewriter">MessageSendParams</text>
+              <text font="typewriter" fontsize="70%">(**</text>
+              <text class="ltx_lst_identifier" font="typewriter" fontsize="70%">chunk</text>
+              <text font="typewriter" fontsize="70%">)</text>
+            </listingline>
+            <listingline xml:id="lstnumberx29" fragid="lstnumberx29">
+              <tags>
+                <tag>29</tag>
+                <tag role="autoref">29</tag>
+                <tag role="creftype">line</tag>
+                <tag role="creftypecap">Line</tag>
+                <tag role="creftypeplural">lines</tag>
+                <tag role="creftypepluralcap">Lines</tag>
+                <tag role="refnum">29</tag>
+                <tag role="typerefnum">line 29</tag>
+              </tags>
+              <text class="ltx_lst_space" font="typewriter" fontsize="70%">        </text>
+              <text fontsize="70%" font="typewriter">)</text>
+            </listingline>
+            <listingline xml:id="lstnumberx30" fragid="lstnumberx30">
+              <tags>
+                <tag>30</tag>
+                <tag role="autoref">30</tag>
+                <tag role="creftype">line</tag>
+                <tag role="creftypecap">Line</tag>
+                <tag role="creftypeplural">lines</tag>
+                <tag role="creftypepluralcap">Lines</tag>
+                <tag role="refnum">30</tag>
+                <tag role="typerefnum">line 30</tag>
+              </tags>
+              <text class="ltx_lst_space" font="typewriter" fontsize="70%">        </text>
+              <text class="ltx_lst_identifier" font="typewriter" fontsize="70%">test_funtion</text>
+              <text class="ltx_lst_space" fontsize="70%" font="typewriter"> </text>
+              <text font="typewriter" fontsize="70%">=</text>
+              <text class="ltx_lst_space" fontsize="70%" font="typewriter"> </text>
+              <text class="ltx_lst_identifier" fontsize="70%" font="typewriter">testing_agent</text>
+              <text font="typewriter" fontsize="70%">.</text>
+              <text class="ltx_lst_identifier" font="typewriter" fontsize="70%">send_message_streaming</text>
+              <text font="typewriter" fontsize="70%">(</text>
+              <text class="ltx_lst_identifier" fontsize="70%" font="typewriter">chunk</text>
+              <text font="typewriter" fontsize="70%">)</text>
+            </listingline>
+            <listingline xml:id="lstnumberx31" fragid="lstnumberx31">
+              <tags>
+                <tag>31</tag>
+                <tag role="autoref">31</tag>
+                <tag role="creftype">line</tag>
+                <tag role="creftypecap">Line</tag>
+                <tag role="creftypeplural">lines</tag>
+                <tag role="creftypepluralcap">Lines</tag>
+                <tag role="refnum">31</tag>
+                <tag role="typerefnum">line 31</tag>
+              </tags>
+              <text class="ltx_lst_space" font="typewriter" fontsize="70%">        </text>
+              <text class="ltx_lst_identifier" font="typewriter" fontsize="70%">await</text>
+              <text class="ltx_lst_space" fontsize="70%" font="typewriter"> </text>
+              <text class="ltx_lst_identifier" font="typewriter" fontsize="70%">asyncio</text>
+              <text fontsize="70%" font="typewriter">.</text>
+              <text class="ltx_lst_identifier" fontsize="70%" font="typewriter">sleep</text>
+              <text fontsize="70%" font="typewriter">(0.1)</text>
+            </listingline>
+          </listing>
+        </float>
+      </inline-block>
+      <toccaption class="ltx_centering">
+        <tag close=" ">4</tag>
+        <text fontsize="90%" font="bold">A code snippet illustrating an agentic application written using A2A.</text>
+      </toccaption>
+      <caption class="ltx_centering">
+        <tag close=". ">
+          <text fontsize="90%">Figure 4</text>
+        </tag>
+        <text font="bold" fontsize="90%">A code snippet illustrating an agentic application written using A2A.</text>
+      </caption>
+    </figure>
+    <subsection inlist="toc" xml:id="S2.SS1" labels="LABEL:sec:limitations" fragid="S2.SS1">
+      <tags>
+        <tag>2.1</tag>
+        <tag role="autoref">subsection 2.1</tag>
+        <tag role="creftype">section</tag>
+        <tag role="creftypecap">Section</tag>
+        <tag role="creftypeplural">sections</tag>
+        <tag role="creftypepluralcap">Sections</tag>
+        <tag role="refnum">2.1</tag>
+        <tag role="typerefnum">§2.1</tag>
+      </tags>
+      <title><tag close=". ">2.1</tag>Agentic Workflows</title>
+      <toctitle><tag close=" ">2.1</tag>Agentic Workflows</toctitle>
+      <para xml:id="S2.SS1.p1" fragid="S2.SS1.p1">
+        <p>Constructing multi-agent LLM workflows today requires developers to manually orchestrate communication across tools and models. Developers curate a list of callable agents, handling authentication, and managing communication modes for each endpoint—often via heterogeneous mechanisms such as REST, RPC, or streaming APIs.
+To manage this complexity, recent efforts have introduced protocol-based abstractions. Examples include Google’s A2A <cite class="ltx_citemacro_citep">(<ref href="#bib.bib4" idref="bib.bib4">a2a, </ref>)</cite>, Anthropic’s MCP <cite class="ltx_citemacro_citep">(<ref href="#bib.bib3" idref="bib.bib3">mcp, </ref>)</cite>, and IBM’s ACP <cite class="ltx_citemacro_citep">(<ref href="#bib.bib6" idref="bib.bib6">acp, </ref>)</cite>. These protocols provide common interfaces for agent discovery and message exchange, aiming to standardize agentic workflows.
+Figure <ref labelref="LABEL:fig:code_listing" idref="S2.F4" href="#S2.F4" title="Figure 4 ‣ 2. Agentic Serving ‣ Software-Defined Agentic Serving"><text class="ltx_ref_tag">4</text></ref> shows an example using A2A to connect a “developer” agent with a “testing” agent. The workflow obtains agent cards (Lines 3 and 7), sends a streaming message to the developer agent (Line 21), and forwards the response to the tester agent (Line 24).
+Infrastructure engineers deploy these workflows and manually tune the communication, batch size, routing scheme, and other parameters to achieve the desired performance.</p>
+      </para>
+    </subsection>
+    <subsection inlist="toc" xml:id="S2.SS2" fragid="S2.SS2">
+      <tags>
+        <tag>2.2</tag>
+        <tag role="autoref">subsection 2.2</tag>
+        <tag role="creftype">section</tag>
+        <tag role="creftypecap">Section</tag>
+        <tag role="creftypeplural">sections</tag>
+        <tag role="creftypepluralcap">Sections</tag>
+        <tag role="refnum">2.2</tag>
+        <tag role="typerefnum">§2.2</tag>
+      </tags>
+      <title><tag close=". ">2.2</tag>Limitations today</title>
+      <toctitle><tag close=" ">2.2</tag>Limitations today</toctitle>
+      <para xml:id="S2.SS2.p1" fragid="S2.SS2.p1">
+        <p><text font="bold">Early binding.</text>
+While protocols like A2A simplify agent wiring, they require <emph font="italic">early binding</emph> of the communication strategy. Developers must decide at design time whether agents will interact via batching, streaming, or synchronous calls. These decisions (e.g., Lines 22 and 28 in Figure <ref labelref="LABEL:fig:code_listing" idref="S2.F4" href="#S2.F4" title="Figure 4 ‣ 2. Agentic Serving ‣ Software-Defined Agentic Serving"><text class="ltx_ref_tag">4</text></ref>) are hardcoded into the application, even though the ideal communication mode may vary with runtime conditions. As shown in Figure <ref labelref="LABEL:fig:request_rate" idref="S1.F3" href="#S1.F3" title="Figure 3 ‣ 1. Introduction ‣ Software-Defined Agentic Serving"><text class="ltx_ref_tag">3</text></ref>, a suboptimal strategy can degrade performance by up to <Math mode="inline" xml:id="S2.SS2.p1.m1" tex="3.6\times" class="ltx_math_unparsed" fragid="S2.SS2.p1.m1"><m:math alttext="3.6\times" class="ltx_math_unparsed" display="inline"><m:semantics><m:mrow><m:mn xml:id="S2.SS2.p1.m1.1">3.6</m:mn><m:mo lspace="0.222em" xml:id="S2.SS2.p1.m1.2">×</m:mo></m:mrow><m:annotation encoding="application/x-tex">3.6\times</m:annotation></m:semantics></m:math></Math>.</p>
+      </para>
+      <para xml:id="S2.SS2.p2" fragid="S2.SS2.p2">
+        <p><text font="bold">Lack of global visibility.</text>
+Existing agentic serving systems provide no mechanism for agentic communication to have visibility into the global serving system state. For example, say there are two instances of an agent, and there is an excessive queue buildup at one instance. Today, it is not possible to inform other upstream agents in the workflow of the existence of such a queue buildup to enable rerouting or changing the communication strategy.</p>
+      </para>
+      <para xml:id="S2.SS2.p3" fragid="S2.SS2.p3">
+        <p><text font="bold">Limited end-to-end control.</text>
+As illustrated in Figure <ref labelref="LABEL:fig:code_listing" idref="S2.F4" href="#S2.F4" title="Figure 4 ‣ 2. Agentic Serving ‣ Software-Defined Agentic Serving"><text class="ltx_ref_tag">4</text></ref>, there is little end-to-end control over runtime communication and serving behavior. Current abstractions like A2A expose low-level message operations but lack hooks for high-level coordination or optimization across an entire agentic pipeline. For example, it is not possible to express scheduling policies that enable pipeline-wide prioritization of interactive or latency-sensitive requests. Nor is it possible to inject speculative calls or hints <cite class="ltx_citemacro_citep">(<ref href="#bib.bib1" idref="bib.bib1">agarwal2024symphony, </ref>)</cite> (e.g., ahead-of-time movement of KV caches to minimize runtime overhead) to guide workflow execution.</p>
+      </para>
+      <para xml:id="S2.SS2.p4" fragid="S2.SS2.p4">
+        <p>In essence, the protocols and agentic serving systems today ease the construction of simple pipelines but inhibit adaptation and optimization — especially in dynamic, high-throughput, and low-latency serving environments.</p>
+      </para>
+    </subsection>
+    <subsection inlist="toc" xml:id="S2.SS3" fragid="S2.SS3">
+      <tags>
+        <tag>2.3</tag>
+        <tag role="autoref">subsection 2.3</tag>
+        <tag role="creftype">section</tag>
+        <tag role="creftypecap">Section</tag>
+        <tag role="creftypeplural">sections</tag>
+        <tag role="creftypepluralcap">Sections</tag>
+        <tag role="refnum">2.3</tag>
+        <tag role="typerefnum">§2.3</tag>
+      </tags>
+      <title><tag close=". ">2.3</tag>Improving Agentic Serving</title>
+      <toctitle><tag close=" ">2.3</tag>Improving Agentic Serving</toctitle>
+      <para xml:id="S2.SS3.p1" fragid="S2.SS3.p1">
+        <p>We believe that improving the serving of agentic pipelines requires rethinking the agentic serving architecture from the ground up: with dynamic control over agentic communication based on the current agent- and system-state to optimize operational goals. Realizing this requires the introduction of new agentic communication management building blocks, and new interfaces for tools, LLM agents, and serving systems to enable systematic integration with the building blocks.</p>
+      </para>
+    </subsection>
+  </section>
+  <section inlist="toc" xml:id="S3" fragid="S3">
+    <tags>
+      <tag>3</tag>
+      <tag role="autoref">section 3</tag>
+      <tag role="creftype">section</tag>
+      <tag role="creftypecap">Section</tag>
+      <tag role="creftypeplural">sections</tag>
+      <tag role="creftypepluralcap">Sections</tag>
+      <tag role="refnum">3</tag>
+      <tag role="typerefnum">§3</tag>
+    </tags>
+    <title><tag close=". ">3</tag>A Software-Defined Approach</title>
+    <toctitle><tag close=" ">3</tag>A Software-Defined Approach</toctitle>
+    <para xml:id="S3.p1" fragid="S3.p1">
+      <p>The above need is likely familiar to the reader – it is reminiscent of how SDN opened control interfaces to otherwise black-box routers/switches, enabling tighter, network-wide optimization and management. We seek a similar transformation of agentic serving. Specifically, we propose building a software-defined agentic serving stack (Figure <ref labelref="LABEL:fig:agent-control-schematic" idref="S3.F5" href="#S3.F5" title="Figure 5 ‣ 3. A Software-Defined Approach ‣ Software-Defined Agentic Serving"><text class="ltx_ref_tag">5</text></ref>).</p>
+    </para>
+    <para xml:id="S3.p2" fragid="S3.p2">
+      <p>We propose three components for efficient agentic inference.
+A centralized control plane, which makes data driven decision to control communication and other serving characteristics of each agent. Second, a metrics plane for collecting data and making it available to the controller to make informed decisions. Finally, a data plane substrate that allows for controller to perform fine-grained control.</p>
+    </para>
+    <figure inlist="lof" placement="t!" xml:id="S3.F5" labels="LABEL:fig:agent-control-schematic" fragid="S3.F5">
+      <tags>
+        <tag>
+          <text fontsize="90%">Figure 5</text>
+        </tag>
+        <tag role="autoref">Figure 5</tag>
+        <tag role="creftype">figure</tag>
+        <tag role="creftypecap">Figure</tag>
+        <tag role="creftypeplural">figures</tag>
+        <tag role="creftypepluralcap">Figures</tag>
+        <tag role="refnum">5</tag>
+        <tag role="typerefnum">Figure 5</tag>
+      </tags>
+      <graphics candidates="figures/agentcomm.drawio.pdf" graphic="figures/agentcomm.drawio.pdf" options="width=390.3pt,keepaspectratio=true" xml:id="S3.F5.g1" class="ltx_centering" fragid="S3.F5.g1"/>
+      <toccaption class="ltx_centering">
+        <tag close=" ">5</tag>
+        <text fontsize="90%" font="bold">Our proposal: The control plane orchestrates both data plane and agent/tool actions based on global telemetry.</text>
+      </toccaption>
+      <caption class="ltx_centering">
+        <tag close=". ">
+          <text fontsize="90%">Figure 5</text>
+        </tag>
+        <text font="bold" fontsize="90%">Our proposal: The control plane orchestrates both data plane and agent/tool actions based on global telemetry.</text>
+      </caption>
+    </figure>
+    <subsection inlist="toc" xml:id="S3.SS1" labels="LABEL:sec:control-plane" fragid="S3.SS1">
+      <tags>
+        <tag>3.1</tag>
+        <tag role="autoref">subsection 3.1</tag>
+        <tag role="creftype">section</tag>
+        <tag role="creftypecap">Section</tag>
+        <tag role="creftypeplural">sections</tag>
+        <tag role="creftypepluralcap">Sections</tag>
+        <tag role="refnum">3.1</tag>
+        <tag role="typerefnum">§3.1</tag>
+      </tags>
+      <title><tag close=". ">3.1</tag>Agent-Serving Control Plane</title>
+      <toctitle><tag close=" ">3.1</tag>Agent-Serving Control Plane</toctitle>
+      <para xml:id="S3.SS1.p1" fragid="S3.SS1.p1">
+        <p>Drawing inspiration from SDN, the control plane is responsible for interpreting high-level operator goals and enforcing runtime decisions over agentic serving.</p>
+      </para>
+      <para xml:id="S3.SS1.p2" fragid="S3.SS1.p2">
+        <p><text font="bold">Goals.</text> We design the control plane to meet three key requirements: (1) <text font="italic">System-wide visibility.</text> The control plane must have access to all telemetry data exposed by the metrics plane (§3.2)—including system-level load, application-level performance, and request metadata. This opens the room for fine-grained control and end-to-end optimization.
+(2) <text font="italic">Rich control surface.</text> Beyond managing the data plane (§3.2), the control plane, realized as a logically central controller, should have hooks into the agent or tool implementations themselves. This enables a broader space of runtime adaptations to improve overall performance and efficiency, such as rescheduling, priority assignment, speculative execution, or cross-node state transfers. (3) <text font="italic">Intent-driven control.</text> Infrastructure engineers managing the agentic serving platform should be able to specify high-level goals (e.g., “maximize throughput under latency bounds”), and the control plane should compile these into concrete policy rules that evolve the system state toward the goal.</p>
+      </para>
+      <para xml:id="S3.SS1.p3" fragid="S3.SS1.p3">
+        <p>To illustrate the need for a rich control surface with deep agent-level control, consider a scenario where an agent instance becomes overloaded. The controller may choose to reroute a request to another instance. However, if the request relies on key-value (KV) cache state held by the original agent, naive rerouting would require costly recomputation and increase latency. With runtime hooks into the agent, the controller can transfer the relevant state during the handoff—saving compute and improving responsiveness.</p>
+      </para>
+      <para xml:id="S3.SS1.p4" fragid="S3.SS1.p4">
+        <p>A rich control surface is valuable but challenging—it requires integrating with numerous agents and tools, each with unique APIs. This often demands bespoke control plane APIs, making it difficult to build control programs and requiring frequent changes to the controller. Ideally, the control plane should simplify integration through a unified yet effective interface.</p>
+      </para>
+      <table inlist="lot" placement="t!" xml:id="S3.T1" labels="LABEL:tab:controller-API" fragid="S3.T1">
+        <tags>
+          <tag>
+            <text fontsize="90%">Table 1</text>
+          </tag>
+          <tag role="autoref">Table 1</tag>
+          <tag role="creftype">table</tag>
+          <tag role="creftypecap">Table</tag>
+          <tag role="creftypeplural">tables</tag>
+          <tag role="creftypepluralcap">Tables</tag>
+          <tag role="refnum">1</tag>
+          <tag role="typerefnum">Table 1</tag>
+        </tags>
+        <toccaption><tag close=" ">1</tag>API Interface required by the controller</toccaption>
+        <caption>
+          <tag close=". ">
+            <text fontsize="90%">Table 1</text>
+          </tag>
+          <text fontsize="90%">API Interface required by the controller</text>
+        </caption>
+        <inline-block depth="20.8pt" height="27.4pt" width="390.3pt" xscale="1.32327098341592" xtranslate="47.7pt" yscale="1.32327098341592" ytranslate="-5.9pt">
+          <tabular vattach="middle" class="ltx_guessed_headers">
+            <thead>
+              <tr>
+                <td align="left" thead="column">API</td>
+                <td align="left" thead="column">Parameters</td>
+                <td align="left" class="ltx_nopad_r" thead="column">Description</td>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td align="left" border="r t">set()</td>
+                <td align="left" border="r t">parameter name, value</td>
+                <td align="left" border="t" class="ltx_nopad_r">Set parameter to value</td>
+              </tr>
+              <tr>
+                <td align="left" border="r">reset()</td>
+                <td align="left" border="r">parameter name</td>
+                <td align="left" class="ltx_nopad_r">Set parameter to default value</td>
+              </tr>
+            </tbody>
+          </tabular>
+        </inline-block>
+      </table>
+      <para xml:id="S3.SS1.p5" fragid="S3.SS1.p5">
+        <p><text font="bold">Design.</text> We propose a control plane design with the following salient attributes:</p>
+      </para>
+      <para xml:id="S3.SS1.p6" fragid="S3.SS1.p6">
+        <p><text font="italic">(1) Data plane control.</text> Each node runs a configurable shim (as described in §<ref labelref="LABEL:sec:data-plane" idref="S3.SS3" href="#S3.SS3" title="3.3. Configurable Data Plane ‣ 3. A Software-Defined Approach ‣ Software-Defined Agentic Serving"><text class="ltx_ref_tag">3.3</text></ref>) that can receive and execute control rules from a controller. Rather than micromanaging individual messages, the controller installs rules. These are of two kinds: (a) <text font="italic">Agent-level rules</text> govern the default communication mode for an agent pipeline (e.g., batch vs. stream, admit only high-priority requests under load). (b) <text font="italic">Request-level rules</text> provide fine-grained control over the routing of a request to agent instances (e.g., dynamically switch the agent instance that handles a request; or, when an agent sends a speculative request, block it until resources are free).</p>
+      </para>
+      <para xml:id="S3.SS1.p7" fragid="S3.SS1.p7">
+        <p><text font="italic">(2) Agent/tool hooks.</text> Each agent/tool exposes a registration interface during launch, advertising supported control APIs and parameters (e.g., pause, throttle, transfer state, re-prioritize). These APIs allow the controller to take targeted runtime actions that go beyond the communication substrate. However, as discussed earlier, integrating with each tool/agent’s unique API can be tedious. In order to overcome this challenge, we argue for the standardized API described in Table  <ref labelref="LABEL:tab:controller-API" idref="S3.T1" href="#S3.T1" title="Table 1 ‣ 3.1. Agent-Serving Control Plane ‣ 3. A Software-Defined Approach ‣ Software-Defined Agentic Serving"><text class="ltx_ref_tag">1</text></ref> which every tool and agent needs to support. Our proposed API includes just two functions, a ”set” and ”reset”. At registration time, each agent exposes the various control and API knobs they have. To utilize these knobs, the controller directly calls the ”set” function with parameter name and value. The agent or tool on receiving the ”set” is required to update the value and automatically determine the function to call.</p>
+      </para>
+      <para xml:id="S3.SS1.p8" fragid="S3.SS1.p8">
+        <p>Let’s take an example of setting the maximum batch size to 4 for an agent in an agentic pipeline; the parameter for this in the case of vLLM is ‘max_num_seqs’. Here, our controller would call the set function on the relevant agent, ”set(‘max_num_seqs’, 4)”. The agent is responsible for implementing a shim layer to transform the ”set” statement parameter to the relevant internal API and update the batch size. This separation of concerns enables the controller to scale and evolve easily, while agentic workflow developers only need to implement the specific shim layer once.</p>
+      </para>
+      <para xml:id="S3.SS1.p9" fragid="S3.SS1.p9">
+        <p><text font="italic">(3) Intent-driven control as state management.</text> As the controller polls data (§<ref labelref="LABEL:sec:metrics-plane" idref="S3.SS2" href="#S3.SS2" title="3.2. Metrics Plane ‣ 3. A Software-Defined Approach ‣ Software-Defined Agentic Serving"><text class="ltx_ref_tag">3.2</text></ref>), it populates a logical state store. Control logic—written by an operator and executed on top of the controller—is provided with the relevant view of state from the store. Akin to intent-driven network management in SDN <cite class="ltx_citemacro_citep">(<ref href="#bib.bib7" idref="bib.bib7">jin2015covisor, </ref>)</cite>, we anticipate control logic to implement algorithms to control dataplane communication such that the <text font="italic">observed</text> state is eventually transformed to a <text font="italic">target</text> state that aligns with the operator’s intended objectives. For example, an objective such as ”ensure the end-to-end latency of 90% of interactive requests is within a specified SLO” could translate to the controller polling the latencies of such requests, and, further, the control logic determining to (a) demote background agents to synchronous mode, (b) reallocate GPU slots, and (c) transfer session context for critical requests, until the requests’ SLO is met.</p>
+      </para>
+    </subsection>
+    <subsection inlist="toc" xml:id="S3.SS2" labels="LABEL:sec:metrics-plane" fragid="S3.SS2">
+      <tags>
+        <tag>3.2</tag>
+        <tag role="autoref">subsection 3.2</tag>
+        <tag role="creftype">section</tag>
+        <tag role="creftypecap">Section</tag>
+        <tag role="creftypeplural">sections</tag>
+        <tag role="creftypepluralcap">Sections</tag>
+        <tag role="refnum">3.2</tag>
+        <tag role="typerefnum">§3.2</tag>
+      </tags>
+      <title><tag close=". ">3.2</tag>Metrics Plane</title>
+      <toctitle><tag close=" ">3.2</tag>Metrics Plane</toctitle>
+      <para xml:id="S3.SS2.p1" fragid="S3.SS2.p1">
+        <p>Effective control requires visibility. To guide runtime communication behavior, the control plane must observe both system-level and application-level dynamics. Unlike traditional networking, where switch-local metrics (e.g., queue depth, flow rates) often suffice, agent serving demands richer telemetry that includes system-level data like memory and compute utilization, as well as application-level metrics like query completion times and agent dependencies (conditional agent execution).
+Further, these metrics differ depending on the components of the agent pipeline, <text font="italic">e.g.</text>, for LLM-based agent serving we need metrics like GPU utilization, time per token (TPT), and time to first token (TTFT). Meanwhile, for tools like the file system, we need access to file access latency, throughput, and disk space utilization. To contain complexity, the disparate metric collection requires a flexible yet unified metrics plane.</p>
+      </para>
+      <para xml:id="S3.SS2.p2" fragid="S3.SS2.p2">
+        <p><text font="bold">Goals.</text> The metrics plane should provide: (1) <text font="italic">Low-latency, low-overhead access</text> to critical signals like GPU/CPU utilization, memory pressure, and queue lengths at each serving node. (2) <text font="italic">Application-aware telemetry</text>, including per-request latency. (3) <text font="italic">Flexible aggregation</text>
+Across different metrics, agents and tools will generate different volumes of data; for example, time to next token is generated every time a token is generated, while time to first token is measured once per LLM query. The metric collection plane needs to provide a variety of aggregation functions based on the controller’s requirements. (4) <text font="italic">Semantic understanding of the metrics</text> to enable the controller to interpret and act on them appropriately.
+For instance, when optimizing for higher throughput, the controller needs to recognize that high GPU utilization is desirable, while a large amount of context switching is not.</p>
+      </para>
+      <para xml:id="S3.SS2.p3" fragid="S3.SS2.p3">
+        <p><text font="bold">Design.</text> We propose a two-tier architecture consisting of: (1) <text font="italic">Local metric collectors</text> at each node gather both system-level (hardware, kernel, runtime) and application-level (agent tool usage, response times) telemetry. This data is stored in lightweight, shared-memory structures. And, (2) <text font="italic">Centralized polling</text> used by the control plane to fetch metrics on demand. This avoids constant metric streaming and allows for coordinated collection across nodes when needed.
+(3) <text font="italic">Flexible Aggregation Functions.</text> To enable aggregation of various different metrics, the metrics plane will provide the ability to write custom aggregation functions.</p>
+      </para>
+      <para xml:id="S3.SS2.p4" fragid="S3.SS2.p4">
+        <p>This design allows the control plane to reason globally about the serving system—identifying both compute, memory, and communication hotspots; projecting SLO violations; and detecting opportunities for speculative execution<note mark="1" role="footnote" xml:id="footnote1" fragid="footnote1"><tags><tag>1</tag><tag role="autoref">footnote 1</tag><tag role="creftype">footnote</tag><tag role="creftypecap">Footnote</tag><tag role="creftypeplural">footnotes</tag><tag role="creftypepluralcap">Footnotes</tag><tag role="refnum">1</tag><tag role="typerefnum">footnote 1</tag></tags>Controller can detect low load on a particular agent and use it to perform partial prefills or speculative execution, leading to reduced runtime.</note>.
+By separating metric collection from decision-making, we preserve modularity: agent developers can expose domain-specific metrics without rewriting control logic.</p>
+      </para>
+      <para xml:id="S3.SS2.p5" fragid="S3.SS2.p5">
+        <p>To enable semantic understanding of the metrics, our solution is to design a limited specification language that highlights the metric behaviors. For example, an agentic workflow developer who creates a function to collect a metric could write a structured file (in JSON, or YAML) associated with that metric; the controller can read this file and use the information provided to understand the metric’s significance.
+However, given the vast number of metrics across diverse tools and agents, it can be quite challenging to specify all possible metrics exhaustively. A solution is for users to write the significance of metrics in natural language in the signature of the function for collecting the metric; the framework can then potentially use an LLM to transform that description into a metric specification <cite class="ltx_citemacro_citep">(<ref href="#bib.bib18" idref="bib.bib18">zhu2024large, </ref>)</cite>.</p>
+      </para>
+    </subsection>
+    <subsection inlist="toc" xml:id="S3.SS3" labels="LABEL:sec:data-plane" fragid="S3.SS3">
+      <tags>
+        <tag>3.3</tag>
+        <tag role="autoref">subsection 3.3</tag>
+        <tag role="creftype">section</tag>
+        <tag role="creftypecap">Section</tag>
+        <tag role="creftypeplural">sections</tag>
+        <tag role="creftypepluralcap">Sections</tag>
+        <tag role="refnum">3.3</tag>
+        <tag role="typerefnum">§3.3</tag>
+      </tags>
+      <title><tag close=". ">3.3</tag>Configurable Data Plane</title>
+      <toctitle><tag close=" ">3.3</tag>Configurable Data Plane</toctitle>
+      <para xml:id="S3.SS3.p1" fragid="S3.SS3.p1">
+        <p>We envision an agentic communication dataplane that decouples communication behavior from static application logic and enables runtime adaptation.</p>
+      </para>
+      <para xml:id="S3.SS3.p2" fragid="S3.SS3.p2">
+        <p><text font="bold">Goals.</text> The data plane substrate must support different message granularities (e.g., token-level streaming, message-level batching), priorities, and pacing strategies. Crucially, the dataplane must expose a simple interface for these knobs to be externally controllable by a system-wide controller (§<ref labelref="LABEL:sec:control-plane" idref="S3.SS1" href="#S3.SS1" title="3.1. Agent-Serving Control Plane ‣ 3. A Software-Defined Approach ‣ Software-Defined Agentic Serving"><text class="ltx_ref_tag">3.1</text></ref>). For example, under high agent load, the data plane might employ message-level sends to amortize inference cost, whereas under interactive conditions, it might revert to token streaming for lower latency.</p>
+      </para>
+      <para xml:id="S3.SS3.p3" fragid="S3.SS3.p3">
+        <p><text font="bold">Design.</text> Rather than reinventing agent communication protocols from scratch, we argue for building compatibility into the design. Our proposed data plane acts as a <text font="italic">shim layer</text> between high-level agent protocols (e.g., A2A, MCP, ACP) and the underlying socket or transport layer. This preserves developers’ ability to use familiar and rapidly maturing agentic APIs while exposing a new point of control: a reconfigurable shim that mediates message attributes. The data plane provides a standardized control interface, regardless of the specifics of the upper-level protocol or lower-level transport.</p>
+      </para>
+    </subsection>
+    <subsection inlist="toc" xml:id="S3.SS4" fragid="S3.SS4">
+      <tags>
+        <tag>3.4</tag>
+        <tag role="autoref">subsection 3.4</tag>
+        <tag role="creftype">section</tag>
+        <tag role="creftypecap">Section</tag>
+        <tag role="creftypeplural">sections</tag>
+        <tag role="creftypepluralcap">Sections</tag>
+        <tag role="refnum">3.4</tag>
+        <tag role="typerefnum">§3.4</tag>
+      </tags>
+      <title><tag close=". ">3.4</tag>Strawman Implementation</title>
+      <toctitle><tag close=" ">3.4</tag>Strawman Implementation</toctitle>
+      <para xml:id="S3.SS4.p1" fragid="S3.SS4.p1">
+        <p>We implemented a prototype of the proposed design and experimented with a workflow built using Google A2A. In this prototype, we modified the A2A protocol to invoke our custom communication library, built on gRPC, which supports synchronous, asynchronous, and streaming communication. Our metrics plane tracks the current load on each agent/tool instance. As before, we use one developer agent and one Testing agent running the MetaGPT workload.</p>
+      </para>
+      <para xml:id="S3.SS4.p2" fragid="S3.SS4.p2">
+        <p><text font="bold">Communication Control.</text>
+The controller is designed to adapt the communication pattern dynamically based on load.
+As shown in Figure <ref labelref="LABEL:fig:agent-control-throughput" idref="S3.F7" href="#S3.F7" title="Figure 7 ‣ 3.4. Strawman Implementation ‣ 3. A Software-Defined Approach ‣ Software-Defined Agentic Serving"><text class="ltx_ref_tag">7</text></ref>, our framework enables switching communication strategy in response to system load to quickly converge on the most effective mechanism.</p>
+      </para>
+      <para xml:id="S3.SS4.p3" fragid="S3.SS4.p3">
+        <p><text font="bold">Extended control surface.</text>
+To show the impact of giving controller access to the underlying agent serving control. We modify the underlying serving framework (vLLM <cite class="ltx_citemacro_citep">(<ref href="#bib.bib8" idref="bib.bib8">vllm, </ref>)</cite>) to provide a mechanism that allows for the transfer of KV caches from one instance of the agent to another.
+We launch one instance of the software engineering agent and two instances of the testing agent.
+We program the controller to minimize load imbalance across the test agent instances.
+We try two cases, one with integration, where the controller preemptively sends the testing agent a hint that a request will arrive, and the second where the test agent can transfer the KV cache from another instance <text font="italic">after</text> the request arrives.
+We observe in Figure <ref labelref="LABEL:fig:controller-integration-throughput" idref="S3.F7" href="#S3.F7" title="Figure 7 ‣ 3.4. Strawman Implementation ‣ 3. A Software-Defined Approach ‣ Software-Defined Agentic Serving"><text class="ltx_ref_tag">7</text></ref> that hints perform <Math mode="inline" xml:id="S3.SS4.p3.m1" tex="1.8\times" class="ltx_math_unparsed" fragid="S3.SS4.p3.m1"><m:math alttext="1.8\times" class="ltx_math_unparsed" display="inline"><m:semantics><m:mrow><m:mn xml:id="S3.SS4.p3.m1.1">1.8</m:mn><m:mo lspace="0.222em" xml:id="S3.SS4.p3.m1.2">×</m:mo></m:mrow><m:annotation encoding="application/x-tex">1.8\times</m:annotation></m:semantics></m:math></Math> better than without hints.
+We also observe that our proposed solution performs <Math mode="inline" xml:id="S3.SS4.p3.m2" tex="2.3\times" class="ltx_math_unparsed" fragid="S3.SS4.p3.m2"><m:math alttext="2.3\times" class="ltx_math_unparsed" display="inline"><m:semantics><m:mrow><m:mn xml:id="S3.SS4.p3.m2.1">2.3</m:mn><m:mo lspace="0.222em" xml:id="S3.SS4.p3.m2.2">×</m:mo></m:mrow><m:annotation encoding="application/x-tex">2.3\times</m:annotation></m:semantics></m:math></Math> better than the baseline with no load balancing.</p>
+      </para>
+      <figure inlist="lof" placement="t!" xml:id="S3.F7" labels="LABEL:fig:agent-control-throughput LABEL:fig:controller-integration-throughput" fragid="S3.F7">
+        <tags>
+          <tag>
+            <text fontsize="90%">Figure 7</text>
+          </tag>
+          <tag role="autoref">Figure 7</tag>
+          <tag role="creftype">figure</tag>
+          <tag role="creftypecap">Figure</tag>
+          <tag role="creftypeplural">figures</tag>
+          <tag role="creftypepluralcap">Figures</tag>
+          <tag role="refnum">7</tag>
+          <tag role="typerefnum">Figure 7</tag>
+        </tags>
+        <figure class="ltx_figure_panel ltx_minipage" vattach="top" width="72.5pt" xml:id="S3.F7.fig1" fragid="S3.F7.fig1">
+          <graphics candidates="figures/request_rate_dynamic_control.pdf" graphic="figures/request_rate_dynamic_control.pdf" options="width=390.3pt,keepaspectratio=true" xml:id="S3.F7.g1" class="ltx_centering" fragid="S3.F7.g1"/>
+          <toccaption class="ltx_centering">
+            <tag close=" ">6</tag>
+            <text fontsize="90%">Request rate with control: Using control for message communication granularity. </text>
+          </toccaption>
+          <caption class="ltx_centering">
+            <tag close=". ">
+              <text fontsize="90%">Figure 6</text>
+            </tag>
+            <text fontsize="90%">Request rate with control: Using control for message communication granularity. </text>
+          </caption>
+        </figure>
+        <figure class="ltx_figure_panel ltx_minipage" vattach="top" width="72.5pt" xml:id="S3.F7.fig2" fragid="S3.F7.fig2">
+          <graphics candidates="figures/deep_integration.pdf" graphic="figures/deep_integration.pdf" options="width=390.3pt,keepaspectratio=true" xml:id="S3.F7.g2" class="ltx_centering" fragid="S3.F7.g2"/>
+          <toccaption class="ltx_centering">
+            <tag close=" ">7</tag>
+            <text fontsize="90%">Controller with hint Integration: We use hints to move K,V cache at the time of load balancing.</text>
+          </toccaption>
+          <caption class="ltx_centering">
+            <tag close=". ">
+              <text fontsize="90%">Figure 7</text>
+            </tag>
+            <text fontsize="90%">Controller with hint Integration: We use hints to move K,V cache at the time of load balancing.</text>
+          </caption>
+        </figure>
+      </figure>
+    </subsection>
+  </section>
+  <section inlist="toc" xml:id="S4" fragid="S4">
+    <tags>
+      <tag>4</tag>
+      <tag role="autoref">section 4</tag>
+      <tag role="creftype">section</tag>
+      <tag role="creftypecap">Section</tag>
+      <tag role="creftypeplural">sections</tag>
+      <tag role="creftypepluralcap">Sections</tag>
+      <tag role="refnum">4</tag>
+      <tag role="typerefnum">§4</tag>
+    </tags>
+    <title><tag close=". ">4</tag>Related Work</title>
+    <toctitle><tag close=" ">4</tag>Related Work</toctitle>
+    <para xml:id="S4.p1" fragid="S4.p1">
+      <p>Agentic LLM systems have received significant attention due to their rapid adoption. A majority of the work has focused on three broad areas: algorithms for prompting and improving the performance of agentic systems; enhancing the efficiency of agent serving; and designing protocols for agent and tool communication.</p>
+    </para>
+    <para xml:id="S4.p2" fragid="S4.p2">
+      <p><text font="bold">Algorithmic improvements.</text>
+Agentic LLM algorithms are still rapidly evolving. This algorithmic evolution can significantly change the compute and control flow in the agentic application pipelines. For example,the dataplane must expose a simple interface for these knobs MetaGPT <cite class="ltx_citemacro_citep">(<ref href="#bib.bib5" idref="bib.bib5">hong2023metagpt, </ref>)</cite>, assigns roles like ”developer”, ”tester”, ”program manager”, etc., to different LLMs to generate code; meanwhile, recent work to improve code generation <cite class="ltx_citemacro_citep">(<ref href="#bib.bib16" idref="bib.bib16">wang2024executable, </ref>)</cite> requires access to a live environment. This algorithmic evolution significantly impacts the workload, as now different agents have to wait for the execution environment before proceeding; depending on the complexity of the code, this can take minutes. Our framework’s control plane, through effective resource orchestration, can hide the complexities arising from such algorithmic evolution (e.g., share GPU with multiple concurrent requests).</p>
+    </para>
+    <para xml:id="S4.p3" fragid="S4.p3">
+      <p><text font="bold">System Improvement.</text>
+Prior work <cite class="ltx_citemacro_citep">(<ref href="#bib.bib9" idref="bib.bib9">luo2025autellix, </ref>; <ref href="#bib.bib10" idref="bib.bib10">mei2024aios, </ref>)</cite> has looked at improving the efficiency of agentic systems. However, these systems typically target a specific type of agent workload and custom-developed policies for efficient serving. Our work, rooted in the SDN philosophy, applies generally to a wide range of agent workflows.</p>
+    </para>
+    <para xml:id="S4.p4" fragid="S4.p4">
+      <p><text font="bold">Agent Communication.</text>
+There has been significant interest in developing agentic communication protocols—ACP <cite class="ltx_citemacro_citep">(<ref href="#bib.bib6" idref="bib.bib6">acp, </ref>)</cite>, A2A <cite class="ltx_citemacro_citep">(<ref href="#bib.bib4" idref="bib.bib4">a2a, </ref>)</cite>, and MCP <cite class="ltx_citemacro_citep">(<ref href="#bib.bib3" idref="bib.bib3">mcp, </ref>)</cite> are notable examples—with the goal of standardizing communication across diverse agents. In our work, rather than proposing a new protocol, we demonstrate that agent serving necessitates rethinking, with clear unifying interfaces that enable effective control and management toward various system-wide goals, including efficiency.</p>
+    </para>
+  </section>
+  <section inlist="toc" xml:id="S5" labels="LABEL:sec:discussion" fragid="S5">
+    <tags>
+      <tag>5</tag>
+      <tag role="autoref">section 5</tag>
+      <tag role="creftype">section</tag>
+      <tag role="creftypecap">Section</tag>
+      <tag role="creftypeplural">sections</tag>
+      <tag role="creftypepluralcap">Sections</tag>
+      <tag role="refnum">5</tag>
+      <tag role="typerefnum">§5</tag>
+    </tags>
+    <title><tag close=". ">5</tag>Discussion and Conclusion</title>
+    <toctitle><tag close=" ">5</tag>Discussion and Conclusion</toctitle>
+    <para xml:id="S5.p1" fragid="S5.p1">
+      <p>We briefly discuss natural extensions of our proposal first, followed by interesting open questions it brings to fore.</p>
+    </para>
+    <para xml:id="S5.p2" fragid="S5.p2">
+      <p><text font="bold">Supporting External Agents.</text>
+Agentic workflows often span both user-managed infrastructure and external cloud-hosted tools <cite class="ltx_citemacro_citep">()</cite>. Our framework extends naturally to such hybrid setups. The controller can factor in latency, cost, or rate limits when invoking external services, choosing configurations that optimize for both performance and budget. Even partial integration—via standardized APIs and light-weight shim layers—can yield measurable benefits.</p>
+    </para>
+    <para xml:id="S5.p3" fragid="S5.p3">
+      <p><text font="bold">Online Policy Adaptation.</text>
+With global visibility into request context and system metrics, the controller can adapt policies at runtime to reduce SLO violations. For instance, if a verifier in the pipeline triggers regeneration, the controller can raise the request’s priority or reroute it for faster execution. This ability to adjust on the fly is key to managing dynamic, multi-agent pipelines.</p>
+    </para>
+    <para xml:id="S5.p4" fragid="S5.p4">
+      <p>Our proposal is a starting point for exercising systematic control over agentic serving systems. In addition to discussions around the interfaces and APIs we propose, our work raises new questions across language design, control-agent interfaces, and metrics infrastructure.</p>
+    </para>
+    <para xml:id="S5.p5" fragid="S5.p5">
+      <p><text font="bold">Languages for Agentic Control.</text> We envision declarative policy languages that let infrastructure engineers express high-level goals—e.g., “stream under 200ms latency”, “avoid speculative calls under load”, “transfer cache if queue depth is high”. Unlike SDN, agentic systems require semantics that span task structure, latency, agent roles, and compute constraints. Key challenges include defining sufficiently expressive primitives, incorporating real-time cross-agent feedback, and reasoning about policy correctness.</p>
+    </para>
+    <para xml:id="S5.p6" fragid="S5.p6">
+      <p><text font="bold">Control-Agent Interfaces.</text>
+Effective runtime control demands richer interfaces between the controller and agents/tools. A general interface that provides more control than our current proposal would need more capabilities, e.g., interrupting planning loops, cloning context, or suppressing non-critical subcalls.</p>
+    </para>
+    <para xml:id="S5.p7" fragid="S5.p7">
+      <p>Agents differ in structure and autonomy, so control interfaces must be both flexible and predictable. One path forward is to define capability classes (e.g., stateless tools vs. stateful planners) with standard control APIs. However, open questions currently remain around capability discovery, policy scope, and conflict resolution. Nevertheless, we believe that our proposed solution of having standard API’s and letting users write a small shim layer to integrate the controller API with agent or tool internal APIs would significantly reduce the effort to introduce new agents.</p>
+    </para>
+    <para xml:id="S5.p8" fragid="S5.p8">
+      <p><text font="bold">Metrics Infrastructure.</text>
+Our design assumes timely, structured telemetry, but collecting this at scale is nontrivial. First, agent-serving spans heterogeneous backends (vLLM, Triton, custom runtimes), making consistent instrumentation difficult. Second, metrics often require causal tracking across long-lived, multi-agent pipelines. Third, control loops need low-latency access to high-volume telemetry. While our initial prototype advocate aggregation functions to manage volume, new abstractions are needed to expose relevant signals at useful fidelity to the control plane without overwhelming the system or undermining control.</p>
+    </para>
+  </section>
+  <bibliography xml:id="bib" fragid="bib">
+    <title>References</title>
+    <biblist>
+      <bibitem key="agarwal2024symphony" xml:id="bib.bib1" fragid="bib.bib1">
+        <tags>
+          <tag role="number">1</tag>
+          <tag role="refnum">[1]</tag>
+          <tag role="key">agarwal2024symphony</tag>
+        </tags>
+        <bibblock>
+Saurabh Agarwal, Anyong Mao, Aditya Akella, and Shivaram Venkataraman.
+</bibblock>
+        <bibblock>Symphony: Improving memory management for llm inference workloads.
+</bibblock>
+        <bibblock><text font="italic">arXiv preprint arXiv:2412.16434</text>, 2024.
+</bibblock>
+      </bibitem>
+      <bibitem key="agntcy" xml:id="bib.bib2" fragid="bib.bib2">
+        <tags>
+          <tag role="number">2</tag>
+          <tag role="refnum">[2]</tag>
+          <tag role="key">agntcy</tag>
+        </tags>
+        <bibblock>
+agntcy.
+</bibblock>
+        <bibblock>An open source collective for inter-agent collaboration.
+</bibblock>
+        <bibblock><ref class="ltx_url" href="https://agntcy.org/" font="typewriter">https://agntcy.org/</ref>, 2025.
+</bibblock>
+        <bibblock>Accessed: June 22, 2025.
+</bibblock>
+      </bibitem>
+      <bibitem key="mcp" xml:id="bib.bib3" fragid="bib.bib3">
+        <tags>
+          <tag role="number">3</tag>
+          <tag role="refnum">[3]</tag>
+          <tag role="key">mcp</tag>
+        </tags>
+        <bibblock>
+Anthropic.
+</bibblock>
+        <bibblock>Model context protocol.
+</bibblock>
+        <bibblock><ref class="ltx_url" href="https://modelcontextprotocol.io" font="typewriter">https://modelcontextprotocol.io</ref>, 2025.
+</bibblock>
+        <bibblock>Accessed: June 22, 2025.
+</bibblock>
+      </bibitem>
+      <bibitem key="a2a" xml:id="bib.bib4" fragid="bib.bib4">
+        <tags>
+          <tag role="number">4</tag>
+          <tag role="refnum">[4]</tag>
+          <tag role="key">a2a</tag>
+        </tags>
+        <bibblock>
+Google.
+</bibblock>
+        <bibblock>An open protocol enabling communication and interoperability between opaque agentic applications.
+</bibblock>
+        <bibblock><ref class="ltx_url" href="https://a2aproject.github.io/A2A/latest/" font="typewriter">https://a2aproject.github.io/A2A/latest/</ref>, 2025.
+</bibblock>
+        <bibblock>Accessed: June 22, 2025.
+</bibblock>
+      </bibitem>
+      <bibitem key="hong2023metagpt" xml:id="bib.bib5" fragid="bib.bib5">
+        <tags>
+          <tag role="number">5</tag>
+          <tag role="refnum">[5]</tag>
+          <tag role="key">hong2023metagpt</tag>
+        </tags>
+        <bibblock>
+Sirui Hong, Xiawu Zheng, Jonathan Chen, Yuheng Cheng, Jinlin Wang, Ceyao Zhang, Zili Wang, Steven Ka Shing Yau, Zijuan Lin, Liyang Zhou, et al.
+</bibblock>
+        <bibblock>Metagpt: Meta programming for multi-agent collaborative framework.
+</bibblock>
+        <bibblock><text font="italic">arXiv preprint arXiv:2308.00352</text>, 3(4):6, 2023.
+</bibblock>
+      </bibitem>
+      <bibitem key="acp" xml:id="bib.bib6" fragid="bib.bib6">
+        <tags>
+          <tag role="number">6</tag>
+          <tag role="refnum">[6]</tag>
+          <tag role="key">acp</tag>
+        </tags>
+        <bibblock>
+IDM.
+</bibblock>
+        <bibblock>Agent communication protocol.
+</bibblock>
+        <bibblock><ref class="ltx_url" href="https://agentcommunicationprotocol.dev/" font="typewriter">https://agentcommunicationprotocol.dev/</ref>, 2025.
+</bibblock>
+        <bibblock>Accessed: June 22, 2025.
+</bibblock>
+      </bibitem>
+      <bibitem key="jin2015covisor" xml:id="bib.bib7" fragid="bib.bib7">
+        <tags>
+          <tag role="number">7</tag>
+          <tag role="refnum">[7]</tag>
+          <tag role="key">jin2015covisor</tag>
+        </tags>
+        <bibblock>
+Xin Jin, Jennifer Gossels, Jennifer Rexford, and David Walker.
+</bibblock>
+        <bibblock><Math mode="inline" xml:id="bib.bib7.m1" tex="\{" text="{" fragid="bib.bib7.m1"><m:math alttext="\{" display="inline"><m:semantics><m:mo stretchy="false" xml:id="bib.bib7.m1.1" xref="bib.bib7.m1.1.cmml">{</m:mo><m:annotation-xml encoding="MathML-Content"><m:ci xml:id="bib.bib7.m1.1.cmml" xref="bib.bib7.m1.1">{</m:ci></m:annotation-xml><m:annotation encoding="application/x-tex">\{</m:annotation></m:semantics></m:math></Math>CoVisor<Math mode="inline" xml:id="bib.bib7.m2" tex="\}" text="}" fragid="bib.bib7.m2"><m:math alttext="\}" display="inline"><m:semantics><m:mo stretchy="false" xml:id="bib.bib7.m2.1" xref="bib.bib7.m2.1.cmml">}</m:mo><m:annotation-xml encoding="MathML-Content"><m:ci xml:id="bib.bib7.m2.1.cmml" xref="bib.bib7.m2.1">}</m:ci></m:annotation-xml><m:annotation encoding="application/x-tex">\}</m:annotation></m:semantics></m:math></Math>: a compositional hypervisor for <Math mode="inline" xml:id="bib.bib7.m3" tex="\{" text="{" fragid="bib.bib7.m3"><m:math alttext="\{" display="inline"><m:semantics><m:mo stretchy="false" xml:id="bib.bib7.m3.1" xref="bib.bib7.m3.1.cmml">{</m:mo><m:annotation-xml encoding="MathML-Content"><m:ci xml:id="bib.bib7.m3.1.cmml" xref="bib.bib7.m3.1">{</m:ci></m:annotation-xml><m:annotation encoding="application/x-tex">\{</m:annotation></m:semantics></m:math></Math>software-defined<Math mode="inline" xml:id="bib.bib7.m4" tex="\}" text="}" fragid="bib.bib7.m4"><m:math alttext="\}" display="inline"><m:semantics><m:mo stretchy="false" xml:id="bib.bib7.m4.1" xref="bib.bib7.m4.1.cmml">}</m:mo><m:annotation-xml encoding="MathML-Content"><m:ci xml:id="bib.bib7.m4.1.cmml" xref="bib.bib7.m4.1">}</m:ci></m:annotation-xml><m:annotation encoding="application/x-tex">\}</m:annotation></m:semantics></m:math></Math> networks.
+</bibblock>
+        <bibblock>In <text font="italic">12th USENIX Symposium on Networked Systems Design and Implementation (NSDI 15)</text>, pages 87–101, 2015.
+</bibblock>
+      </bibitem>
+      <bibitem key="vllm" xml:id="bib.bib8" fragid="bib.bib8">
+        <tags>
+          <tag role="number">8</tag>
+          <tag role="refnum">[8]</tag>
+          <tag role="key">vllm</tag>
+        </tags>
+        <bibblock>
+Woosuk Kwon, Zhuohan Li, Siyuan Zhuang, Ying Sheng, Lianmin Zheng, Cody Hao Yu, Joseph Gonzalez, Hao Zhang, and Ion Stoica.
+</bibblock>
+        <bibblock>Efficient memory management for large language model serving with pagedattention.
+</bibblock>
+        <bibblock>In <text font="italic">Proceedings of the 29th Symposium on Operating Systems Principles</text>, pages 611–626, 2023.
+</bibblock>
+      </bibitem>
+      <bibitem key="luo2025autellix" xml:id="bib.bib9" fragid="bib.bib9">
+        <tags>
+          <tag role="number">9</tag>
+          <tag role="refnum">[9]</tag>
+          <tag role="key">luo2025autellix</tag>
+        </tags>
+        <bibblock>
+Michael Luo, Xiaoxiang Shi, Colin Cai, Tianjun Zhang, Justin Wong, Yichuan Wang, Chi Wang, Yanping Huang, Zhifeng Chen, Joseph E Gonzalez, et al.
+</bibblock>
+        <bibblock>Autellix: An efficient serving engine for llm agents as general programs.
+</bibblock>
+        <bibblock><text font="italic">arXiv preprint arXiv:2502.13965</text>, 2025.
+</bibblock>
+      </bibitem>
+      <bibitem key="mei2024aios" xml:id="bib.bib10" fragid="bib.bib10">
+        <tags>
+          <tag role="number">10</tag>
+          <tag role="refnum">[10]</tag>
+          <tag role="key">mei2024aios</tag>
+        </tags>
+        <bibblock>
+Kai Mei, Xi Zhu, Wujiang Xu, Wenyue Hua, Mingyu Jin, Zelong Li, Shuyuan Xu, Ruosong Ye, Yingqiang Ge, and Yongfeng Zhang.
+</bibblock>
+        <bibblock>Aios: Llm agent operating system.
+</bibblock>
+        <bibblock><text font="italic">arXiv preprint arXiv:2403.16971</text>, 2024.
+</bibblock>
+      </bibitem>
+      <bibitem key="park2023generative" xml:id="bib.bib11" fragid="bib.bib11">
+        <tags>
+          <tag role="number">11</tag>
+          <tag role="refnum">[11]</tag>
+          <tag role="key">park2023generative</tag>
+        </tags>
+        <bibblock>
+Joon Sung Park, Joseph O’Brien, Carrie Jun Cai, Meredith Ringel Morris, Percy Liang, and Michael S Bernstein.
+</bibblock>
+        <bibblock>Generative agents: Interactive simulacra of human behavior.
+</bibblock>
+        <bibblock>In <text font="italic">Proceedings of the 36th annual acm symposium on user interface software and technology</text>, pages 1–22, 2023.
+</bibblock>
+      </bibitem>
+      <bibitem key="qin2023toolllm" xml:id="bib.bib12" fragid="bib.bib12">
+        <tags>
+          <tag role="number">12</tag>
+          <tag role="refnum">[12]</tag>
+          <tag role="key">qin2023toolllm</tag>
+        </tags>
+        <bibblock>
+Yujia Qin, Shihao Liang, Yining Ye, Kunlun Zhu, Lan Yan, Yaxi Lu, Yankai Lin, Xin Cong, Xiangru Tang, Bill Qian, et al.
+</bibblock>
+        <bibblock>Toolllm: Facilitating large language models to master 16000+ real-world apis.
+</bibblock>
+        <bibblock><text font="italic">arXiv preprint arXiv:2307.16789</text>, 2023.
+</bibblock>
+      </bibitem>
+      <bibitem key="schick2023toolformer" xml:id="bib.bib13" fragid="bib.bib13">
+        <tags>
+          <tag role="number">13</tag>
+          <tag role="refnum">[13]</tag>
+          <tag role="key">schick2023toolformer</tag>
+        </tags>
+        <bibblock>
+Timo Schick, Jane Dwivedi-Yu, Roberto Dessì, Roberta Raileanu, Maria Lomeli, Eric Hambro, Luke Zettlemoyer, Nicola Cancedda, and Thomas Scialom.
+</bibblock>
+        <bibblock>Toolformer: Language models can teach themselves to use tools.
+</bibblock>
+        <bibblock><text font="italic">Advances in Neural Information Processing Systems</text>, 36:68539–68551, 2023.
+</bibblock>
+      </bibitem>
+      <bibitem key="talebirad2023multi" xml:id="bib.bib14" fragid="bib.bib14">
+        <tags>
+          <tag role="number">14</tag>
+          <tag role="refnum">[14]</tag>
+          <tag role="key">talebirad2023multi</tag>
+        </tags>
+        <bibblock>
+Yashar Talebirad and Amirhossein Nadiri.
+</bibblock>
+        <bibblock>Multi-agent collaboration: Harnessing the power of intelligent llm agents.
+</bibblock>
+        <bibblock><text font="italic">arXiv preprint arXiv:2306.03314</text>, 2023.
+</bibblock>
+      </bibitem>
+      <bibitem key="tan2024taskgen" xml:id="bib.bib15" fragid="bib.bib15">
+        <tags>
+          <tag role="number">15</tag>
+          <tag role="refnum">[15]</tag>
+          <tag role="key">tan2024taskgen</tag>
+        </tags>
+        <bibblock>
+John Chong Min Tan, Prince Saroj, Bharat Runwal, Hardik Maheshwari, Brian Lim Yi Sheng, Richard Cottrill, Alankrit Chona, Ambuj Kumar, and Mehul Motani.
+</bibblock>
+        <bibblock>Taskgen: A task-based, memory-infused agentic framework using strictjson.
+</bibblock>
+        <bibblock><text font="italic">arXiv preprint arXiv:2407.15734</text>, 2024.
+</bibblock>
+      </bibitem>
+      <bibitem key="wang2024executable" xml:id="bib.bib16" fragid="bib.bib16">
+        <tags>
+          <tag role="number">16</tag>
+          <tag role="refnum">[16]</tag>
+          <tag role="key">wang2024executable</tag>
+        </tags>
+        <bibblock>
+Xingyao Wang, Yangyi Chen, Lifan Yuan, Yizhe Zhang, Yunzhu Li, Hao Peng, and Heng Ji.
+</bibblock>
+        <bibblock>Executable code actions elicit better llm agents.
+</bibblock>
+        <bibblock>In <text font="italic">Forty-first International Conference on Machine Learning</text>, 2024.
+</bibblock>
+      </bibitem>
+      <bibitem key="yang2023gpt4tools" xml:id="bib.bib17" fragid="bib.bib17">
+        <tags>
+          <tag role="number">17</tag>
+          <tag role="refnum">[17]</tag>
+          <tag role="key">yang2023gpt4tools</tag>
+        </tags>
+        <bibblock>
+Rui Yang, Lin Song, Yanwei Li, Sijie Zhao, Yixiao Ge, Xiu Li, and Ying Shan.
+</bibblock>
+        <bibblock>Gpt4tools: Teaching large language model to use tools via self-instruction.
+</bibblock>
+        <bibblock><text font="italic">Advances in Neural Information Processing Systems</text>, 36:71995–72007, 2023.
+</bibblock>
+      </bibitem>
+      <bibitem key="zhu2024large" xml:id="bib.bib18" fragid="bib.bib18">
+        <tags>
+          <tag role="number">18</tag>
+          <tag role="refnum">[18]</tag>
+          <tag role="key">zhu2024large</tag>
+        </tags>
+        <bibblock>
+Xiaohu Zhu, Qian Li, Lizhen Cui, and Yongkang Liu.
+</bibblock>
+        <bibblock>Large language model enhanced text-to-sql generation: A survey.
+</bibblock>
+        <bibblock><text font="italic">arXiv preprint arXiv:2410.06011</text>, 2024.
+</bibblock>
+      </bibitem>
+    </biblist>
+  </bibliography>
+  <navigation>
+    <title>Software-Defined Agentic Serving</title>
+  </navigation>
+</document>

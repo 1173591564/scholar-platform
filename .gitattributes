@@ -1,0 +1,3 @@
+# Force LF line endings for TeX fixture files so parser provenance hashes
+# are deterministic across Windows/Unix.
+tests/fixtures/**/*.tex eol=lf

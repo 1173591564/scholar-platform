@@ -1,0 +1,1073 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?latexml searchpaths="/opt/ar5iv-bindings/supported_originals,/opt/ar5iv-bindings/bindings,/custom-bindings,/work"?>
+<?latexml class="article" options="11pt"?>
+<?latexml package="coling" options="final"?>
+<?latexml package="times"?>
+<?latexml package="latexsym"?>
+<?latexml package="fontenc" options="T1"?>
+<?latexml package="inputenc" options="utf8"?>
+<?latexml package="microtype"?>
+<?latexml package="inconsolata"?>
+<?latexml package="graphicx"?>
+<?latexml package="enumitem"?>
+<?latexml RelaxNGSchema="LaTeXML"?>
+<document xmlns="http://dlmf.nist.gov/LaTeXML" xmlns:m="http://www.w3.org/1998/Math/MathML" class="ltx_authors_1line" xml:id="Document">
+  <resource src="LaTeXML.css" type="text/css"/>
+  <resource src="ltx-article.css" type="text/css"/>
+  <title>Tutorial Proposal:<break/>Speculative Decoding for Efficient LLM Inference</title>
+  <creator role="author">
+    <personname>Heming Xia<sup><Math mode="inline" xml:id="m1" tex="\dagger" text="dagger" fragid="m1"><m:math alttext="\dagger" display="inline"><m:semantics><m:mo xml:id="m1.1" xref="m1.1.cmml">†</m:mo><m:annotation-xml encoding="MathML-Content"><m:ci xml:id="m1.1.cmml" xref="m1.1">†</m:ci></m:annotation-xml><m:annotation encoding="application/x-tex">\dagger</m:annotation></m:semantics></m:math></Math></sup>, Cunxiao Du<sup><Math mode="inline" xml:id="m2" tex="\ddagger" text="ddagger" fragid="m2"><m:math alttext="\ddagger" display="inline"><m:semantics><m:mo xml:id="m2.1" xref="m2.1.cmml">‡</m:mo><m:annotation-xml encoding="MathML-Content"><m:ci xml:id="m2.1.cmml" xref="m2.1">‡</m:ci></m:annotation-xml><m:annotation encoding="application/x-tex">\ddagger</m:annotation></m:semantics></m:math></Math></sup>, <text font="bold">Yongqi Li<sup><Math mode="inline" xml:id="m3" tex="\dagger" text="dagger" fragid="m3"><m:math alttext="\dagger" display="inline"><m:semantics><m:mo xml:id="m3.1" xref="m3.1.cmml">†</m:mo><m:annotation-xml encoding="MathML-Content"><m:ci xml:id="m3.1.cmml" xref="m3.1">†</m:ci></m:annotation-xml><m:annotation encoding="application/x-tex">\dagger</m:annotation></m:semantics></m:math></Math></sup></text>, Qian Liu<sup><Math mode="inline" xml:id="m4" tex="\ddagger" text="ddagger" fragid="m4"><m:math alttext="\ddagger" display="inline"><m:semantics><m:mo xml:id="m4.1" xref="m4.1.cmml">‡</m:mo><m:annotation-xml encoding="MathML-Content"><m:ci xml:id="m4.1.cmml" xref="m4.1">‡</m:ci></m:annotation-xml><m:annotation encoding="application/x-tex">\ddagger</m:annotation></m:semantics></m:math></Math></sup>, <text font="bold">Wenjie Li<sup><Math mode="inline" xml:id="m5" tex="\dagger" text="dagger" fragid="m5"><m:math alttext="\dagger" display="inline"><m:semantics><m:mo xml:id="m5.1" xref="m5.1.cmml">†</m:mo><m:annotation-xml encoding="MathML-Content"><m:ci xml:id="m5.1.cmml" xref="m5.1">†</m:ci></m:annotation-xml><m:annotation encoding="application/x-tex">\dagger</m:annotation></m:semantics></m:math></Math></sup><break/><sup><Math mode="inline" xml:id="m6" tex="\dagger" text="dagger" fragid="m6"><m:math alttext="\dagger" display="inline"><m:semantics><m:mo xml:id="m6.1" xref="m6.1.cmml">†</m:mo><m:annotation-xml encoding="MathML-Content"><m:ci xml:id="m6.1.cmml" xref="m6.1">†</m:ci></m:annotation-xml><m:annotation encoding="application/x-tex">\dagger</m:annotation></m:semantics></m:math></Math></sup></text>The Hong Kong Polytechnic University,
+<sup><Math mode="inline" xml:id="m7" tex="\ddagger" text="ddagger" fragid="m7"><m:math alttext="\ddagger" display="inline"><m:semantics><m:mo xml:id="m7.1" xref="m7.1.cmml">‡</m:mo><m:annotation-xml encoding="MathML-Content"><m:ci xml:id="m7.1.cmml" xref="m7.1">‡</m:ci></m:annotation-xml><m:annotation encoding="application/x-tex">\ddagger</m:annotation></m:semantics></m:math></Math></sup>Sea AI Lab <break/><text font="typewriter">{he-ming.xia}@connect.polyu.hk; {cnsdunm}@gmail.com</text></personname>
+  </creator>
+  <abstract name="Abstract">
+    <p>This tutorial presents a comprehensive introduction to Speculative Decoding (SD), an advanced technique for LLM inference acceleration that has garnered significant research interest in recent years. SD is introduced as an innovative decoding paradigm to mitigate the high inference latency stemming from autoregressive decoding in LLMs. At each decoding step, SD efficiently drafts several future tokens and then verifies them in parallel. This approach, unlike traditional autoregressive decoding, facilitates the simultaneous decoding of multiple tokens per step, thereby achieving promising 2<Math mode="inline" xml:id="m8" tex="\times" text="*" fragid="m8"><m:math alttext="\times" display="inline"><m:semantics><m:mo xml:id="m8.1" xref="m8.1.cmml">×</m:mo><m:annotation-xml encoding="MathML-Content"><m:times xml:id="m8.1.cmml" xref="m8.1"/></m:annotation-xml><m:annotation encoding="application/x-tex">\times</m:annotation></m:semantics></m:math></Math><Math mode="inline" xml:id="m9" tex="\sim" text="similar-to" fragid="m9"><m:math alttext="\sim" display="inline"><m:semantics><m:mo xml:id="m9.1" xref="m9.1.cmml">∼</m:mo><m:annotation-xml encoding="MathML-Content"><m:csymbol cd="latexml" xml:id="m9.1.cmml" xref="m9.1">similar-to</m:csymbol></m:annotation-xml><m:annotation encoding="application/x-tex">\sim</m:annotation></m:semantics></m:math></Math>4<Math mode="inline" xml:id="m10" tex="\times" text="*" fragid="m10"><m:math alttext="\times" display="inline"><m:semantics><m:mo xml:id="m10.1" xref="m10.1.cmml">×</m:mo><m:annotation-xml encoding="MathML-Content"><m:times xml:id="m10.1.cmml" xref="m10.1"/></m:annotation-xml><m:annotation encoding="application/x-tex">\times</m:annotation></m:semantics></m:math></Math> speedups in LLM inference while maintaining original distributions. This tutorial delves into the latest techniques in SD, including draft model architectures and verification strategies. Additionally, it explores the acceleration potential and future research directions in this promising field. We aim for this tutorial to elucidate the current research landscape and offer insights for researchers interested in Speculative Decoding, ultimately contributing to more efficient LLM inference.</p>
+  </abstract>
+  <section inlist="toc" xml:id="S1" fragid="S1">
+    <tags>
+      <tag>1</tag>
+      <tag role="autoref">section 1</tag>
+      <tag role="refnum">1</tag>
+      <tag role="typerefnum">§1</tag>
+    </tags>
+    <title><tag close=" ">1</tag>Introduction</title>
+    <para xml:id="S1.p1" fragid="S1.p1">
+      <p>Large Language Models (LLMs) have achieved significant progress across various domains, e.g., machine translation, fact verification, and conversational systems <cite class="ltx_citemacro_citep">(OpenAI, <ref href="#bib.bib104" idref="bib.bib104" title="GPT-4 technical report">2023</ref>; Touvron<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib94" idref="bib.bib94" title="LLaMA: open and efficient foundation language models">2023a</ref>, <ref href="#bib.bib112" idref="bib.bib112" title="Llama 2: open foundation and fine-tuned chat models">b</ref>)</cite>. However, the token-by-token generation nature necessitated by autoregressive decoding falls short in efficiency, especially as model sizes increase <cite class="ltx_citemacro_cite">Pope<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib155" idref="bib.bib155" title="Efficiently scaling transformer inference">2023</ref>)</cite>. The inference latency primarily stems from the memory-bound computation of LLMs <cite class="ltx_citemacro_cite">Patterson (<ref href="#bib.bib117" idref="bib.bib117" title="Latency lags bandwith">2004</ref>); Shazeer (<ref href="#bib.bib118" idref="bib.bib118" title="Fast transformer decoding: one write-head is all you need">2019</ref>)</cite>. Each forward pass requires transferring all LLM parameters from High-Bandwidth Memory (HBM) to the on-chip cache of modern accelerators like GPUs. This process, which produces only one token per step, leads to the underutilization of these accelerators and results in inefficiencies.</p>
+    </para>
+    <para xml:id="S1.p2" fragid="S1.p2">
+      <p>To mitigate the high inference latency, Speculative Decoding (SD) has been introduced as an innovative decoding paradigm <cite class="ltx_citemacro_cite">Stern<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib17" idref="bib.bib17" title="Blockwise parallel decoding for deep autoregressive models">2018</ref>); Chen<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib96" idref="bib.bib96" title="Accelerating large language model decoding with speculative sampling">2023</ref>); Xia<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib106" idref="bib.bib106" title="Speculative decoding: exploiting speculative execution for accelerating seq2seq generation">2023</ref>); Leviathan<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib95" idref="bib.bib95" title="Fast inference from transformers via speculative decoding">2023</ref>)</cite>. The key idea of SD is to exploit the token-level computation parallelism of LLMs by integrating an efficient “draft” model into the inference process. At each decoding step, SD first utilizes this draft model to efficiently predict multiple future tokens and then validates all these tokens with the target LLM in parallel <cite class="ltx_citemacro_cite">Xia<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib9" idref="bib.bib9" title="Unlocking efficiency in large language model inference: a comprehensive survey of speculative decoding">2024</ref>)</cite>. Since the draft model requires much fewer computation resources and the cost of parallel verification is nearly equivalent to decoding a single token, SD achieves considerable speedups by substantially reducing overall decoding steps, which diminishes the need for frequent memory operations of LLM parameters <cite class="ltx_citemacro_cite">Cai<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib111" idref="bib.bib111" title="Medusa: simple LLM inference acceleration framework with multiple decoding heads">2024</ref>); Li<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib143" idref="bib.bib143" title="EAGLE: speculative sampling requires rethinking feature uncertainty">2024b</ref>); Fu<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib121" idref="bib.bib121" title="Break the sequential dependency of llm inference using lookahead decoding">2024</ref>); Du<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib156" idref="bib.bib156" title="GliDe with a cape: A low-hassle method to accelerate speculative decoding">2023</ref>)</cite>. Furthermore, SD has been theoretically proven to maintain identical distributions to the target LLM <cite class="ltx_citemacro_cite">Leviathan<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib95" idref="bib.bib95" title="Fast inference from transformers via speculative decoding">2023</ref>); Chen<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib96" idref="bib.bib96" title="Accelerating large language model decoding with speculative sampling">2023</ref>)</cite>, which broadens its application in both academic and industrial communities.</p>
+    </para>
+    <para xml:id="S1.p3" fragid="S1.p3">
+      <p>The primary factors for the acceleration effect of SD are threefold: <text font="bold">1)</text> the inference efficiency of the introduced draft model, <text font="bold">2)</text> the acceptance rate of the drafted tokens, and <text font="bold">3)</text> the average token acceptance length throughout the inference process. To fully exploit the inference parallelism and obtain high speedups, the structure of the draft model, the drafting mechanism, as well as the verification strategy of LLMs play a vital role in SD. In this tutorial, we will present a comprehensive introduction to this innovative decoding paradigm. We will start by providing preliminaries covering the foundational concepts of LLMs (e.g., decoder-only LLMs and autoregressive decoding), and illustrating the memory bottleneck in LLM inference. We will then focus on recent advancements in <text font="italic">drafting and verification strategies</text>, <text font="italic">leading algorithms</text>, and <text font="italic">applications</text> of Speculative Decoding.</p>
+    </para>
+    <paragraph inlist="toc" xml:id="S1.SS0.SSS0.Px1" fragid="S1.SS0.SSS0.Px1">
+      <title>A taxonomy of methods</title>
+      <para xml:id="S1.SS0.SSS0.Px1.p1" fragid="S1.SS0.SSS0.Px1.p1">
+        <p>We introduce a taxonomy of SD methods based on a variety of dimensions. SD approaches can be categorized by <text font="italic">draft model architectures</text> into two main types: 1) independent drafting methods such as leveraging smaller LMs from the same model series <cite class="ltx_citemacro_cite">Leviathan<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib95" idref="bib.bib95" title="Fast inference from transformers via speculative decoding">2023</ref>); Chen<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib96" idref="bib.bib96" title="Accelerating large language model decoding with speculative sampling">2023</ref>); Miao<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib98" idref="bib.bib98" title="SpecInfer: accelerating large language model serving with tree-based speculative inference and verification">2024</ref>); Zhou<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib102" idref="bib.bib102" title="DistillSpec: improving speculative decoding via knowledge distillation">2024</ref>); He<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib124" idref="bib.bib124" title="REST: retrieval-based speculative decoding">2024</ref>)</cite> and 2) self-drafting approaches that integrate lightweight draft modules into the target LLM <cite class="ltx_citemacro_cite">Cai<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib111" idref="bib.bib111" title="Medusa: simple LLM inference acceleration framework with multiple decoding heads">2024</ref>); Li<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib143" idref="bib.bib143" title="EAGLE: speculative sampling requires rethinking feature uncertainty">2024b</ref>); Du<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib156" idref="bib.bib156" title="GliDe with a cape: A low-hassle method to accelerate speculative decoding">2023</ref>); Fu<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib121" idref="bib.bib121" title="Break the sequential dependency of llm inference using lookahead decoding">2024</ref>)</cite>. At the same time, SD methods can be categorized based on <text font="italic">the supported verification strategy</text>, such as the greedy decoding <cite class="ltx_citemacro_cite">Stern<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib17" idref="bib.bib17" title="Blockwise parallel decoding for deep autoregressive models">2018</ref>); Xia<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib106" idref="bib.bib106" title="Speculative decoding: exploiting speculative execution for accelerating seq2seq generation">2023</ref>); Zhang<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib101" idref="bib.bib101" title="Draft &amp; verify: lossless large language model acceleration via self-speculative decoding">2023a</ref>)</cite>, speculative sampling <cite class="ltx_citemacro_cite">Leviathan<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib95" idref="bib.bib95" title="Fast inference from transformers via speculative decoding">2023</ref>); Chen<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib96" idref="bib.bib96" title="Accelerating large language model decoding with speculative sampling">2023</ref>)</cite>, and token tree verification <cite class="ltx_citemacro_cite">Miao<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib98" idref="bib.bib98" title="SpecInfer: accelerating large language model serving with tree-based speculative inference and verification">2024</ref>); He<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib124" idref="bib.bib124" title="REST: retrieval-based speculative decoding">2024</ref>); Li<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib143" idref="bib.bib143" title="EAGLE: speculative sampling requires rethinking feature uncertainty">2024b</ref>, <ref href="#bib.bib12" idref="bib.bib12" title="EAGLE-2: faster inference of language models with dynamic draft trees">a</ref>)</cite>, an effective approach to increase the token acceptance rate.</p>
+      </para>
+    </paragraph>
+    <paragraph inlist="toc" xml:id="S1.SS0.SSS0.Px2" fragid="S1.SS0.SSS0.Px2">
+      <title>Cutting-edge algorithms</title>
+      <para xml:id="S1.SS0.SSS0.Px2.p1" fragid="S1.SS0.SSS0.Px2.p1">
+        <p>Then, we offer a thorough discussion and analysis of cutting-edge SD approaches. Specifically, we delve into an in-depth analysis of the state-of-the-art methods, Eagle <cite class="ltx_citemacro_cite">Li<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib143" idref="bib.bib143" title="EAGLE: speculative sampling requires rethinking feature uncertainty">2024b</ref>)</cite> and Eagle-2<cite class="ltx_citemacro_cite">Li<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib12" idref="bib.bib12" title="EAGLE-2: faster inference of language models with dynamic draft trees">2024a</ref>)</cite>, which achieve an average 4<Math mode="inline" xml:id="S1.SS0.SSS0.Px2.p1.m1" tex="\times" text="*" fragid="S1.SS0.SSS0.Px2.p1.m1"><m:math alttext="\times" display="inline"><m:semantics><m:mo xml:id="S1.SS0.SSS0.Px2.p1.m1.1" xref="S1.SS0.SSS0.Px2.p1.m1.1.cmml">×</m:mo><m:annotation-xml encoding="MathML-Content"><m:times xml:id="S1.SS0.SSS0.Px2.p1.m1.1.cmml" xref="S1.SS0.SSS0.Px2.p1.m1.1"/></m:annotation-xml><m:annotation encoding="application/x-tex">\times</m:annotation></m:semantics></m:math></Math> speedup across various generation tasks. This analysis covers their drafting model architectures, drafting mechanisms, and innovative verification strategies. Furthermore, we conduct discussions on other leading methods such as Medusa <cite class="ltx_citemacro_cite">Cai<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib111" idref="bib.bib111" title="Medusa: simple LLM inference acceleration framework with multiple decoding heads">2024</ref>)</cite>, GliDe with a CaPE <cite class="ltx_citemacro_cite">Du<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib156" idref="bib.bib156" title="GliDe with a cape: A low-hassle method to accelerate speculative decoding">2023</ref>)</cite>, and Lookahead Decoding <cite class="ltx_citemacro_cite">Fu<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib121" idref="bib.bib121" title="Break the sequential dependency of llm inference using lookahead decoding">2024</ref>)</cite>, offering insights for researchers interested in this promising research area.</p>
+      </para>
+    </paragraph>
+    <paragraph inlist="toc" xml:id="S1.SS0.SSS0.Px3" fragid="S1.SS0.SSS0.Px3">
+      <title>Evaluations and applications</title>
+      <para xml:id="S1.SS0.SSS0.Px3.p1" fragid="S1.SS0.SSS0.Px3.p1">
+        <p>After discussing the fundamental components and prominent variants of Speculative Decoding, we present a fair comparison of various open-source SD methods using a unified testing environment and evaluation platform. This comparison aims to raise awareness among academics about the practical speedups expected from SD. Beyond general generation tasks, we further introduce SD techniques in downstream applications, such as retrieval-augmented SD <cite class="ltx_citemacro_cite">Zhang<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib116" idref="bib.bib116" title="Accelerating retrieval-augmented language model serving with speculation">2023b</ref>); Wang<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib3" idref="bib.bib3" title="Speculative rag: enhancing retrieval augmented generation through drafting">2024</ref>)</cite>, long-context SD <cite class="ltx_citemacro_cite">Sun<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib4" idref="bib.bib4" title="TriForce: lossless acceleration of long sequence generation with hierarchical speculative decoding">2024</ref>)</cite>, and multimodal SD <cite class="ltx_citemacro_cite">Gagrani<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib5" idref="bib.bib5" title="On speculative decoding for multimodal large language models">2024</ref>)</cite>. Additionally, we discuss SD methods tailored for specific input contexts <cite class="ltx_citemacro_cite">Sun<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib15" idref="bib.bib15" title="Instantaneous grammatical error correction with shallow aggressive decoding">2021</ref>); Yang<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib16" idref="bib.bib16" title="Inference with reference: lossless acceleration of large language models">2023</ref>); Saxena (<ref href="#bib.bib144" idref="bib.bib144" title="Prompt lookup decoding">2023</ref>)</cite> and advanced SD approaches for mobile phone applications <cite class="ltx_citemacro_cite">Xu<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib26" idref="bib.bib26" title="LLMCad: fast and scalable on-device large language model inference">2023</ref>)</cite>.</p>
+      </para>
+      <para xml:id="S1.SS0.SSS0.Px3.p2" fragid="S1.SS0.SSS0.Px3.p2">
+        <p>Finally, we will demonstrate the effectiveness of Speculative Decoding through a practical exercise. We conclude this tutorial by summarizing the strengths and challenges of SD and discussing several important future directions. These include: 1) how we can further improve the speedups of SD methods by optimizing the trade-offs between speculation accuracy and drafting efficiency, 2) how to apply Speculative Decoding in batched inference scenarios, and 3) how to integrate Speculative Decoding with other leading techniques. We hope this tutorial serves as an essential guide for newcomers to this field and motivates further research.</p>
+      </para>
+    </paragraph>
+  </section>
+  <section inlist="toc" xml:id="S2" fragid="S2">
+    <tags>
+      <tag>2</tag>
+      <tag role="autoref">section 2</tag>
+      <tag role="refnum">2</tag>
+      <tag role="typerefnum">§2</tag>
+    </tags>
+    <title><tag close=" ">2</tag>Target Audience</title>
+    <para xml:id="S2.p1" fragid="S2.p1">
+      <p>This tutorial will be accessible to anyone with a basic knowledge of machine learning and natural language processing. We believe the topic will be of interest to both NLP researchers and students in academia, as well as NLP practitioners in the industry, particularly those interested in LLM efficiency, sparsity, and computational parallelism. By providing a systematic overview of recent promising approaches for this rapidly evolving field, this tutorial hopefully reveals new research opportunities to the audience.</p>
+    </para>
+  </section>
+  <section inlist="toc" xml:id="S3" fragid="S3">
+    <tags>
+      <tag>3</tag>
+      <tag role="autoref">section 3</tag>
+      <tag role="refnum">3</tag>
+      <tag role="typerefnum">§3</tag>
+    </tags>
+    <title><tag close=" ">3</tag>Outline</title>
+    <paragraph inlist="toc" xml:id="S3.SS0.SSS0.Px1" fragid="S3.SS0.SSS0.Px1">
+      <title>1. Introduction</title>
+      <para xml:id="S3.SS0.SSS0.Px1.p1" fragid="S3.SS0.SSS0.Px1.p1">
+        <p>(15 minutes)</p>
+        <itemize xml:id="S3.I1" fragid="S3.I1">
+          <item xml:id="S3.I1.i1" fragid="S3.I1.i1">
+            <tags>
+              <tag>•</tag>
+              <tag role="autoref">item </tag>
+              <tag role="typerefnum">1st item</tag>
+            </tags>
+            <para xml:id="S3.I1.i1.p1" fragid="S3.I1.i1.p1">
+              <p>An overview of the tutorial</p>
+            </para>
+          </item>
+          <item xml:id="S3.I1.i2" fragid="S3.I1.i2">
+            <tags>
+              <tag>•</tag>
+              <tag role="autoref">item </tag>
+              <tag role="typerefnum">2nd item</tag>
+            </tags>
+            <para xml:id="S3.I1.i2.p1" fragid="S3.I1.i2.p1">
+              <p>The benefits of Speculative Decoding</p>
+            </para>
+          </item>
+        </itemize>
+      </para>
+    </paragraph>
+    <paragraph inlist="toc" xml:id="S3.SS0.SSS0.Px2" fragid="S3.SS0.SSS0.Px2">
+      <title>2. Preliminaries</title>
+      <para xml:id="S3.SS0.SSS0.Px2.p1" fragid="S3.SS0.SSS0.Px2.p1">
+        <p>(15 minutes)</p>
+        <itemize xml:id="S3.I2" fragid="S3.I2">
+          <item xml:id="S3.I2.i1" fragid="S3.I2.i1">
+            <tags>
+              <tag>•</tag>
+              <tag role="autoref">item </tag>
+              <tag role="typerefnum">1st item</tag>
+            </tags>
+            <para xml:id="S3.I2.i1.p1" fragid="S3.I2.i1.p1">
+              <p>Auto-regressive decoding</p>
+            </para>
+          </item>
+          <item xml:id="S3.I2.i2" fragid="S3.I2.i2">
+            <tags>
+              <tag>•</tag>
+              <tag role="autoref">item </tag>
+              <tag role="typerefnum">2nd item</tag>
+            </tags>
+            <para xml:id="S3.I2.i2.p1" fragid="S3.I2.i2.p1">
+              <p>Memory bottleneck in LLM inference</p>
+            </para>
+          </item>
+        </itemize>
+      </para>
+    </paragraph>
+    <paragraph inlist="toc" xml:id="S3.SS0.SSS0.Px3" fragid="S3.SS0.SSS0.Px3">
+      <title>3. Speculative Decoding: A taxonomy of methods</title>
+      <para xml:id="S3.SS0.SSS0.Px3.p1" fragid="S3.SS0.SSS0.Px3.p1">
+        <p>(40 minutes)</p>
+        <itemize xml:id="S3.I3" fragid="S3.I3">
+          <item xml:id="S3.I3.i1" fragid="S3.I3.i1">
+            <tags>
+              <tag>•</tag>
+              <tag role="autoref">item </tag>
+              <tag role="typerefnum">1st item</tag>
+            </tags>
+            <para xml:id="S3.I3.i1.p1" fragid="S3.I3.i1.p1">
+              <p>Definition, formulation, and illustrated algorithms of Speculative Decoding</p>
+            </para>
+          </item>
+          <item xml:id="S3.I3.i2" fragid="S3.I3.i2">
+            <tags>
+              <tag>•</tag>
+              <tag role="autoref">item </tag>
+              <tag role="typerefnum">2nd item</tag>
+            </tags>
+            <para xml:id="S3.I3.i2.p1" fragid="S3.I3.i2.p1">
+              <p>Introduction to various draft model architectures and verification strategies</p>
+            </para>
+          </item>
+        </itemize>
+      </para>
+    </paragraph>
+    <paragraph inlist="toc" xml:id="S3.SS0.SSS0.Px4" fragid="S3.SS0.SSS0.Px4">
+      <title>4. Speculative Decoding: Cutting-edge algorithms</title>
+      <para xml:id="S3.SS0.SSS0.Px4.p1" fragid="S3.SS0.SSS0.Px4.p1">
+        <p>(40 minutes)</p>
+        <itemize xml:id="S3.I4" fragid="S3.I4">
+          <item xml:id="S3.I4.i1" fragid="S3.I4.i1">
+            <tags>
+              <tag>•</tag>
+              <tag role="autoref">item </tag>
+              <tag role="typerefnum">1st item</tag>
+            </tags>
+            <para xml:id="S3.I4.i1.p1" fragid="S3.I4.i1.p1">
+              <p>Discussions and analysis of the state-of-the-art algorithms</p>
+            </para>
+          </item>
+          <item xml:id="S3.I4.i2" fragid="S3.I4.i2">
+            <tags>
+              <tag>•</tag>
+              <tag role="autoref">item </tag>
+              <tag role="typerefnum">2nd item</tag>
+            </tags>
+            <para xml:id="S3.I4.i2.p1" fragid="S3.I4.i2.p1">
+              <p>Advanced techniques in Speculative Decoding: adaptive token tree verification, draft model alignment, and etc</p>
+            </para>
+          </item>
+        </itemize>
+      </para>
+    </paragraph>
+    <paragraph inlist="toc" xml:id="S3.SS0.SSS0.Px5" fragid="S3.SS0.SSS0.Px5">
+      <title>5. Speculative Decoding: Metrics and evaluations</title>
+      <para xml:id="S3.SS0.SSS0.Px5.p1" fragid="S3.SS0.SSS0.Px5.p1">
+        <p>(20 minutes)</p>
+        <itemize xml:id="S3.I5" fragid="S3.I5">
+          <item xml:id="S3.I5.i1" fragid="S3.I5.i1">
+            <tags>
+              <tag>•</tag>
+              <tag role="autoref">item </tag>
+              <tag role="typerefnum">1st item</tag>
+            </tags>
+            <para xml:id="S3.I5.i1.p1" fragid="S3.I5.i1.p1">
+              <p>Evaluation metrics of Speculative Decoding</p>
+            </para>
+          </item>
+          <item xml:id="S3.I5.i2" fragid="S3.I5.i2">
+            <tags>
+              <tag>•</tag>
+              <tag role="autoref">item </tag>
+              <tag role="typerefnum">2nd item</tag>
+            </tags>
+            <para xml:id="S3.I5.i2.p1" fragid="S3.I5.i2.p1">
+              <p>Fair comparisons and discussions of leading methods across diverse scenarios</p>
+            </para>
+          </item>
+        </itemize>
+      </para>
+    </paragraph>
+    <paragraph inlist="toc" xml:id="S3.SS0.SSS0.Px6" fragid="S3.SS0.SSS0.Px6">
+      <title>6. Speculative Decoding: Downstream adaptations</title>
+      <para xml:id="S3.SS0.SSS0.Px6.p1" fragid="S3.SS0.SSS0.Px6.p1">
+        <p>(20 minutes)</p>
+        <itemize xml:id="S3.I6" fragid="S3.I6">
+          <item xml:id="S3.I6.i1" fragid="S3.I6.i1">
+            <tags>
+              <tag>•</tag>
+              <tag role="autoref">item </tag>
+              <tag role="typerefnum">1st item</tag>
+            </tags>
+            <para xml:id="S3.I6.i1.p1" fragid="S3.I6.i1.p1">
+              <p>Retrieval-augmented Speculative Decoding</p>
+            </para>
+          </item>
+          <item xml:id="S3.I6.i2" fragid="S3.I6.i2">
+            <tags>
+              <tag>•</tag>
+              <tag role="autoref">item </tag>
+              <tag role="typerefnum">2nd item</tag>
+            </tags>
+            <para xml:id="S3.I6.i2.p1" fragid="S3.I6.i2.p1">
+              <p>Long-context and multimodal Speculative Decoding</p>
+            </para>
+          </item>
+        </itemize>
+      </para>
+    </paragraph>
+    <paragraph inlist="toc" xml:id="S3.SS0.SSS0.Px7" fragid="S3.SS0.SSS0.Px7">
+      <title>7. Demonstration: An exercise to show how Speculative Decoding works</title>
+      <para xml:id="S3.SS0.SSS0.Px7.p1" fragid="S3.SS0.SSS0.Px7.p1">
+        <p>(10 minutes)</p>
+      </para>
+    </paragraph>
+    <paragraph inlist="toc" xml:id="S3.SS0.SSS0.Px8" fragid="S3.SS0.SSS0.Px8">
+      <title>8. Conclusions and future directions</title>
+      <para xml:id="S3.SS0.SSS0.Px8.p1" fragid="S3.SS0.SSS0.Px8.p1">
+        <p>(10 minutes)</p>
+      </para>
+    </paragraph>
+  </section>
+  <section inlist="toc" xml:id="S4" fragid="S4">
+    <tags>
+      <tag>4</tag>
+      <tag role="autoref">section 4</tag>
+      <tag role="refnum">4</tag>
+      <tag role="typerefnum">§4</tag>
+    </tags>
+    <title><tag close=" ">4</tag>Diversity Considerations</title>
+    <para xml:id="S4.p1" fragid="S4.p1">
+      <p>The speakers are from two academic institutions with an affiliation and an academic research group, including both a professor and Ph.D. students. The methods presented in our tutorials are language-agnostic and can be extended to non-English contexts and we also offer a brief overview of several papers focusing on multilingual and expert-domain extensions of the core frameworks. We will reach out to both academic and industry communities such as CAMEL-AI<note mark="1" role="footnote" xml:id="footnote1" fragid="footnote1"><tags><tag>1</tag><tag role="autoref">footnote 1</tag><tag role="refnum">1</tag><tag role="typerefnum">footnote 1</tag></tags><ref class="ltx_url" href="https://www.camel-ai.org/" font="typewriter">https://www.camel-ai.org/</ref></note> and DeepSeek<note mark="2" role="footnote" xml:id="footnote2" fragid="footnote2"><tags><tag>2</tag><tag role="autoref">footnote 2</tag><tag role="refnum">2</tag><tag role="typerefnum">footnote 2</tag></tags><ref class="ltx_url" href="https://www.deepseek.com/" font="typewriter">https://www.deepseek.com/</ref></note>, to encourage diverse audience participation in our tutorial. Given that speculative decoding effectively accelerates LLM inference while maintaining unchanged distributions, we anticipate this tutorial will be particularly beneficial for researchers with modest computational resources who may not have access to extensive hardware infrastructure.</p>
+    </para>
+  </section>
+  <section inlist="toc" xml:id="S5" fragid="S5">
+    <tags>
+      <tag>5</tag>
+      <tag role="autoref">section 5</tag>
+      <tag role="refnum">5</tag>
+      <tag role="typerefnum">§5</tag>
+    </tags>
+    <title><tag close=" ">5</tag>Other Information</title>
+    <paragraph inlist="toc" xml:id="S5.SS0.SSS0.Px1" fragid="S5.SS0.SSS0.Px1">
+      <title>Type of the tutorial</title>
+      <para xml:id="S5.SS0.SSS0.Px1.p1" fragid="S5.SS0.SSS0.Px1.p1">
+        <p>Cutting-edge.</p>
+      </para>
+    </paragraph>
+    <paragraph inlist="toc" xml:id="S5.SS0.SSS0.Px2" fragid="S5.SS0.SSS0.Px2">
+      <title>Length</title>
+      <para xml:id="S5.SS0.SSS0.Px2.p1" fragid="S5.SS0.SSS0.Px2.p1">
+        <p>This is a 4-hour tutorial.</p>
+      </para>
+    </paragraph>
+    <paragraph inlist="toc" xml:id="S5.SS0.SSS0.Px3" fragid="S5.SS0.SSS0.Px3">
+      <title>Breath</title>
+      <para xml:id="S5.SS0.SSS0.Px3.p1" fragid="S5.SS0.SSS0.Px3.p1">
+        <p>We estimate that approximately 20% of the tutorial will center around work done by the presenters. The papers we will cover are from both academia and industry.</p>
+      </para>
+    </paragraph>
+    <paragraph inlist="toc" xml:id="S5.SS0.SSS0.Px4" fragid="S5.SS0.SSS0.Px4">
+      <title>An estimate of the audience size</title>
+      <para xml:id="S5.SS0.SSS0.Px4.p1" fragid="S5.SS0.SSS0.Px4.p1">
+        <p>Given that Speculative Decoding is now applied in a various range of NLP platforms such as vLLM <cite class="ltx_citemacro_cite">Kwon<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib150" idref="bib.bib150" title="Efficient memory management for large language model serving with pagedattention">2023</ref>)</cite>, Transformers <cite class="ltx_citemacro_cite">Wolf<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib7" idref="bib.bib7" title="HuggingFace’s transformers: state-of-the-art natural language processing">2020</ref>)</cite>, and PyTorch <cite class="ltx_citemacro_cite">Paszke<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib6" idref="bib.bib6" title="PyTorch: an imperative style, high-performance deep learning library">2019</ref>)</cite> to accelerate LLM inference, we estimate that the number of audiences will be around 100+.</p>
+      </para>
+    </paragraph>
+    <paragraph inlist="toc" xml:id="S5.SS0.SSS0.Px5" fragid="S5.SS0.SSS0.Px5">
+      <title>Technical equipment.</title>
+      <para xml:id="S5.SS0.SSS0.Px5.p1" fragid="S5.SS0.SSS0.Px5.p1">
+        <p>We would like to have
+Internet access to show online demos.</p>
+      </para>
+    </paragraph>
+    <paragraph inlist="toc" xml:id="S5.SS0.SSS0.Px6" fragid="S5.SS0.SSS0.Px6">
+      <title>Open access</title>
+      <para xml:id="S5.SS0.SSS0.Px6.p1" fragid="S5.SS0.SSS0.Px6.p1">
+        <p>We plan to make all teaching material available online and agree to allow the publication of slides and video recordings in the COLING anthology.</p>
+      </para>
+    </paragraph>
+    <paragraph inlist="toc" xml:id="S5.SS0.SSS0.Px7" fragid="S5.SS0.SSS0.Px7">
+      <title>Pedagogical material</title>
+      <para xml:id="S5.SS0.SSS0.Px7.p1" fragid="S5.SS0.SSS0.Px7.p1">
+        <p>We plan to do some short hands-on exercises to let the audience try different Speculative Decoding techniques to accelerate LLM inference using Colab.</p>
+      </para>
+    </paragraph>
+  </section>
+  <section inlist="toc" xml:id="S6" fragid="S6">
+    <tags>
+      <tag>6</tag>
+      <tag role="autoref">section 6</tag>
+      <tag role="refnum">6</tag>
+      <tag role="typerefnum">§6</tag>
+    </tags>
+    <title><tag close=" ">6</tag>Presenters</title>
+    <paragraph inlist="toc" xml:id="S6.SS0.SSS0.Px1" fragid="S6.SS0.SSS0.Px1">
+      <title>Heming Xia</title>
+      <para xml:id="S6.SS0.SSS0.Px1.p1" fragid="S6.SS0.SSS0.Px1.p1">
+        <p>Heming Xia is a Ph.D. student at the Natural Language Processing Group of The Hong Kong Polytechnic University, advised by Prof. Wenjie Li. His research interest lies in natural language processing and machine learning. His recent research focuses on speculative decoding, tool learning, vision-language understanding, and representation learning of LMs. He has served as the reviewer for top-tier conferences like ACL, EMNLP, and Neurips. He was recognized as a Merit Student at Peking University in 2021.</p>
+      </para>
+    </paragraph>
+    <paragraph inlist="toc" xml:id="S6.SS0.SSS0.Px2" fragid="S6.SS0.SSS0.Px2">
+      <title>Cunxiao Du</title>
+      <para xml:id="S6.SS0.SSS0.Px2.p1" fragid="S6.SS0.SSS0.Px2.p1">
+        <p>Cunxiao Du is a Research Scientist in the Sea AI Lab. He received a PhD degree from The Singapore Management University and a Bachelor’s degree from Shandong University. His research interests include LLM, especially, the efficiency of LLM and parallel decoding of LLM. He has also served as the reviewer for top-tier conferences like ICML, ICLR, and Neurips.</p>
+      </para>
+    </paragraph>
+    <paragraph inlist="toc" xml:id="S6.SS0.SSS0.Px3" fragid="S6.SS0.SSS0.Px3">
+      <title>Yongqi Li</title>
+      <para xml:id="S6.SS0.SSS0.Px3.p1" fragid="S6.SS0.SSS0.Px3.p1">
+        <p>Yongqi Li is a Postdoctoral Fellow in the Department of Computing at The Hong Kong Polytechnic University. He received a PhD degree from The Hong Kong Polytechnic University and a Bachelor’s degree from Shandong University. His research interests include natural language processing, information retrieval, and multimedia computing. He has published about 20 papers in leading conferences and journals, such as ACL, CVPR, SIGIR, KDD, AAAI, CIKM, TOIS, and IPM. He has also served as an area chair for COLING 2025, a guest editor for Frontiers in Big Data, and a reviewer for TKDE, TOIS, TMM, and TCVST journals.</p>
+      </para>
+    </paragraph>
+    <paragraph inlist="toc" xml:id="S6.SS0.SSS0.Px4" fragid="S6.SS0.SSS0.Px4">
+      <title>Qian Liu</title>
+      <para xml:id="S6.SS0.SSS0.Px4.p1" fragid="S6.SS0.SSS0.Px4.p1">
+        <p>Qian Liu is a Research Scientist at Sea AI Lab, Singapore. Before he joined Sea AI Lab, he was a joint Ph.D. candidate at Beihang University and Microsoft Research Asia. His research interests include code generation and reasoning. He has published more than 20 papers in top-tier conferences, and his representative works include TAPEX, LoraHub, and StarCoder. He was nominated for the Baidu Scholarship 2020 and the KAUST AI Rising Star 2024.</p>
+      </para>
+    </paragraph>
+    <paragraph inlist="toc" xml:id="S6.SS0.SSS0.Px5" fragid="S6.SS0.SSS0.Px5">
+      <title>Wenjie Li</title>
+      <para xml:id="S6.SS0.SSS0.Px5.p1" fragid="S6.SS0.SSS0.Px5.p1">
+        <p>Wenjie Li is a Professor in the Department of Computing at the Hong Kong Polytechnic
+University, Hong Kong. She received a Ph.D. degree in systems engineering and engineering management from the Chinese University of Hong Kong, Hong Kong, in 1997. Her main research interests include natural language understanding and generation, machine conversation, summarization, and question answering. Wenjie served as the program chair for ACL 2021 and (senior) area chair for many *ACL conferences.</p>
+      </para>
+    </paragraph>
+  </section>
+  <section inlist="toc" xml:id="S7" fragid="S7">
+    <tags>
+      <tag>7</tag>
+      <tag role="autoref">section 7</tag>
+      <tag role="refnum">7</tag>
+      <tag role="typerefnum">§7</tag>
+    </tags>
+    <title><tag close=" ">7</tag>Reading List</title>
+    <para xml:id="S7.p1" fragid="S7.p1">
+      <itemize xml:id="S7.I1" fragid="S7.I1">
+        <item xml:id="S7.I1.i1" fragid="S7.I1.i1">
+          <tags>
+            <tag>•</tag>
+            <tag role="autoref">item </tag>
+            <tag role="typerefnum">1st item</tag>
+          </tags>
+          <para xml:id="S7.I1.i1.p1" fragid="S7.I1.i1.p1">
+            <p>Unlocking Efficiency in Large Language Model Inference: A Comprehensive Survey of Speculative Decoding <cite class="ltx_citemacro_cite">Xia<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib9" idref="bib.bib9" title="Unlocking efficiency in large language model inference: a comprehensive survey of speculative decoding">2024</ref>)</cite></p>
+          </para>
+        </item>
+        <item xml:id="S7.I1.i2" fragid="S7.I1.i2">
+          <tags>
+            <tag>•</tag>
+            <tag role="autoref">item </tag>
+            <tag role="typerefnum">2nd item</tag>
+          </tags>
+          <para xml:id="S7.I1.i2.p1" fragid="S7.I1.i2.p1">
+            <p>Blockwise Parallel Decoding for Deep Autoregressive Models <cite class="ltx_citemacro_cite">Stern<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib17" idref="bib.bib17" title="Blockwise parallel decoding for deep autoregressive models">2018</ref>)</cite></p>
+          </para>
+        </item>
+        <item xml:id="S7.I1.i3" fragid="S7.I1.i3">
+          <tags>
+            <tag>•</tag>
+            <tag role="autoref">item </tag>
+            <tag role="typerefnum">3rd item</tag>
+          </tags>
+          <para xml:id="S7.I1.i3.p1" fragid="S7.I1.i3.p1">
+            <p>Speculative Decoding: Exploiting Speculative Execution for Accelerating Seq2seq Generation <cite class="ltx_citemacro_cite">Xia<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib106" idref="bib.bib106" title="Speculative decoding: exploiting speculative execution for accelerating seq2seq generation">2023</ref>)</cite></p>
+          </para>
+        </item>
+        <item xml:id="S7.I1.i4" fragid="S7.I1.i4">
+          <tags>
+            <tag>•</tag>
+            <tag role="autoref">item </tag>
+            <tag role="typerefnum">4th item</tag>
+          </tags>
+          <para xml:id="S7.I1.i4.p1" fragid="S7.I1.i4.p1">
+            <p>Fast Inference from Transformers via Speculative Decoding <cite class="ltx_citemacro_cite">Leviathan<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib95" idref="bib.bib95" title="Fast inference from transformers via speculative decoding">2023</ref>)</cite></p>
+          </para>
+        </item>
+        <item xml:id="S7.I1.i5" fragid="S7.I1.i5">
+          <tags>
+            <tag>•</tag>
+            <tag role="autoref">item </tag>
+            <tag role="typerefnum">5th item</tag>
+          </tags>
+          <para xml:id="S7.I1.i5.p1" fragid="S7.I1.i5.p1">
+            <p>Accelerating Large Language Model Decoding with Speculative Sampling <cite class="ltx_citemacro_cite">Chen<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib96" idref="bib.bib96" title="Accelerating large language model decoding with speculative sampling">2023</ref>)</cite></p>
+          </para>
+        </item>
+        <item xml:id="S7.I1.i6" fragid="S7.I1.i6">
+          <tags>
+            <tag>•</tag>
+            <tag role="autoref">item </tag>
+            <tag role="typerefnum">6th item</tag>
+          </tags>
+          <para xml:id="S7.I1.i6.p1" fragid="S7.I1.i6.p1">
+            <p>Speculative Decoding with Big Little Decoder <cite class="ltx_citemacro_cite">Kim<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib99" idref="bib.bib99" title="Speculative decoding with big little decoder">2023</ref>)</cite></p>
+          </para>
+        </item>
+        <item xml:id="S7.I1.i7" fragid="S7.I1.i7">
+          <tags>
+            <tag>•</tag>
+            <tag role="autoref">item </tag>
+            <tag role="typerefnum">7th item</tag>
+          </tags>
+          <para xml:id="S7.I1.i7.p1" fragid="S7.I1.i7.p1">
+            <p>Inference with Reference: Lossless Acceleration of Large Language Models <cite class="ltx_citemacro_cite">Yang<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib16" idref="bib.bib16" title="Inference with reference: lossless acceleration of large language models">2023</ref>)</cite></p>
+          </para>
+        </item>
+        <item xml:id="S7.I1.i8" fragid="S7.I1.i8">
+          <tags>
+            <tag>•</tag>
+            <tag role="autoref">item </tag>
+            <tag role="typerefnum">8th item</tag>
+          </tags>
+          <para xml:id="S7.I1.i8.p1" fragid="S7.I1.i8.p1">
+            <p>Accelerating Transformer Inference for Translation via Parallel Decoding <cite class="ltx_citemacro_cite">Santilli<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib97" idref="bib.bib97" title="Accelerating transformer inference for translation via parallel decoding">2023</ref>)</cite></p>
+          </para>
+        </item>
+        <item xml:id="S7.I1.i9" fragid="S7.I1.i9">
+          <tags>
+            <tag>•</tag>
+            <tag role="autoref">item </tag>
+            <tag role="typerefnum">9th item</tag>
+          </tags>
+          <para xml:id="S7.I1.i9.p1" fragid="S7.I1.i9.p1">
+            <p>SpecInfer: Accelerating Generative Large Language Model Serving with Speculative Inference and Token Tree Verification <cite class="ltx_citemacro_cite">Miao<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib98" idref="bib.bib98" title="SpecInfer: accelerating large language model serving with tree-based speculative inference and verification">2024</ref>)</cite></p>
+          </para>
+        </item>
+        <item xml:id="S7.I1.i10" fragid="S7.I1.i10">
+          <tags>
+            <tag>•</tag>
+            <tag role="autoref">item </tag>
+            <tag role="typerefnum">10th item</tag>
+          </tags>
+          <para xml:id="S7.I1.i10.p1" fragid="S7.I1.i10.p1">
+            <p>Draft &amp; Verify: Lossless Large Language Model Acceleration via Self-Speculative Decoding <cite class="ltx_citemacro_cite">Zhang<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib101" idref="bib.bib101" title="Draft &amp; verify: lossless large language model acceleration via self-speculative decoding">2023a</ref>)</cite></p>
+          </para>
+        </item>
+        <item xml:id="S7.I1.i11" fragid="S7.I1.i11">
+          <tags>
+            <tag>•</tag>
+            <tag role="autoref">item </tag>
+            <tag role="typerefnum">11st item</tag>
+          </tags>
+          <para xml:id="S7.I1.i11.p1" fragid="S7.I1.i11.p1">
+            <p>REST: Retrieval-Based Speculative Decoding <cite class="ltx_citemacro_cite">He<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib124" idref="bib.bib124" title="REST: retrieval-based speculative decoding">2024</ref>)</cite></p>
+          </para>
+        </item>
+        <item xml:id="S7.I1.i12" fragid="S7.I1.i12">
+          <tags>
+            <tag>•</tag>
+            <tag role="autoref">item </tag>
+            <tag role="typerefnum">12nd item</tag>
+          </tags>
+          <para xml:id="S7.I1.i12.p1" fragid="S7.I1.i12.p1">
+            <p>Medusa: Simple LLM Inference Acceleration Framework with Multiple Decoding Heads <cite class="ltx_citemacro_cite">Cai<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib111" idref="bib.bib111" title="Medusa: simple LLM inference acceleration framework with multiple decoding heads">2024</ref>)</cite></p>
+          </para>
+        </item>
+        <item xml:id="S7.I1.i13" fragid="S7.I1.i13">
+          <tags>
+            <tag>•</tag>
+            <tag role="autoref">item </tag>
+            <tag role="typerefnum">13rd item</tag>
+          </tags>
+          <para xml:id="S7.I1.i13.p1" fragid="S7.I1.i13.p1">
+            <p>EAGLE: Speculative Sampling Requires Rethinking Feature Uncertainty <cite class="ltx_citemacro_cite">Li<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib143" idref="bib.bib143" title="EAGLE: speculative sampling requires rethinking feature uncertainty">2024b</ref>)</cite></p>
+          </para>
+        </item>
+        <item xml:id="S7.I1.i14" fragid="S7.I1.i14">
+          <tags>
+            <tag>•</tag>
+            <tag role="autoref">item </tag>
+            <tag role="typerefnum">14th item</tag>
+          </tags>
+          <para xml:id="S7.I1.i14.p1" fragid="S7.I1.i14.p1">
+            <p>GliDe with a CaPE: A Low-Hassle Method to Accelerate Speculative Decoding <cite class="ltx_citemacro_cite">Du<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib156" idref="bib.bib156" title="GliDe with a cape: A low-hassle method to accelerate speculative decoding">2023</ref>)</cite></p>
+          </para>
+        </item>
+        <item xml:id="S7.I1.i15" fragid="S7.I1.i15">
+          <tags>
+            <tag>•</tag>
+            <tag role="autoref">item </tag>
+            <tag role="typerefnum">15th item</tag>
+          </tags>
+          <para xml:id="S7.I1.i15.p1" fragid="S7.I1.i15.p1">
+            <p>Break the Sequential Dependency of LLM Inference Using Lookahead Decoding <cite class="ltx_citemacro_cite">Fu<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib121" idref="bib.bib121" title="Break the sequential dependency of llm inference using lookahead decoding">2024</ref>)</cite></p>
+          </para>
+        </item>
+      </itemize>
+    </para>
+  </section>
+  <section xml:id="Sx1" fragid="Sx1">
+    <title>Ethics Statement</title>
+    <para xml:id="Sx1.p1" fragid="Sx1.p1">
+      <p>Speculative Decoding (SD) is an effective LLM inference acceleration technique that maintains unchanged distributions of LLMs. Most advanced SD techniques do not require full-parameter re-training, which makes it more energy efficient and can reduce carbon footprints. Previous research also shows that SD can be integrated with other decoding strategies to improve generation quality further. However, we note that SD may copy relevant text spans from historical contexts or retrieve raw data from a corpus, potentially leaking privacy-sensitive information, especially when built on a private corpus. Though most SD methods do not alter the output distributions of LLMs, privacy information may leak through other statistical information, such as overall speedups. We acknowledge this to caution those who manage to apply SD techniques in privacy-sensitive domains.</p>
+    </para>
+  </section>
+  <bibliography citestyle="authoryear" files="custom" xml:id="bib" fragid="bib">
+    <title>References</title>
+    <biblist xml:id="bib.L1" fragid="bib.L1">
+      <bibitem class="ltx_bib_article" key="medusa" type="article" xml:id="bib.bib111" fragid="bib.bib111">
+        <tags>
+          <tag class="ltx_bib_number" role="number">1</tag>
+          <tag class="ltx_bib_author" role="authors">Cai<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Cai, Li, Geng, Peng, Lee, Chen,  and Dao</tag>
+          <tag class="ltx_bib_year" role="year">2024</tag>
+          <tag class="ltx_bib_title" role="title">Medusa: simple LLM inference acceleration framework with multiple decoding heads</tag>
+          <tag class="ltx_bib_author-year" role="refnum">T. Cai, Y. Li, Z. Geng, H. Peng, J. D. Lee, D. Chen, and T. Dao (2024)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Medusa: simple LLM inference acceleration framework with multiple decoding heads</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>CoRR</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">abs/2401.10774</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://doi.org/10.48550/arXiv.2401.10774">Link</ref>,
+<ref class="doi ltx_bib_external" href="https://dx.doi.org/10.48550/ARXIV.2401.10774">Document</ref>,
+<text class="ltx_bib_external">2401.10774</text></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.SS0.SSS0.Px1.p1" show="typerefnum" href="#S1.SS0.SSS0.Px1.p1" title="A taxonomy of methods ‣ 1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S1.SS0.SSS0.Px2.p1" show="typerefnum" href="#S1.SS0.SSS0.Px2.p1" title="Cutting-edge algorithms ‣ 1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S1.p2" show="typerefnum" href="#S1.p2" title="1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S7.I1.i12.p1" show="typerefnum" href="#S7.I1.i12.p1" title="In 7 Reading List ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">12nd item</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="Chen:2023specsampling" type="article" xml:id="bib.bib96" fragid="bib.bib96">
+        <tags>
+          <tag class="ltx_bib_number" role="number">2</tag>
+          <tag class="ltx_bib_author" role="authors">Chen<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Chen, Borgeaud, Irving, Lespiau, Sifre,  and Jumper</tag>
+          <tag class="ltx_bib_year" role="year">2023</tag>
+          <tag class="ltx_bib_title" role="title">Accelerating large language model decoding with speculative sampling</tag>
+          <tag class="ltx_bib_author-year" role="refnum">C. Chen, S. Borgeaud, G. Irving, J. Lespiau, L. Sifre, and J. Jumper (2023)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Accelerating large language model decoding with speculative sampling</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>CoRR</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">abs/2302.01318</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://doi.org/10.48550/arXiv.2302.01318">Link</ref>,
+<ref class="doi ltx_bib_external" href="https://dx.doi.org/10.48550/arXiv.2302.01318">Document</ref>,
+<text class="ltx_bib_external">2302.01318</text></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.SS0.SSS0.Px1.p1" show="typerefnum" href="#S1.SS0.SSS0.Px1.p1" title="A taxonomy of methods ‣ 1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S1.p2" show="typerefnum" href="#S1.p2" title="1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S7.I1.i5.p1" show="typerefnum" href="#S7.I1.i5.p1" title="In 7 Reading List ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">5th item</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="Du:2024glide" type="inproceedings" xml:id="bib.bib156" fragid="bib.bib156">
+        <tags>
+          <tag class="ltx_bib_number" role="number">3</tag>
+          <tag class="ltx_bib_author" role="authors">Du<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Du, Jiang, Xu, Wu, Yu, Li, Li, Xu, Nie, Tu,  and You</tag>
+          <tag class="ltx_bib_year" role="year">2023</tag>
+          <tag class="ltx_bib_title" role="title">GliDe with a cape: A low-hassle method to accelerate speculative decoding</tag>
+          <tag class="ltx_bib_author-year" role="refnum">C. Du, J. Jiang, Y. Xu, J. Wu, S. Yu, Y. Li, S. Li, K. Xu, L. Nie, Z. Tu, and Y. You (2023)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>GliDe with a cape: A low-hassle method to accelerate speculative decoding</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Proceedings of International Conference on Machine Learning,
+ICML</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_series"><bib-part role="series">Proceedings of Machine Learning Research</bib-part></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.SS0.SSS0.Px1.p1" show="typerefnum" href="#S1.SS0.SSS0.Px1.p1" title="A taxonomy of methods ‣ 1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S1.SS0.SSS0.Px2.p1" show="typerefnum" href="#S1.SS0.SSS0.Px2.p1" title="Cutting-edge algorithms ‣ 1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S1.p2" show="typerefnum" href="#S1.p2" title="1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S7.I1.i14.p1" show="typerefnum" href="#S7.I1.i14.p1" title="In 7 Reading List ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">14th item</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_misc" key="Fu:2023lookahead" type="misc" xml:id="bib.bib121" fragid="bib.bib121">
+        <tags>
+          <tag class="ltx_bib_number" role="number">4</tag>
+          <tag class="ltx_bib_author" role="authors">Fu<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Fu, Bailis, Stoica,  and Zhang</tag>
+          <tag class="ltx_bib_year" role="year">2024</tag>
+          <tag class="ltx_bib_title" role="title">Break the sequential dependency of llm inference using lookahead decoding</tag>
+          <tag class="ltx_bib_author-year" role="refnum">Y. Fu, P. Bailis, I. Stoica, and H. Zhang (2024)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Break the sequential dependency of llm inference using lookahead decoding</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><text class="ltx_bib_external">2402.02057</text></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.SS0.SSS0.Px1.p1" show="typerefnum" href="#S1.SS0.SSS0.Px1.p1" title="A taxonomy of methods ‣ 1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S1.SS0.SSS0.Px2.p1" show="typerefnum" href="#S1.SS0.SSS0.Px2.p1" title="Cutting-edge algorithms ‣ 1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S1.p2" show="typerefnum" href="#S1.p2" title="1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S7.I1.i15.p1" show="typerefnum" href="#S7.I1.i15.p1" title="In 7 Reading List ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">15th item</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_misc" key="gagrani2024:mmspec" type="misc" xml:id="bib.bib5" fragid="bib.bib5">
+        <tags>
+          <tag class="ltx_bib_number" role="number">5</tag>
+          <tag class="ltx_bib_author" role="authors">Gagrani<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Gagrani, Goel, Jeon, Park, Lee,  and Lott</tag>
+          <tag class="ltx_bib_year" role="year">2024</tag>
+          <tag class="ltx_bib_title" role="title">On speculative decoding for multimodal large language models</tag>
+          <tag class="ltx_bib_author-year" role="refnum">M. Gagrani, R. Goel, W. Jeon, J. Park, M. Lee, and C. Lott (2024)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>On speculative decoding for multimodal large language models</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><text class="ltx_bib_external">2404.08856</text>,
+<ref class="ltx_bib_external" href="https://arxiv.org/abs/2404.08856">Link</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.SS0.SSS0.Px3.p1" show="typerefnum" href="#S1.SS0.SSS0.Px3.p1" title="Evaluations and applications ‣ 1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="He:2023REST" type="inproceedings" xml:id="bib.bib124" fragid="bib.bib124">
+        <tags>
+          <tag class="ltx_bib_number" role="number">6</tag>
+          <tag class="ltx_bib_author" role="authors">He<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">He, Zhong, Cai, Lee,  and He</tag>
+          <tag class="ltx_bib_year" role="year">2024</tag>
+          <tag class="ltx_bib_title" role="title">REST: retrieval-based speculative decoding</tag>
+          <tag class="ltx_bib_author-year" role="refnum">Z. He, Z. Zhong, T. Cai, J. Lee, and D. He (2024)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>REST: retrieval-based speculative decoding</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Proceedings of the 2024 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies (Volume 1: Long Papers)</bib-title></text>,  <text class="ltx_bib_editor">K. Duh, H. Gomez, and S. Bethard (Eds.)</text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_place"><bib-place>Mexico City, Mexico</bib-place></text>, <text class="ltx_bib_pages"> pp. <bib-part role="pages">1582–1595</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://aclanthology.org/2024.naacl-long.88">Link</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.SS0.SSS0.Px1.p1" show="typerefnum" href="#S1.SS0.SSS0.Px1.p1" title="A taxonomy of methods ‣ 1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S7.I1.i11.p1" show="typerefnum" href="#S7.I1.i11.p1" title="In 7 Reading List ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">11st item</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="Kim:2023bild" type="inproceedings" xml:id="bib.bib99" fragid="bib.bib99">
+        <tags>
+          <tag class="ltx_bib_number" role="number">7</tag>
+          <tag class="ltx_bib_author" role="authors">Kim<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Kim, Mangalam, Moon, Malik, Mahoney, Gholami,  and Keutzer</tag>
+          <tag class="ltx_bib_year" role="year">2023</tag>
+          <tag class="ltx_bib_title" role="title">Speculative decoding with big little decoder</tag>
+          <tag class="ltx_bib_author-year" role="refnum">S. Kim, K. Mangalam, S. Moon, J. Malik, M. W. Mahoney, A. Gholami, and K. Keutzer (2023)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Speculative decoding with big little decoder</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Advances in Neural Information Processing Systems 36: Annual Conference
+on Neural Information Processing Systems 2023, NeurIPS 2023, New Orleans,
+LA, USA, December 10 - 16, 2023</bib-title></text>,  <text class="ltx_bib_editor">A. Oh, T. Naumann, A. Globerson, K. Saenko, M. Hardt, and S. Levine (Eds.)</text>,</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="http://papers.nips.cc/paper\_files/paper/2023/hash/7b97adeafa1c51cf65263459ca9d0d7c-Abstract-Conference.html">Link</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S7.I1.i6.p1" show="typerefnum" href="#S7.I1.i6.p1" title="In 7 Reading List ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">6th item</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="Kwon:2023vLLM" type="inproceedings" xml:id="bib.bib150" fragid="bib.bib150">
+        <tags>
+          <tag class="ltx_bib_number" role="number">8</tag>
+          <tag class="ltx_bib_author" role="authors">Kwon<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Kwon, Li, Zhuang, Sheng, Zheng, Yu, Gonzalez, Zhang,  and Stoica</tag>
+          <tag class="ltx_bib_year" role="year">2023</tag>
+          <tag class="ltx_bib_title" role="title">Efficient memory management for large language model serving with pagedattention</tag>
+          <tag class="ltx_bib_author-year" role="refnum">W. Kwon, Z. Li, S. Zhuang, Y. Sheng, L. Zheng, C. H. Yu, J. Gonzalez, H. Zhang, and I. Stoica (2023)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Efficient memory management for large language model serving with pagedattention</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Proceedings of the 29th Symposium on Operating Systems Principles,
+SOSP 2023, Koblenz, Germany, October 23-26, 2023</bib-title></text>,  <text class="ltx_bib_editor">J. Flinn, M. I. Seltzer, P. Druschel, A. Kaufmann, and J. Mace (Eds.)</text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_pages"> pp. <bib-part role="pages">611–626</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://doi.org/10.1145/3600006.3613165">Link</ref>,
+<ref class="doi ltx_bib_external" href="https://dx.doi.org/10.1145/3600006.3613165">Document</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S5.SS0.SSS0.Px4.p1" show="typerefnum" href="#S5.SS0.SSS0.Px4.p1" title="An estimate of the audience size ‣ 5 Other Information ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§5</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="Leviathan:2023specdec" type="inproceedings" xml:id="bib.bib95" fragid="bib.bib95">
+        <tags>
+          <tag class="ltx_bib_number" role="number">9</tag>
+          <tag class="ltx_bib_author" role="authors">Leviathan<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Leviathan, Kalman,  and Matias</tag>
+          <tag class="ltx_bib_year" role="year">2023</tag>
+          <tag class="ltx_bib_title" role="title">Fast inference from transformers via speculative decoding</tag>
+          <tag class="ltx_bib_author-year" role="refnum">Y. Leviathan, M. Kalman, and Y. Matias (2023)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Fast inference from transformers via speculative decoding</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>International Conference on Machine Learning, ICML 2023, 23-29 July
+2023, Honolulu, Hawaii, USA</bib-title></text>,  <text class="ltx_bib_editor">A. Krause, E. Brunskill, K. Cho, B. Engelhardt, S. Sabato, and J. Scarlett (Eds.)</text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_series"><bib-part role="series">Proceedings of Machine Learning Research</bib-part></text>, Vol. <text class="ltx_bib_volume"><bib-part role="volume">202</bib-part></text>, <text class="ltx_bib_pages"> pp. <bib-part role="pages">19274–19286</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://proceedings.mlr.press/v202/leviathan23a.html">Link</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.SS0.SSS0.Px1.p1" show="typerefnum" href="#S1.SS0.SSS0.Px1.p1" title="A taxonomy of methods ‣ 1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S1.p2" show="typerefnum" href="#S1.p2" title="1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S7.I1.i4.p1" show="typerefnum" href="#S7.I1.i4.p1" title="In 7 Reading List ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">4th item</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_misc" key="li:2024eagle2" type="misc" xml:id="bib.bib12" fragid="bib.bib12">
+        <tags>
+          <tag class="ltx_bib_number" role="number">10</tag>
+          <tag class="ltx_bib_author" role="authors">Li<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Li, Wei, Zhang,  and Zhang</tag>
+          <tag class="ltx_bib_year" role="year">2024a</tag>
+          <tag class="ltx_bib_title" role="title">EAGLE-2: faster inference of language models with dynamic draft trees</tag>
+          <tag class="ltx_bib_author-year" role="refnum">Y. Li, F. Wei, C. Zhang, and H. Zhang (2024a)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>EAGLE-2: faster inference of language models with dynamic draft trees</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><text class="ltx_bib_external">2406.16858</text>,
+<ref class="ltx_bib_external" href="https://arxiv.org/abs/2406.16858">Link</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.SS0.SSS0.Px1.p1" show="typerefnum" href="#S1.SS0.SSS0.Px1.p1" title="A taxonomy of methods ‣ 1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S1.SS0.SSS0.Px2.p1" show="typerefnum" href="#S1.SS0.SSS0.Px2.p1" title="Cutting-edge algorithms ‣ 1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_misc" key="Li:2024eagle" type="misc" xml:id="bib.bib143" fragid="bib.bib143">
+        <tags>
+          <tag class="ltx_bib_number" role="number">11</tag>
+          <tag class="ltx_bib_author" role="authors">Li<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Li, Wei, Zhang,  and Zhang</tag>
+          <tag class="ltx_bib_year" role="year">2024b</tag>
+          <tag class="ltx_bib_title" role="title">EAGLE: speculative sampling requires rethinking feature uncertainty</tag>
+          <tag class="ltx_bib_author-year" role="refnum">Y. Li, F. Wei, C. Zhang, and H. Zhang (2024b)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>EAGLE: speculative sampling requires rethinking feature uncertainty</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><text class="ltx_bib_external">2401.15077</text></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.SS0.SSS0.Px1.p1" show="typerefnum" href="#S1.SS0.SSS0.Px1.p1" title="A taxonomy of methods ‣ 1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S1.SS0.SSS0.Px2.p1" show="typerefnum" href="#S1.SS0.SSS0.Px2.p1" title="Cutting-edge algorithms ‣ 1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S1.p2" show="typerefnum" href="#S1.p2" title="1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S7.I1.i13.p1" show="typerefnum" href="#S7.I1.i13.p1" title="In 7 Reading List ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">13rd item</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="Miao:2023specinfer" type="inproceedings" xml:id="bib.bib98" fragid="bib.bib98">
+        <tags>
+          <tag class="ltx_bib_number" role="number">12</tag>
+          <tag class="ltx_bib_author" role="authors">Miao<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Miao, Oliaro, Zhang, Cheng, Wang, Zhang, Wong, Zhu, Yang, Shi, Shi, Chen, Arfeen, Abhyankar,  and Jia</tag>
+          <tag class="ltx_bib_year" role="year">2024</tag>
+          <tag class="ltx_bib_title" role="title">SpecInfer: accelerating large language model serving with tree-based speculative inference and verification</tag>
+          <tag class="ltx_bib_author-year" role="refnum">X. Miao, G. Oliaro, Z. Zhang, X. Cheng, Z. Wang, Z. Zhang, R. Y. Y. Wong, A. Zhu, L. Yang, X. Shi, C. Shi, Z. Chen, D. Arfeen, R. Abhyankar, and Z. Jia (2024)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>SpecInfer: accelerating large language model serving with tree-based speculative inference and verification</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Proceedings of the 29th ACM International Conference on Architectural Support for Programming Languages and Operating Systems, Volume 3</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_series"><bib-part role="series">ASPLOS ’24</bib-part></text>, <text class="ltx_bib_place"><bib-place>New York, NY, USA</bib-place></text>, <text class="ltx_bib_pages"> pp. <bib-part role="pages">932–949</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><text class="isbn ltx_bib_external">ISBN 9798400703867</text>,
+<ref class="ltx_bib_external" href="https://doi.org/10.1145/3620666.3651335">Link</ref>,
+<ref class="doi ltx_bib_external" href="https://dx.doi.org/10.1145/3620666.3651335">Document</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.SS0.SSS0.Px1.p1" show="typerefnum" href="#S1.SS0.SSS0.Px1.p1" title="A taxonomy of methods ‣ 1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S7.I1.i9.p1" show="typerefnum" href="#S7.I1.i9.p1" title="In 7 Reading List ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">9th item</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="openai:2023gpt4" type="article" xml:id="bib.bib104" fragid="bib.bib104">
+        <tags>
+          <tag class="ltx_bib_number" role="number">13</tag>
+          <tag class="ltx_bib_author" role="authors">OpenAI</tag>
+          <tag class="ltx_bib_year" role="year">2023</tag>
+          <tag class="ltx_bib_title" role="title">GPT-4 technical report</tag>
+          <tag class="ltx_bib_author-year" role="refnum">OpenAI (2023)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>GPT-4 technical report</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>CoRR</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">abs/2303.08774</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://doi.org/10.48550/arXiv.2303.08774">Link</ref>,
+<ref class="doi ltx_bib_external" href="https://dx.doi.org/10.48550/ARXIV.2303.08774">Document</ref>,
+<text class="ltx_bib_external">2303.08774</text></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p1" show="typerefnum" href="#S1.p1" title="1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="pytorch" type="inproceedings" xml:id="bib.bib6" fragid="bib.bib6">
+        <tags>
+          <tag class="ltx_bib_number" role="number">14</tag>
+          <tag class="ltx_bib_author" role="authors">Paszke<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Paszke, Gross, Massa, Lerer, Bradbury, Chanan, Killeen, Lin, Gimelshein, Antiga, Desmaison, Köpf, Yang, DeVito, Raison, Tejani, Chilamkurthy, Steiner, Fang, Bai,  and Chintala</tag>
+          <tag class="ltx_bib_year" role="year">2019</tag>
+          <tag class="ltx_bib_title" role="title">PyTorch: an imperative style, high-performance deep learning library</tag>
+          <tag class="ltx_bib_author-year" role="refnum">A. Paszke, S. Gross, F. Massa, A. Lerer, J. Bradbury, G. Chanan, T. Killeen, Z. Lin, N. Gimelshein, L. Antiga, A. Desmaison, A. Köpf, E. Z. Yang, Z. DeVito, M. Raison, A. Tejani, S. Chilamkurthy, B. Steiner, L. Fang, J. Bai, and S. Chintala (2019)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>PyTorch: an imperative style, high-performance deep learning library</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Advances in Neural Information Processing Systems 32: Annual Conference
+on Neural Information Processing Systems 2019, NeurIPS 2019, December
+8-14, 2019, Vancouver, BC, Canada</bib-title></text>,  <text class="ltx_bib_editor">H. M. Wallach, H. Larochelle, A. Beygelzimer, F. d’Alché-Buc, E. B. Fox, and R. Garnett (Eds.)</text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_pages"> pp. <bib-part role="pages">8024–8035</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://proceedings.neurips.cc/paper/2019/hash/bdbca288fee7f92f2bfa9f7012727740-Abstract.html">Link</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S5.SS0.SSS0.Px4.p1" show="typerefnum" href="#S5.SS0.SSS0.Px4.p1" title="An estimate of the audience size ‣ 5 Other Information ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§5</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="Patterson:2004latencybandwith" type="article" xml:id="bib.bib117" fragid="bib.bib117">
+        <tags>
+          <tag class="ltx_bib_number" role="number">15</tag>
+          <tag class="ltx_bib_author" role="authors">Patterson</tag>
+          <tag class="ltx_bib_year" role="year">2004</tag>
+          <tag class="ltx_bib_title" role="title">Latency lags bandwith</tag>
+          <tag class="ltx_bib_author-year" role="refnum">D. A. Patterson (2004)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Latency lags bandwith</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>Commun. ACM</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">47</bib-part></text> (<text class="ltx_bib_number"><bib-part role="number">10</bib-part></text>), <text class="ltx_bib_pages"> pp. <bib-part role="pages">71–75</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://doi.org/10.1145/1022594.1022596">Link</ref>,
+<ref class="doi ltx_bib_external" href="https://dx.doi.org/10.1145/1022594.1022596">Document</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p1" show="typerefnum" href="#S1.p1" title="1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="Pope:2023efficiency" type="inproceedings" xml:id="bib.bib155" fragid="bib.bib155">
+        <tags>
+          <tag class="ltx_bib_number" role="number">16</tag>
+          <tag class="ltx_bib_author" role="authors">Pope<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Pope, Douglas, Chowdhery, Devlin, Bradbury, Heek, Xiao, Agrawal,  and Dean</tag>
+          <tag class="ltx_bib_year" role="year">2023</tag>
+          <tag class="ltx_bib_title" role="title">Efficiently scaling transformer inference</tag>
+          <tag class="ltx_bib_author-year" role="refnum">R. Pope, S. Douglas, A. Chowdhery, J. Devlin, J. Bradbury, J. Heek, K. Xiao, S. Agrawal, and J. Dean (2023)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Efficiently scaling transformer inference</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Proceedings of the Sixth Conference on Machine Learning and Systems,
+MLSys 2023, Miami, FL, USA, June 4-8, 2023</bib-title></text>,  <text class="ltx_bib_editor">D. Song, M. Carbin, and T. Chen (Eds.)</text>,</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://proceedings.mlsys.org/paper\_files/paper/2023/hash/c4be71ab8d24cdfb45e3d06dbfca2780-Abstract-mlsys2023.html">Link</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p1" show="typerefnum" href="#S1.p1" title="1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="Santilli:2023paralleldecoding" type="inproceedings" xml:id="bib.bib97" fragid="bib.bib97">
+        <tags>
+          <tag class="ltx_bib_number" role="number">17</tag>
+          <tag class="ltx_bib_author" role="authors">Santilli<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Santilli, Severino, Postolache, Maiorca, Mancusi, Marin,  and Rodolà</tag>
+          <tag class="ltx_bib_year" role="year">2023</tag>
+          <tag class="ltx_bib_title" role="title">Accelerating transformer inference for translation via parallel decoding</tag>
+          <tag class="ltx_bib_author-year" role="refnum">A. Santilli, S. Severino, E. Postolache, V. Maiorca, M. Mancusi, R. Marin, and E. Rodolà (2023)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Accelerating transformer inference for translation via parallel decoding</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Proceedings of the 61st Annual Meeting of the Association for Computational
+Linguistics (Volume 1: Long Papers), ACL 2023, Toronto, Canada,
+July 9-14, 2023</bib-title></text>,  <text class="ltx_bib_editor">A. Rogers, J. L. Boyd-Graber, and N. Okazaki (Eds.)</text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_pages"> pp. <bib-part role="pages">12336–12355</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://doi.org/10.18653/v1/2023.acl-long.689">Link</ref>,
+<ref class="doi ltx_bib_external" href="https://dx.doi.org/10.18653/v1/2023.acl-long.689">Document</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S7.I1.i8.p1" show="typerefnum" href="#S7.I1.i8.p1" title="In 7 Reading List ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">8th item</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_misc" key="saxena2023pld" type="misc" xml:id="bib.bib144" fragid="bib.bib144">
+        <tags>
+          <tag class="ltx_bib_number" role="number">18</tag>
+          <tag class="ltx_bib_author" role="authors">Saxena</tag>
+          <tag class="ltx_bib_year" role="year">2023</tag>
+          <tag class="ltx_bib_title" role="title">Prompt lookup decoding</tag>
+          <tag class="ltx_bib_author-year" role="refnum">A. Saxena (2023)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Prompt lookup decoding</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://github.com/apoorvumang/prompt-lookup-decoding/">Link</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.SS0.SSS0.Px3.p1" show="typerefnum" href="#S1.SS0.SSS0.Px3.p1" title="Evaluations and applications ‣ 1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="Shazeer:2019memorybandwith" type="article" xml:id="bib.bib118" fragid="bib.bib118">
+        <tags>
+          <tag class="ltx_bib_number" role="number">19</tag>
+          <tag class="ltx_bib_author" role="authors">Shazeer</tag>
+          <tag class="ltx_bib_year" role="year">2019</tag>
+          <tag class="ltx_bib_title" role="title">Fast transformer decoding: one write-head is all you need</tag>
+          <tag class="ltx_bib_author-year" role="refnum">N. Shazeer (2019)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Fast transformer decoding: one write-head is all you need</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>CoRR</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">abs/1911.02150</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="http://arxiv.org/abs/1911.02150">Link</ref>,
+<text class="ltx_bib_external">1911.02150</text></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p1" show="typerefnum" href="#S1.p1" title="1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="Stern:2018blockwise" type="inproceedings" xml:id="bib.bib17" fragid="bib.bib17">
+        <tags>
+          <tag class="ltx_bib_number" role="number">20</tag>
+          <tag class="ltx_bib_author" role="authors">Stern<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Stern, Shazeer,  and Uszkoreit</tag>
+          <tag class="ltx_bib_year" role="year">2018</tag>
+          <tag class="ltx_bib_title" role="title">Blockwise parallel decoding for deep autoregressive models</tag>
+          <tag class="ltx_bib_author-year" role="refnum">M. Stern, N. Shazeer, and J. Uszkoreit (2018)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Blockwise parallel decoding for deep autoregressive models</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Advances in Neural Information Processing Systems 31: Annual Conference
+on Neural Information Processing Systems 2018, NeurIPS 2018, December
+3-8, 2018, Montréal, Canada</bib-title></text>,  <text class="ltx_bib_editor">S. Bengio, H. M. Wallach, H. Larochelle, K. Grauman, N. Cesa-Bianchi, and R. Garnett (Eds.)</text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_pages"> pp. <bib-part role="pages">10107–10116</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://proceedings.neurips.cc/paper/2018/hash/c4127b9194fe8562c64dc0f5bf2c93bc-Abstract.html">Link</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.SS0.SSS0.Px1.p1" show="typerefnum" href="#S1.SS0.SSS0.Px1.p1" title="A taxonomy of methods ‣ 1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S1.p2" show="typerefnum" href="#S1.p2" title="1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S7.I1.i2.p1" show="typerefnum" href="#S7.I1.i2.p1" title="In 7 Reading List ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">2nd item</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_misc" key="sun2024:triforce" type="misc" xml:id="bib.bib4" fragid="bib.bib4">
+        <tags>
+          <tag class="ltx_bib_number" role="number">21</tag>
+          <tag class="ltx_bib_author" role="authors">Sun<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Sun, Chen, Yang, Tian,  and Chen</tag>
+          <tag class="ltx_bib_year" role="year">2024</tag>
+          <tag class="ltx_bib_title" role="title">TriForce: lossless acceleration of long sequence generation with hierarchical speculative decoding</tag>
+          <tag class="ltx_bib_author-year" role="refnum">H. Sun, Z. Chen, X. Yang, Y. Tian, and B. Chen (2024)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>TriForce: lossless acceleration of long sequence generation with hierarchical speculative decoding</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><text class="ltx_bib_external">2404.11912</text>,
+<ref class="ltx_bib_external" href="https://arxiv.org/abs/2404.11912">Link</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.SS0.SSS0.Px3.p1" show="typerefnum" href="#S1.SS0.SSS0.Px3.p1" title="Evaluations and applications ‣ 1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="Sun:2020SAD" type="inproceedings" xml:id="bib.bib15" fragid="bib.bib15">
+        <tags>
+          <tag class="ltx_bib_number" role="number">22</tag>
+          <tag class="ltx_bib_author" role="authors">Sun<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Sun, Ge, Wei,  and Wang</tag>
+          <tag class="ltx_bib_year" role="year">2021</tag>
+          <tag class="ltx_bib_title" role="title">Instantaneous grammatical error correction with shallow aggressive decoding</tag>
+          <tag class="ltx_bib_author-year" role="refnum">X. Sun, T. Ge, F. Wei, and H. Wang (2021)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Instantaneous grammatical error correction with shallow aggressive decoding</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Proceedings of the 59th Annual Meeting of the Association for Computational
+Linguistics and the 11th International Joint Conference on Natural
+Language Processing, ACL/IJCNLP 2021, (Volume 1: Long Papers), Virtual
+Event, August 1-6, 2021</bib-title></text>,  <text class="ltx_bib_editor">C. Zong, F. Xia, W. Li, and R. Navigli (Eds.)</text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_pages"> pp. <bib-part role="pages">5937–5947</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://doi.org/10.18653/v1/2021.acl-long.462">Link</ref>,
+<ref class="doi ltx_bib_external" href="https://dx.doi.org/10.18653/v1/2021.acl-long.462">Document</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.SS0.SSS0.Px3.p1" show="typerefnum" href="#S1.SS0.SSS0.Px3.p1" title="Evaluations and applications ‣ 1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="Hugo:2023llama" type="article" xml:id="bib.bib94" fragid="bib.bib94">
+        <tags>
+          <tag class="ltx_bib_number" role="number">23</tag>
+          <tag class="ltx_bib_author" role="authors">Touvron<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Touvron, Lavril, Izacard, Martinet, Lachaux, Lacroix, Rozière, Goyal, Hambro, Azhar, Rodriguez, Joulin, Grave,  and Lample</tag>
+          <tag class="ltx_bib_year" role="year">2023a</tag>
+          <tag class="ltx_bib_title" role="title">LLaMA: open and efficient foundation language models</tag>
+          <tag class="ltx_bib_author-year" role="refnum">H. Touvron, T. Lavril, G. Izacard, X. Martinet, M. Lachaux, T. Lacroix, B. Rozière, N. Goyal, E. Hambro, F. Azhar, A. Rodriguez, A. Joulin, E. Grave, and G. Lample (2023a)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>LLaMA: open and efficient foundation language models</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>CoRR</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">abs/2302.13971</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://doi.org/10.48550/arXiv.2302.13971">Link</ref>,
+<ref class="doi ltx_bib_external" href="https://dx.doi.org/10.48550/arXiv.2302.13971">Document</ref>,
+<text class="ltx_bib_external">2302.13971</text></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p1" show="typerefnum" href="#S1.p1" title="1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="Hugo:2023llama2" type="article" xml:id="bib.bib112" fragid="bib.bib112">
+        <tags>
+          <tag class="ltx_bib_number" role="number">24</tag>
+          <tag class="ltx_bib_author" role="authors">Touvron<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Touvron, Martin, Stone, Albert, Almahairi, Babaei, Bashlykov, Batra, Bhargava, Bhosale, Bikel, Blecher, Canton-Ferrer, Chen, Cucurull, Esiobu, Fernandes, Fu, Fu, Fuller, Gao, Goswami, Goyal, Hartshorn, Hosseini, Hou, Inan, Kardas, Kerkez, Khabsa, Kloumann, Korenev, Koura, Lachaux, Lavril, Lee, Liskovich, Lu, Mao, Martinet, Mihaylov, Mishra, Molybog, Nie, Poulton, Reizenstein, Rungta, Saladi, Schelten, Silva, Smith, Subramanian, Tan, Tang, Taylor, Williams, Kuan, Xu, Yan, Zarov, Zhang, Fan, Kambadur, Narang, Rodriguez, Stojnic, Edunov,  and Scialom</tag>
+          <tag class="ltx_bib_year" role="year">2023b</tag>
+          <tag class="ltx_bib_title" role="title">Llama 2: open foundation and fine-tuned chat models</tag>
+          <tag class="ltx_bib_author-year" role="refnum">H. Touvron, L. Martin, K. Stone, P. Albert, A. Almahairi, Y. Babaei, N. Bashlykov, S. Batra, P. Bhargava, S. Bhosale, D. Bikel, L. Blecher, C. Canton-Ferrer, M. Chen, G. Cucurull, D. Esiobu, J. Fernandes, J. Fu, W. Fu, B. Fuller, C. Gao, V. Goswami, N. Goyal, A. Hartshorn, S. Hosseini, R. Hou, H. Inan, M. Kardas, V. Kerkez, M. Khabsa, I. Kloumann, A. Korenev, P. S. Koura, M. Lachaux, T. Lavril, J. Lee, D. Liskovich, Y. Lu, Y. Mao, X. Martinet, T. Mihaylov, P. Mishra, I. Molybog, Y. Nie, A. Poulton, J. Reizenstein, R. Rungta, K. Saladi, A. Schelten, R. Silva, E. M. Smith, R. Subramanian, X. E. Tan, B. Tang, R. Taylor, A. Williams, J. X. Kuan, P. Xu, Z. Yan, I. Zarov, Y. Zhang, A. Fan, M. Kambadur, S. Narang, A. Rodriguez, R. Stojnic, S. Edunov, and T. Scialom (2023b)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Llama 2: open foundation and fine-tuned chat models</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>CoRR</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">abs/2307.09288</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://doi.org/10.48550/arXiv.2307.09288">Link</ref>,
+<ref class="doi ltx_bib_external" href="https://dx.doi.org/10.48550/ARXIV.2307.09288">Document</ref>,
+<text class="ltx_bib_external">2307.09288</text></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p1" show="typerefnum" href="#S1.p1" title="1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_misc" key="wang2024:specrag" type="misc" xml:id="bib.bib3" fragid="bib.bib3">
+        <tags>
+          <tag class="ltx_bib_number" role="number">25</tag>
+          <tag class="ltx_bib_author" role="authors">Wang<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Wang, Wang, Le, Zheng, Mishra, Perot, Zhang, Mattapalli, Taly, Shang, Lee,  and Pfister</tag>
+          <tag class="ltx_bib_year" role="year">2024</tag>
+          <tag class="ltx_bib_title" role="title">Speculative rag: enhancing retrieval augmented generation through drafting</tag>
+          <tag class="ltx_bib_author-year" role="refnum">Z. Wang, Z. Wang, L. Le, H. S. Zheng, S. Mishra, V. Perot, Y. Zhang, A. Mattapalli, A. Taly, J. Shang, C. Lee, and T. Pfister (2024)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Speculative rag: enhancing retrieval augmented generation through drafting</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><text class="ltx_bib_external">2407.08223</text>,
+<ref class="ltx_bib_external" href="https://arxiv.org/abs/2407.08223">Link</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.SS0.SSS0.Px3.p1" show="typerefnum" href="#S1.SS0.SSS0.Px3.p1" title="Evaluations and applications ‣ 1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_misc" key="wolf:2020huggingface" type="misc" xml:id="bib.bib7" fragid="bib.bib7">
+        <tags>
+          <tag class="ltx_bib_number" role="number">26</tag>
+          <tag class="ltx_bib_author" role="authors">Wolf<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Wolf, Debut, Sanh, Chaumond, Delangue, Moi, Cistac, Rault, Louf, Funtowicz, Davison, Shleifer, von Platen, Ma, Jernite, Plu, Xu, Scao, Gugger, Drame, Lhoest,  and Rush</tag>
+          <tag class="ltx_bib_year" role="year">2020</tag>
+          <tag class="ltx_bib_title" role="title">HuggingFace’s transformers: state-of-the-art natural language processing</tag>
+          <tag class="ltx_bib_author-year" role="refnum">T. Wolf, L. Debut, V. Sanh, J. Chaumond, C. Delangue, A. Moi, P. Cistac, T. Rault, R. Louf, M. Funtowicz, J. Davison, S. Shleifer, P. von Platen, C. Ma, Y. Jernite, J. Plu, C. Xu, T. L. Scao, S. Gugger, M. Drame, Q. Lhoest, and A. M. Rush (2020)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>HuggingFace’s transformers: state-of-the-art natural language processing</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><text class="ltx_bib_external">1910.03771</text>,
+<ref class="ltx_bib_external" href="https://arxiv.org/abs/1910.03771">Link</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S5.SS0.SSS0.Px4.p1" show="typerefnum" href="#S5.SS0.SSS0.Px4.p1" title="An estimate of the audience size ‣ 5 Other Information ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§5</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="xia:2022specdec" type="inproceedings" xml:id="bib.bib106" fragid="bib.bib106">
+        <tags>
+          <tag class="ltx_bib_number" role="number">27</tag>
+          <tag class="ltx_bib_author" role="authors">Xia<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Xia, Ge, Wang, Chen, Wei,  and Sui</tag>
+          <tag class="ltx_bib_year" role="year">2023</tag>
+          <tag class="ltx_bib_title" role="title">Speculative decoding: exploiting speculative execution for accelerating seq2seq generation</tag>
+          <tag class="ltx_bib_author-year" role="refnum">H. Xia, T. Ge, P. Wang, S. Chen, F. Wei, and Z. Sui (2023)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Speculative decoding: exploiting speculative execution for accelerating seq2seq generation</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Findings of the Association for Computational Linguistics: EMNLP
+2023, Singapore, December 6-10, 2023</bib-title></text>,  <text class="ltx_bib_editor">H. Bouamor, J. Pino, and K. Bali (Eds.)</text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_pages"> pp. <bib-part role="pages">3909–3925</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://doi.org/10.18653/v1/2023.findings-emnlp.257">Link</ref>,
+<ref class="doi ltx_bib_external" href="https://dx.doi.org/10.18653/V1/2023.FINDINGS-EMNLP.257">Document</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.SS0.SSS0.Px1.p1" show="typerefnum" href="#S1.SS0.SSS0.Px1.p1" title="A taxonomy of methods ‣ 1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S1.p2" show="typerefnum" href="#S1.p2" title="1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S7.I1.i3.p1" show="typerefnum" href="#S7.I1.i3.p1" title="In 7 Reading List ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">3rd item</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_misc" key="xia2024unlocking" type="misc" xml:id="bib.bib9" fragid="bib.bib9">
+        <tags>
+          <tag class="ltx_bib_number" role="number">28</tag>
+          <tag class="ltx_bib_author" role="authors">Xia<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Xia, Yang, Dong, Wang, Li, Ge, Liu, Li,  and Sui</tag>
+          <tag class="ltx_bib_year" role="year">2024</tag>
+          <tag class="ltx_bib_title" role="title">Unlocking efficiency in large language model inference: a comprehensive survey of speculative decoding</tag>
+          <tag class="ltx_bib_author-year" role="refnum">H. Xia, Z. Yang, Q. Dong, P. Wang, Y. Li, T. Ge, T. Liu, W. Li, and Z. Sui (2024)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Unlocking efficiency in large language model inference: a comprehensive survey of speculative decoding</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><text class="ltx_bib_external">2401.07851</text></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p2" show="typerefnum" href="#S1.p2" title="1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S7.I1.i1.p1" show="typerefnum" href="#S7.I1.i1.p1" title="In 7 Reading List ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">1st item</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="Xu:2023LLMCad" type="article" xml:id="bib.bib26" fragid="bib.bib26">
+        <tags>
+          <tag class="ltx_bib_number" role="number">29</tag>
+          <tag class="ltx_bib_author" role="authors">Xu<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Xu, Yin, Jin, Zhang, Wei, Xu,  and Liu</tag>
+          <tag class="ltx_bib_year" role="year">2023</tag>
+          <tag class="ltx_bib_title" role="title">LLMCad: fast and scalable on-device large language model inference</tag>
+          <tag class="ltx_bib_author-year" role="refnum">D. Xu, W. Yin, X. Jin, Y. Zhang, S. Wei, M. Xu, and X. Liu (2023)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>LLMCad: fast and scalable on-device large language model inference</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>CoRR</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">abs/2309.04255</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://doi.org/10.48550/arXiv.2309.04255">Link</ref>,
+<ref class="doi ltx_bib_external" href="https://dx.doi.org/10.48550/ARXIV.2309.04255">Document</ref>,
+<text class="ltx_bib_external">2309.04255</text></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.SS0.SSS0.Px3.p1" show="typerefnum" href="#S1.SS0.SSS0.Px3.p1" title="Evaluations and applications ‣ 1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="yang:2023llma" type="article" xml:id="bib.bib16" fragid="bib.bib16">
+        <tags>
+          <tag class="ltx_bib_number" role="number">30</tag>
+          <tag class="ltx_bib_author" role="authors">Yang<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Yang, Ge, Wang, Jiao, Jiang, Yang, Majumder,  and Wei</tag>
+          <tag class="ltx_bib_year" role="year">2023</tag>
+          <tag class="ltx_bib_title" role="title">Inference with reference: lossless acceleration of large language models</tag>
+          <tag class="ltx_bib_author-year" role="refnum">N. Yang, T. Ge, L. Wang, B. Jiao, D. Jiang, L. Yang, R. Majumder, and F. Wei (2023)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Inference with reference: lossless acceleration of large language models</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>arXiv preprint arXiv:2304.04487</bib-title></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.SS0.SSS0.Px3.p1" show="typerefnum" href="#S1.SS0.SSS0.Px3.p1" title="Evaluations and applications ‣ 1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S7.I1.i7.p1" show="typerefnum" href="#S7.I1.i7.p1" title="In 7 Reading List ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">7th item</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="Zhang:2023draftverify" type="article" xml:id="bib.bib101" fragid="bib.bib101">
+        <tags>
+          <tag class="ltx_bib_number" role="number">31</tag>
+          <tag class="ltx_bib_author" role="authors">Zhang<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Zhang, Wang, Li, Shou, Chen, Chen,  and Mehrotra</tag>
+          <tag class="ltx_bib_year" role="year">2023a</tag>
+          <tag class="ltx_bib_title" role="title">Draft &amp; verify: lossless large language model acceleration via self-speculative decoding</tag>
+          <tag class="ltx_bib_author-year" role="refnum">J. Zhang, J. Wang, H. Li, L. Shou, K. Chen, G. Chen, and S. Mehrotra (2023a)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Draft &amp; verify: lossless large language model acceleration via self-speculative decoding</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>CoRR</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">abs/2309.08168</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://doi.org/10.48550/arXiv.2309.08168">Link</ref>,
+<ref class="doi ltx_bib_external" href="https://dx.doi.org/10.48550/arXiv.2309.08168">Document</ref>,
+<text class="ltx_bib_external">2309.08168</text></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.SS0.SSS0.Px1.p1" show="typerefnum" href="#S1.SS0.SSS0.Px1.p1" title="A taxonomy of methods ‣ 1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S7.I1.i10.p1" show="typerefnum" href="#S7.I1.i10.p1" title="In 7 Reading List ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">10th item</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="Zhang2023RaLMSpec" type="inproceedings" xml:id="bib.bib116" fragid="bib.bib116">
+        <tags>
+          <tag class="ltx_bib_number" role="number">32</tag>
+          <tag class="ltx_bib_author" role="authors">Zhang<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Zhang, Zhu, Yang, Xu, Li, Phothilimthana,  and Jia</tag>
+          <tag class="ltx_bib_year" role="year">2023b</tag>
+          <tag class="ltx_bib_title" role="title">Accelerating retrieval-augmented language model serving with speculation</tag>
+          <tag class="ltx_bib_author-year" role="refnum">Z. Zhang, A. Zhu, L. Yang, Y. Xu, L. Li, P. M. Phothilimthana, and Z. Jia (2023b)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Accelerating retrieval-augmented language model serving with speculation</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Submitted to The Twelfth International Conference on Learning Representations</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve">Note: <text class="ltx_bib_note"><bib-note role="annotation">under review</bib-note></text></bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://openreview.net/forum?id=vkzPuZJ80a">Link</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.SS0.SSS0.Px3.p1" show="typerefnum" href="#S1.SS0.SSS0.Px3.p1" title="Evaluations and applications ‣ 1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="Zhou:2023distillspec" type="inproceedings" xml:id="bib.bib102" fragid="bib.bib102">
+        <tags>
+          <tag class="ltx_bib_number" role="number">33</tag>
+          <tag class="ltx_bib_author" role="authors">Zhou<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Zhou, Lyu, Rawat, Menon, Rostamizadeh, Kumar, Kagy,  and Agarwal</tag>
+          <tag class="ltx_bib_year" role="year">2024</tag>
+          <tag class="ltx_bib_title" role="title">DistillSpec: improving speculative decoding via knowledge distillation</tag>
+          <tag class="ltx_bib_author-year" role="refnum">Y. Zhou, K. Lyu, A. S. Rawat, A. K. Menon, A. Rostamizadeh, S. Kumar, J. Kagy, and R. Agarwal (2024)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>DistillSpec: improving speculative decoding via knowledge distillation</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>The Twelfth International Conference on Learning Representations</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://openreview.net/forum?id=rsY6J3ZaTF">Link</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.SS0.SSS0.Px1.p1" show="typerefnum" href="#S1.SS0.SSS0.Px1.p1" title="A taxonomy of methods ‣ 1 Introduction ‣ Tutorial Proposal: Speculative Decoding for Efficient LLM Inference"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+    </biblist>
+  </bibliography>
+  <navigation>
+    <title>Tutorial Proposal: Speculative Decoding for Efficient LLM Inference</title>
+  </navigation>
+</document>

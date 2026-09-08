@@ -6,7 +6,7 @@ import typer
 from rich.table import Table
 from rich.panel import Panel
 
-from .._shared import app, console, _get_db
+from .._shared import app, console
 from .. import config
 from .. import db as dbmod
 
@@ -48,24 +48,8 @@ def init():
     console.print("  3. Run your first command:")
     console.print("     scholar stats")
 
-    # Test database connectivity
     console.print("\n[bold]Service check:[/bold]")
-    try:
-        db = _get_db()
-        if db:
-            console.print("  [green][OK][/green] PostgreSQL connected ({0}:{1})".format(config.PG_HOST, config.PG_PORT))
-            db.close()
-        else:
-            console.print("  [yellow][!!][/yellow] PostgreSQL not available (start Docker?)")
-    except Exception as e:
-        console.print("  [yellow][!!][/yellow] PostgreSQL error: {0}".format(e))
-
-    try:
-        from .. import graph_mem
-        gm = graph_mem.ensure_graph()
-        console.print("  [green][OK][/green] Graph cache ({0} papers)".format(len(gm.papers)))
-    except Exception as e:
-        console.print("  [yellow][!!][/yellow] Graph: {0}".format(e))
+    console.print("  [green][OK][/green] File-only mode (V2 data plane uses V2Database)")
 
     mode = _runtime_mode()
     console.print("\n[dim]Mode: {0} | Home: {1}[/dim]".format(mode, home))
@@ -81,7 +65,7 @@ def init_workspace_cmd(
         help="Target project directory (default: current dir). Example: C:\\Projects\\MyProject",
     ),
 ):
-    """One-command setup: copy .qoder/.claude/.scholar + output dirs + mcp.json to any project.
+    """Initialize workspace output directories (drafts/notes/logs).
 
     Run this in the target project directory, or pass the path as argument.
     SCHOLAR_HOME (paper data) stays untouched; SCHOLAR_WORKSPACE points to the target.
@@ -109,11 +93,7 @@ def init_workspace_cmd(
     console.print("    notes/   -> {0}".format(result["notes_dir"]))
     console.print("    logs/    -> {0}".format(result["logs_dir"]))
 
-    console.print("\n[bold]IDE config:[/bold]")
-    console.print("  [green][OK][/green] .qoder/mcp.json  -> SCHOLAR_WORKSPACE = {0}".format(ws))
-    console.print("  [green][OK][/green] .claude/mcp.json -> SCHOLAR_WORKSPACE = {0}".format(ws))
-
-    console.print("\n[green]Done![/] Open this project in Qoder or Claude Code to start using Scholar Studio.")
+    console.print("\n[green]Done![/] Workspace output directories are ready.")
 
 
 # ===================================================================
@@ -121,62 +101,10 @@ def init_workspace_cmd(
 # ===================================================================
 @app.command()
 def doctor():
-    """Diagnose Scholar Studio configuration and IDE config consistency.
-
-    Checks: .scholar/ template source, .qoder/.claude/ sync status,
-    database connectivity, and MCP server reachability.
-    """
+    """Diagnose Scholar Studio configuration and MCP server reachability."""
     console.print("[cyan]Scholar Studio Doctor[/]\n")
 
-    # 1. Check .scholar/ template source
-    templates_dir = config._resolve_templates_dir()
-    if templates_dir.exists():
-        console.print("  [green][OK][/green] .scholar/ source: {0}".format(templates_dir))
-    else:
-        console.print("  [red][!!][/red] .scholar/ source: NOT FOUND")
-        console.print("       Run 'scholar init' to create global templates.")
-
-    # 2. Check IDE config sync status
-    import subprocess
-    import sys as _sys
-    sync_script = config.PROJECT_ROOT / "scripts" / "sync-ide-config.py"
-    if sync_script.exists():
-        try:
-            result = subprocess.run(
-                [_sys.executable, str(sync_script), "--check"],
-                capture_output=True, text=True, timeout=30,
-                cwd=str(config.PROJECT_ROOT),
-            )
-            if result.returncode == 0:
-                console.print("  [green][OK][/green] .qoder/ sync: consistent")
-                console.print("  [green][OK][/green] .claude/ sync: consistent")
-            else:
-                console.print("  [yellow][!!][/yellow] IDE config drift detected")
-                console.print("       Run 'python scripts/sync-ide-config.py' to sync.")
-        except Exception as e:
-            console.print("  [yellow][!!][/yellow] Sync check failed: {0}".format(e))
-    else:
-        console.print("  [dim][--][/dim] sync script not found (standalone install)")
-
-    # 3. Check database connectivity
-    try:
-        db = _get_db()
-        if db:
-            console.print("  [green][OK][/green] PostgreSQL connected ({0}:{1})".format(config.PG_HOST, config.PG_PORT))
-            db.close()
-        else:
-            console.print("  [yellow][!!][/yellow] PostgreSQL not available (start Docker?)")
-    except Exception as e:
-        console.print("  [yellow][!!][/yellow] PostgreSQL error: {0}".format(e))
-
-    try:
-        from .. import graph_mem
-        gm = graph_mem.ensure_graph()
-        console.print("  [green][OK][/green] Graph cache ({0} papers)".format(len(gm.papers)))
-    except Exception as e:
-        console.print("  [yellow][!!][/yellow] Graph: {0}".format(e))
-
-    # 4. Check MCP server
+    # 1. Check MCP server
     try:
         import importlib
         spec = importlib.util.find_spec("scholar_mcp")
@@ -190,7 +118,6 @@ def doctor():
     # Summary
     mode = _runtime_mode()
     console.print("\n[dim]Mode: {0} | Home: {1}[/dim]".format(mode, config.SCHOLAR_HOME))
-
 
 
 # ===================================================================
@@ -378,44 +305,30 @@ def search(
     keyword_lower = keyword.lower()
     results = []
 
-    database = _get_db()
-    if database:
-        raw = database.search_papers(keyword)
-        results = [
-            {
-                "paper_id": r.get("id", r.get("paper_id", "")),
-                "title": r.get("title", "N/A"),
-                "year": r.get("year"),
-                "venue": r.get("venue"),
-                "score": r.get("score", 0),
-            }
-            for r in raw[:limit]
-        ]
-    else:
-        for paper_id in dbmod.list_parsed():
-            data = dbmod.load_parsed(paper_id)
-            if not data:
-                continue
-            score = 0
-            if keyword_lower in (data.get("title") or "").lower():
-                score += 10
-            if keyword_lower in (data.get("abstract") or "").lower():
-                score += 5
-            for s in data.get("sections", []):
-                if keyword_lower in s.get("content", "").lower():
-                    score += 1
-                    if score >= 3:
-                        break
-            if score > 0:
-                results.append({
-                    "paper_id": paper_id,
-                    "title": data.get("title", "N/A"),
-                    "year": data.get("year"),
-                    "venue": data.get("venue"),
-                    "score": score,
-                })
-        results.sort(key=lambda x: x["score"], reverse=True)
-        results = results[:limit]
+    for paper_id in dbmod.list_parsed():
+        data = dbmod.load_parsed(paper_id)
+        if not data:
+            continue
+        score = 0
+        if keyword_lower in (data.get("title") or "").lower():
+            score += 10
+        if keyword_lower in (data.get("abstract") or "").lower():
+            score += 5
+        for s in data.get("sections", []):
+            if keyword_lower in s.get("content", "").lower():
+                score += 1
+                if score >= 3:
+                    break
+        if score > 0:
+            results.append({
+                "paper_id": paper_id,
+                "title": data.get("title", "N/A"),
+                "year": data.get("year"),
+                "venue": data.get("venue"),
+                "score": score,
+            })
+    results.sort(key=lambda x: x["score"], reverse=True)
+    results = results[:limit]
 
     if json_output:
         print(json.dumps(results, ensure_ascii=False))
@@ -448,18 +361,14 @@ def list_papers(
     limit: int = typer.Option(30, help="Max papers to show"),
 ):
     """List parsed papers with metadata."""
-    database = _get_db()
-    if database:
-        papers = database.list_papers(year=year)
-    else:
-        papers = []
-        for paper_id in dbmod.list_parsed():
-            data = dbmod.load_parsed(paper_id)
-            if data:
-                if year and data.get("year") != year:
-                    continue
-                papers.append(data)
-        papers.sort(key=lambda x: x.get("year") or 0, reverse=True)
+    papers = []
+    for paper_id in dbmod.list_parsed():
+        data = dbmod.load_parsed(paper_id)
+        if data:
+            if year and data.get("year") != year:
+                continue
+            papers.append(data)
+    papers.sort(key=lambda x: x.get("year") or 0, reverse=True)
 
     papers = papers[:limit]
 
@@ -500,8 +409,7 @@ def stats(
     )
     parsed_ids = dbmod.list_parsed()
 
-    database = _get_db()
-    db_status = "connected" if database else "not available (file-only mode)"
+    db_status = "v2 data plane (file-only fallback)"
 
     years = {}
     venues = {}

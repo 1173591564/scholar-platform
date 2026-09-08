@@ -4,8 +4,7 @@ English | [中文](README.zh.md)
 
 Scholar Studio is a Python academic-research engine with a 48-command CLI, a
 16-tool MCP server, XML-first evidence retrieval, PostgreSQL/pgvector
-projections, academic writing support, experiment helpers, and optional Lean4
-synchronization.
+projections, academic writing support, and optional Lean4 synchronization.
 
 ## Architecture
 
@@ -17,15 +16,11 @@ Phase One keeps the direct authenticated DSH-to-Scholar path. Phase Two adds a P
 
 | Path | Responsibility |
 | --- | --- |
-| `scholar/` | Academic domain logic, CLI, and packaged templates |
+| `scholar/` | Academic domain logic and CLI |
 | `scholar_mcp/` | Fixed MCP tool surface and transports |
 | `services/proxy-hub/` | Independent Proxy Hub backend and operator console |
 | `infra/` | Deployment assets grouped by service |
 | `tests/` | Scholar and MCP regression tests |
-| `.scholar/` | Canonical shared IDE templates |
-| `.qoder/`, `.claude/` | Generated IDE projections |
-
-`scholar/templates/` is the package-distribution mirror of `.scholar/` plus package-only DSH assets. Run `make sync-templates` after editing canonical templates; CI enforces `make check-templates`.
 
 ## Installation
 
@@ -37,7 +32,7 @@ scholar init
 scholar doctor
 ```
 
-`scholar init` installs fixed local rules and 15 skills under the configured Scholar home without overwriting user-modified files. The wheel contains code and templates, not the paper corpus.
+`scholar init` creates the directory structure and `.env.example` under the configured Scholar home. The wheel contains code, not the paper corpus.
 
 ## Corpus ownership
 
@@ -142,7 +137,7 @@ make check
 python -m pip wheel . --no-deps -w dist
 ```
 
-The root `Makefile` also exposes focused checks for Scholar, the Proxy Hub backend, the Proxy Hub frontend, and generated templates.
+The root `Makefile` also exposes focused checks for Scholar, the Proxy Hub backend, and the Proxy Hub frontend.
 
 Tests cover path containment, malformed paper data, parser golden artifacts, graph/index invalidation, authentication, MCP initialization, the 16-tool catalog, lexical and semantic search, scoped passage SQL against pgvector PostgreSQL, DSH clean-home installation, credential storage, permissions, existing-file preservation, and rollback.
 

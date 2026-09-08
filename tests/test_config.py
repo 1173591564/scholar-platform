@@ -49,7 +49,8 @@ class TestConfigPaths:
         assert config.EMBEDDING_PROVIDER == "zhipu"
         assert config.EMBEDDING_DIM == 1024
 
-    def test_source_tree_does_not_require_ide_templates(self, tmp_path):
+    def test_source_tree_detection(self, tmp_path):
+        """Source tree detection should work with pyproject.toml and scholar_mcp."""
         from scholar.config import _is_source_tree
 
         (tmp_path / "pyproject.toml").write_text("[project]\nname='test'\n")

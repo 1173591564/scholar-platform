@@ -1,0 +1,2281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?latexml searchpaths="/opt/ar5iv-bindings/supported_originals,/opt/ar5iv-bindings/bindings,/work"?>
+<?latexml class="article"?>
+<?latexml package="neurips_2023" options="preprint"?>
+<?latexml package="inputenc" options="utf8"?>
+<?latexml package="fontenc" options="T1"?>
+<?latexml package="url"?>
+<?latexml package="booktabs"?>
+<?latexml package="amsfonts"?>
+<?latexml package="nicefrac"?>
+<?latexml package="microtype"?>
+<?latexml package="xcolor"?>
+<?latexml package="color,xcolor"?>
+<?latexml package="epsfig"?>
+<?latexml package="graphicx"?>
+<?latexml package="adjustbox"?>
+<?latexml package="array"?>
+<?latexml package="booktabs"?>
+<?latexml package="colortbl"?>
+<?latexml package="float,wrapfig"?>
+<?latexml package="hhline"?>
+<?latexml package="multirow"?>
+<?latexml package="subcaption"?>
+<?latexml package="caption" options="font=small"?>
+<?latexml package="natbib"?>
+<?latexml package="amsmath,amsfonts,amsthm,amssymb"?>
+<?latexml package="bm"?>
+<?latexml package="nicefrac"?>
+<?latexml package="microtype"?>
+<?latexml package="mathtools"?>
+<?latexml package="changepage"?>
+<?latexml package="extramarks"?>
+<?latexml package="fancyhdr"?>
+<?latexml package="lastpage"?>
+<?latexml package="setspace"?>
+<?latexml package="soul"?>
+<?latexml package="xspace"?>
+<?latexml package="url"?>
+<?latexml package="algorithmic"?>
+<?latexml package="algorithm"?>
+<?latexml package="todonotes"?>
+<?latexml package="enumitem"?>
+<?latexml package="titlesec"?>
+<?latexml package="bbm"?>
+<?latexml package="hyperref" options="pagebackref=true,breaklinks=true,colorlinks,citecolor=gray"?>
+<?latexml RelaxNGSchema="LaTeXML"?>
+<document xmlns="http://dlmf.nist.gov/LaTeXML" xmlns:m="http://www.w3.org/1998/Math/MathML" class="ltx_authors_1line" xml:id="Document">
+  <resource src="LaTeXML.css" type="text/css"/>
+  <resource src="ltx-article.css" type="text/css"/>
+  <title>Improving Factuality and Reasoning in Language Models through Multiagent Debate</title>
+  <creator role="author">
+    <personname>Yilun Du <break/>MIT CSAIL<break/>yilundu@mit.edu<break/>&amp;Shuang Li <break/>MIT CSAIL<break/>lishuang@mit.edu <break/>&amp;Antonio Torralba <break/>MIT CSAIL <break/>torralba@mit.edu <break/>&amp;Joshua B. Tenenbaum <break/>MIT CSAIL, BCS, CBMM<break/>jbt@mit.edu <break/>&amp;Igor Mordatch <break/>Google Brain<break/>imordatch@google.com<break/></personname>
+  </creator>
+  <abstract name="Abstract">
+    <p>Large language models (LLMs) have demonstrated remarkable capabilities in language generation, understanding, and few-shot learning in recent years. An extensive body of work has explored how their performance may be further improved through the tools of prompting, ranging from verification, self-consistency, or intermediate scratchpads.
+In this paper, we present a complementary approach to improve language responses
+where multiple language model instances propose and debate their individual responses and reasoning processes over multiple rounds to arrive at a common final answer.
+Our findings indicate that this approach significantly enhances mathematical and strategic reasoning across a number of tasks. We also demonstrate that our approach improves the factual validity of generated content, reducing fallacious answers and hallucinations that contemporary models are prone to. Our approach may be directly applied to existing black-box models and uses identical procedure and prompts for all tasks we investigate.
+Overall, our findings suggest that such "society of minds" approach has the potential to significantly advance the capabilities of LLMs and pave the way for further breakthroughs in language generation and understanding. Project website at <ref class="ltx_url" href="https://composable-models.github.io/llm_debate/" font="typewriter">https://composable-models.github.io/llm_debate/</ref>.</p>
+  </abstract>
+  <section inlist="toc" xml:id="S1" fragid="S1">
+    <tags>
+      <tag>1</tag>
+      <tag role="autoref">section 1</tag>
+      <tag role="refnum">1</tag>
+      <tag role="typerefnum">§1</tag>
+    </tags>
+    <title><tag close=" ">1</tag>Introduction</title>
+    <para xml:id="S1.p1" fragid="S1.p1">
+      <p>Large language models (LLMs) have demonstrated remarkable language generation, understanding, and few-shot learning capabilities in recent years. These methods are trained on a massive corpus of text on the internet, where the quality and accuracy of extracted natural language may not be ensured. Thus, current models may suffer from confidently hallucinating facts or making implausible jumps in chains of reasoning. An extensive body of recent work has focused on improving factual accuracy and reasoning in language models. These range from prompting models with few or zero-shot chain-of-thought demonstrations, use of verification, self-consistency, or intermediate scratchpads.</p>
+    </para>
+    <para xml:id="S1.p2" fragid="S1.p2">
+      <p>We note that these techniques are applied over a single model instance. Instead, we propose a complementary approach inspired by <emph font="italic">The Society of Mind</emph>  <cite class="ltx_citemacro_citep">[<ref href="#bib.bib19" idref="bib.bib19">19</ref>]</cite> and multi-agent settings, where multiple language model instances (or agents) individually propose and jointly debate their responses and reasoning processes to arrive at a single common answer. More specifically, given a query, multiple instances of a language model first generate individual candidate answers to a query. Then each individual model instance reads and critiques the responses of all other models and uses this content to update its own answer. This step is then repeated over several rounds. This process induces models to construct answers that are consistent with both their internal critic as well as sensible in light of the responses of other agents. The resulting quorum of models can hold and maintain multiple chains of reasoning and possible answers simultaneously before proposing the final answer.</p>
+    </para>
+    <para xml:id="S1.p3" fragid="S1.p3">
+      <p>We find that our debate approach outperforms single model baselines such as zero-shot chain of thought  <cite class="ltx_citemacro_cite">[<ref href="#bib.bib11" idref="bib.bib11">11</ref>]</cite> and reflection  <cite class="ltx_citemacro_cite">[<ref href="#bib.bib26" idref="bib.bib26">26</ref>, <ref href="#bib.bib18" idref="bib.bib18">18</ref>]</cite> on a variety of six reasoning, factuality, and question-answering tasks. Using both multiple model agents and multiple rounds of debate are important to achieve the best performance. Given an initial query, we find that individual model instances propose a diverse range of answers despite being the same model class (although we also investigate the case of mixing different model types, such as chatGPT  <cite class="ltx_citemacro_cite">[<ref href="#bib.bib21" idref="bib.bib21">21</ref>]</cite> and Bard  <cite class="ltx_citemacro_cite">[<ref href="#bib.bib23" idref="bib.bib23">23</ref>]</cite>). After debating and examining the responses of other model instances, we find that the population almost always converges on a single and more accurate common answer. Debate results are also less likely to include false facts that models are internally uncertain of. This is because as the debate progresses, individual model instances tend to disagree on uncertain facts and omit them from the answer (Figure <ref labelref="LABEL:fig:validity_overview" idref="S3.F7" href="#S3.F7" title="Figure 7 ‣ Tasks. ‣ 3.1 Improving Reasoning with Multiagent Debate ‣ 3 Experiments ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">7</text></ref>). Lastly, we find that debate does not just act to amplify one correct answer in a model quorum - we find many cases where all the models initially make incorrect predictions, but then arrive at the correct answer as debate progresses (Figure <ref labelref="LABEL:fig:math_overview" idref="S3.F4" href="#S3.F4" title="Figure 4 ‣ 3 Experiments ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">4</text></ref>,<ref labelref="LABEL:fig:chatgpt_bard" idref="S3.F11" href="#S3.F11" title="Figure 11 ‣ Results. ‣ 3.2 Extracting Factual Information from Multiagent Debate ‣ 3 Experiments ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">11</text></ref>).</p>
+    </para>
+    <para xml:id="S1.p4" fragid="S1.p4">
+      <p>We use the same methodology and prompt templates for all our tasks and require only black-box access to language model generations – no model-internal information such as likelihoods or gradients is needed. This allows our method to be used with common public models serving interfaces. The method is also orthogonal to other model generation improvements such as retrieval or prompt engineering (in fact, we combine our debate method with zero-shot chain of thought). While the debate process is more costly, requiring multiple model instances and rounds, it arrives at significantly improved answers and may be used to generate additional model training data, effectively creating a model self-improvement loop.</p>
+    </para>
+    <para xml:id="S1.p5" fragid="S1.p5">
+      <p>To help evaluate the effect of our approach on factual accuracy, we introduce a new benchmark and dataset evaluating factual accuracy of famous computer scientist biographies. We find that contemporary language models have an especially high tendency to hallucinate factually incorrect biographies, often misrepresenting the relevant institutions and dates. Moreover, these facts often inconsistent across different language model instances. By asking models to come to a consensus across their answers, such inconsistent facts may be either removed or corrected.</p>
+    </para>
+    <para xml:id="S1.p6" fragid="S1.p6">
+      <p>In summary, our work contributes the following. First, we present a novel approach to improving factual correctness and reasoning accuracy in contemporary language models, leveraging a multi-agent debate process between models. Second, we introduce a new benchmark of factual correctness which contemporary language models struggle with. Finally, we evaluate the performance of our debate procedure in language generation, both in terms of the number of agents, the underlying rounds of debate, and the prompts that elicit such behavior across a set of six different reasoning and factual accuracy tasks.</p>
+    </para>
+    <figure inlist="lof" placement="t" xml:id="S1.F1" labels="LABEL:fig:teaser" fragid="S1.F1">
+      <tags>
+        <tag>
+          <text fontsize="90%">Figure 1</text>
+        </tag>
+        <tag role="autoref">Figure 1</tag>
+        <tag role="refnum">1</tag>
+        <tag role="typerefnum">Figure 1</tag>
+      </tags>
+      <graphics candidates="fig/accuracy_small.pdf" graphic="fig/accuracy_small.pdf" options="width=433.6pt,keepaspectratio=true" xml:id="S1.F1.g1" class="ltx_centering" fragid="S1.F1.g1"/>
+      <toccaption class="ltx_centering"><tag close=" ">1</tag><text font="bold">Multiagent Debate Improves Reasoning and Factual Accuracy.</text> Accuracy of traditional inference and our multi-agent debate over six benchmarks (chess move optimality reported as a normalized score)</toccaption>
+      <caption class="ltx_centering">
+        <tag close=": ">
+          <text fontsize="90%">Figure 1</text>
+        </tag>
+        <text font="bold" fontsize="90%">Multiagent Debate Improves Reasoning and Factual Accuracy.<text font="medium"> Accuracy of traditional inference and our multi-agent debate over six benchmarks (chess move optimality reported as a normalized score)</text></text>
+      </caption>
+    </figure>
+  </section>
+  <section inlist="toc" xml:id="S2" fragid="S2">
+    <tags>
+      <tag>2</tag>
+      <tag role="autoref">section 2</tag>
+      <tag role="refnum">2</tag>
+      <tag role="typerefnum">§2</tag>
+    </tags>
+    <title><tag close=" ">2</tag>Language Generation through Multiagent Debate</title>
+    <para xml:id="S2.p1" fragid="S2.p1">
+      <p>We present an approach to generate language responses through multiagent debate. We provide an overview of our approach in Section <ref labelref="LABEL:sect:multiagent" idref="S2.SS1" href="#S2.SS1" title="2.1 Multiagent Language Generation ‣ 2 Language Generation through Multiagent Debate ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">2.1</text></ref>. We further discuss convergence to consensus in the debate process in Section <ref labelref="LABEL:sect:consensus" idref="S2.SS2" href="#S2.SS2" title="2.2 Consensus in Debates ‣ 2 Language Generation through Multiagent Debate ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">2.2</text></ref>. The overall overview of our approach is shown in Figure <ref labelref="LABEL:fig:debate_overview" idref="S2.F2" href="#S2.F2" title="Figure 2 ‣ 2 Language Generation through Multiagent Debate ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">2</text></ref>.</p>
+    </para>
+    <figure inlist="lof" placement="t" xml:id="S2.F2" labels="LABEL:fig:debate_overview" fragid="S2.F2">
+      <tags>
+        <tag>
+          <text fontsize="90%">Figure 2</text>
+        </tag>
+        <tag role="autoref">Figure 2</tag>
+        <tag role="refnum">2</tag>
+        <tag role="typerefnum">Figure 2</tag>
+      </tags>
+      <graphics candidates="fig/fig2-2.pdf" graphic="fig/fig2-2.pdf" options="width=433.6pt,keepaspectratio=true" xml:id="S2.F2.g1" class="ltx_centering" fragid="S2.F2.g1"/>
+      <toccaption class="ltx_centering"><tag close=" ">2</tag><text font="bold">Illustration of Debate.</text> Illustration of the debate procedure.</toccaption>
+      <caption class="ltx_centering">
+        <tag close=": ">
+          <text fontsize="90%">Figure 2</text>
+        </tag>
+        <text fontsize="90%" font="bold">Illustration of Debate.<text font="medium"> Illustration of the debate procedure.</text></text>
+      </caption>
+    </figure>
+    <subsection inlist="toc" xml:id="S2.SS1" labels="LABEL:sect:multiagent" fragid="S2.SS1">
+      <tags>
+        <tag>2.1</tag>
+        <tag role="autoref">subsection 2.1</tag>
+        <tag role="refnum">2.1</tag>
+        <tag role="typerefnum">§2.1</tag>
+      </tags>
+      <title><tag close=" ">2.1</tag>Multiagent Language Generation</title>
+      <para xml:id="S2.SS1.p1" fragid="S2.SS1.p1">
+        <p>Consider your work process when solving the following math question on an exam: <text font="italic">“What is the area of a triangle with side lengths of 3, 4, 5?"</text>. In one thread of work, you may recognize that the triangle side-lengths directly correspond to a right triangle, and thus directly compute the area as <Math mode="inline" xml:id="S2.SS1.p1.m1" tex="0.5\times 3\times 4=64" text="0.5 * 3 * 4 = 64" fragid="S2.SS1.p1.m1"><m:math alttext="0.5\times 3\times 4=64" display="inline"><m:semantics><m:mrow xml:id="S2.SS1.p1.m1.8" xref="S2.SS1.p1.m1.8.cmml"><m:mrow xml:id="S2.SS1.p1.m1.5" xref="S2.SS1.p1.m1.5.cmml"><m:mn xml:id="S2.SS1.p1.m1.1" xref="S2.SS1.p1.m1.1.cmml">0.5</m:mn><m:mo lspace="0.222em" rspace="0.222em" xml:id="S2.SS1.p1.m1.2" xref="S2.SS1.p1.m1.2.cmml">×</m:mo><m:mn xml:id="S2.SS1.p1.m1.3" xref="S2.SS1.p1.m1.3.cmml">3</m:mn><m:mo lspace="0.222em" rspace="0.222em" xml:id="S2.SS1.p1.m1.2a" xref="S2.SS1.p1.m1.2.cmml">×</m:mo><m:mn xml:id="S2.SS1.p1.m1.4" xref="S2.SS1.p1.m1.4.cmml">4</m:mn></m:mrow><m:mo xml:id="S2.SS1.p1.m1.6" xref="S2.SS1.p1.m1.6.cmml">=</m:mo><m:mn xml:id="S2.SS1.p1.m1.7" xref="S2.SS1.p1.m1.7.cmml">64</m:mn></m:mrow><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S2.SS1.p1.m1.8.cmml" xref="S2.SS1.p1.m1.8"><m:eq xml:id="S2.SS1.p1.m1.6.cmml" xref="S2.SS1.p1.m1.6"/><m:apply xml:id="S2.SS1.p1.m1.5.cmml" xref="S2.SS1.p1.m1.5"><m:times xml:id="S2.SS1.p1.m1.2.cmml" xref="S2.SS1.p1.m1.2"/><m:cn type="float" xml:id="S2.SS1.p1.m1.1.cmml" xref="S2.SS1.p1.m1.1">0.5</m:cn><m:cn type="integer" xml:id="S2.SS1.p1.m1.3.cmml" xref="S2.SS1.p1.m1.3">3</m:cn><m:cn type="integer" xml:id="S2.SS1.p1.m1.4.cmml" xref="S2.SS1.p1.m1.4">4</m:cn></m:apply><m:cn type="integer" xml:id="S2.SS1.p1.m1.7.cmml" xref="S2.SS1.p1.m1.7">64</m:cn></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">0.5\times 3\times 4=64</m:annotation></m:semantics></m:math></Math>. To make sure that you have the right answer, you may then try to solve the problem differently by estimating an angle <Math mode="inline" xml:id="S2.SS1.p1.m2" tex="\theta" text="theta" fragid="S2.SS1.p1.m2"><m:math alttext="\theta" display="inline"><m:semantics><m:mi xml:id="S2.SS1.p1.m2.1" xref="S2.SS1.p1.m2.1.cmml">θ</m:mi><m:annotation-xml encoding="MathML-Content"><m:ci xml:id="S2.SS1.p1.m2.1.cmml" xref="S2.SS1.p1.m2.1">𝜃</m:ci></m:annotation-xml><m:annotation encoding="application/x-tex">\theta</m:annotation></m:semantics></m:math></Math> in the triangle using the Law of Cosines, and then obtain the area by using the formula <Math mode="inline" xml:id="S2.SS1.p1.m3" tex="0.5\times 3\times 4\times\sin(\theta)" text="0.5 * 3 * 4 * sine@(theta)" fragid="S2.SS1.p1.m3"><m:math alttext="0.5\times 3\times 4\times\sin(\theta)" display="inline"><m:semantics><m:mrow xml:id="S2.SS1.p1.m3.8" xref="S2.SS1.p1.m3.8.cmml"><m:mn xml:id="S2.SS1.p1.m3.3" xref="S2.SS1.p1.m3.3.cmml">0.5</m:mn><m:mo lspace="0.222em" rspace="0.222em" xml:id="S2.SS1.p1.m3.4" xref="S2.SS1.p1.m3.4.cmml">×</m:mo><m:mn xml:id="S2.SS1.p1.m3.5" xref="S2.SS1.p1.m3.5.cmml">3</m:mn><m:mo lspace="0.222em" rspace="0.222em" xml:id="S2.SS1.p1.m3.4a" xref="S2.SS1.p1.m3.4.cmml">×</m:mo><m:mn xml:id="S2.SS1.p1.m3.6" xref="S2.SS1.p1.m3.6.cmml">4</m:mn><m:mo lspace="0.222em" rspace="0.222em" xml:id="S2.SS1.p1.m3.4b" xref="S2.SS1.p1.m3.4.cmml">×</m:mo><m:mrow xml:id="S2.SS1.p1.m3.7b" xref="S2.SS1.p1.m3.7.cmml"><m:mi xml:id="S2.SS1.p1.m3.1" xref="S2.SS1.p1.m3.1.cmml">sin</m:mi><m:mo xml:id="S2.SS1.p1.m3.7c" xref="S2.SS1.p1.m3.7.cmml">⁡</m:mo><m:mrow xml:id="S2.SS1.p1.m3.7.1" xref="S2.SS1.p1.m3.7.cmml"><m:mo stretchy="false" xml:id="S2.SS1.p1.m3.7" xref="S2.SS1.p1.m3.7.cmml">(</m:mo><m:mi xml:id="S2.SS1.p1.m3.2" xref="S2.SS1.p1.m3.2.cmml">θ</m:mi><m:mo stretchy="false" xml:id="S2.SS1.p1.m3.7a" xref="S2.SS1.p1.m3.7.cmml">)</m:mo></m:mrow></m:mrow></m:mrow><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S2.SS1.p1.m3.8.cmml" xref="S2.SS1.p1.m3.8"><m:times xml:id="S2.SS1.p1.m3.4.cmml" xref="S2.SS1.p1.m3.4"/><m:cn type="float" xml:id="S2.SS1.p1.m3.3.cmml" xref="S2.SS1.p1.m3.3">0.5</m:cn><m:cn type="integer" xml:id="S2.SS1.p1.m3.5.cmml" xref="S2.SS1.p1.m3.5">3</m:cn><m:cn type="integer" xml:id="S2.SS1.p1.m3.6.cmml" xref="S2.SS1.p1.m3.6">4</m:cn><m:apply xml:id="S2.SS1.p1.m3.7.cmml" xref="S2.SS1.p1.m3.7b"><m:sin xml:id="S2.SS1.p1.m3.1.cmml" xref="S2.SS1.p1.m3.1"/><m:ci xml:id="S2.SS1.p1.m3.2.cmml" xref="S2.SS1.p1.m3.2">𝜃</m:ci></m:apply></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">0.5\times 3\times 4\times\sin(\theta)</m:annotation></m:semantics></m:math></Math>, arriving at another answer to the given exam problem.</p>
+      </para>
+      <para xml:id="S2.SS1.p2" fragid="S2.SS1.p2">
+        <p>When these lines of work give the same answer, your confidence about the answer increases. In contrast, when these answers are different, individual lines of work may engage in a mental “debate" procedure, where you closely cross-examine the reasoning and assumptions of each line of work and refine solutions until a consistent answer.</p>
+      </para>
+      <para xml:id="S2.SS1.p3" fragid="S2.SS1.p3">
+        <p>Similarly, consider writing a biography of a historical figure. To ensure the factuality of the biography, you may consult multiple different sources on each fact. Facts that are consistent in each source increase your confidence about the fact. In contrast, facts that are inconsistent require careful cross-examination between sources to determine the final consistent data.</p>
+      </para>
+      <para xml:id="S2.SS1.p4" fragid="S2.SS1.p4">
+        <p>To mimic the above multi-threaded
+reasoning process and multi-source factuality checking processes, we propose to generate answers subject to a multi-agent debate procedure between multiple instances of large language models. Given a question, multiple agents represented as copies of a large language model, generate answers to the question. Each response serves as a possible thought process or source of information which agents may re-examine to find consistent final answers.</p>
+      </para>
+      <para xml:id="S2.SS1.p5" fragid="S2.SS1.p5">
+        <p>After initial responses are generated from different agents, we initiate a round of debate between agents. Individual responses from other agents are concatenated and given as context to each agent, with each agent instructed to construct a new response based on such responses. Each language agent is thus responsible for both verifying the collection of responses given by other agents, and refining its own response based on other agents’ responses. We iteratively repeat this debate procedure over multiple rounds for improved performance.</p>
+      </para>
+      <para xml:id="S2.SS1.p6" fragid="S2.SS1.p6">
+        <p>Concretely, we first prompt each agent to independently solve the given problem or task. After each agent generates a response, we feed each agent a consensus prompt, illustrated in Figure <ref labelref="LABEL:tbl:prompt" idref="S2.F3" href="#S2.F3" title="Figure 3 ‣ 2.1 Multiagent Language Generation ‣ 2 Language Generation through Multiagent Debate ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">3</text></ref>, where each agent is instructed to update their responses based on the responses of other agents. This resultant consensus prompt may then be repeatedly given, using the updated responses of each agent.
+We illustrate an overview of this multiagent debate procedure in Figure <ref labelref="LABEL:fig:debate_overview" idref="S2.F2" href="#S2.F2" title="Figure 2 ‣ 2 Language Generation through Multiagent Debate ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">2</text></ref>.</p>
+      </para>
+      <para xml:id="S2.SS1.p7" fragid="S2.SS1.p7">
+        <p>Note that our proposed approach operates in an orthogonal manner to existing approaches to prompt language models. Given a question, we may apply additional techniques for prompting language models to further improve our debate procedure by eliciting additional more detailed responses from language models. We illustrate the synergy of our approach with existing approaches to prompting language models in Figure <ref labelref="LABEL:fig:prompt_ablation" idref="S3.F6" href="#S3.F6" title="Figure 6 ‣ Tasks. ‣ 3.1 Improving Reasoning with Multiagent Debate ‣ 3 Experiments ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">6</text></ref> and directly apply zero-shot chain-of-thought reasoning in our evaluations.</p>
+      </para>
+      <table placement="t" xml:id="S2.F3" inlist="lof" labels="LABEL:tbl:prompt" align="center" class="ltx_figure_panel" fragid="S2.F3">
+        <inline-block depth="25.7pt" height="29.7pt" width="425.0pt" xscale="0.9" xtranslate="-23.6pt" yscale="0.9" ytranslate="3.1pt" align="center" class="ltx_figure_panel">
+          <tabular colsep="5.5pt" vattach="middle" class="ltx_guessed_headers">
+            <thead>
+              <tr>
+                <td align="center" border="r" thead="column row">
+                  <text font="bold" fontsize="90%">Debate Length</text>
+                </td>
+                <td align="center" thead="column">
+                  <text font="bold" fontsize="90%">Prompt</text>
+                </td>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td align="center" border="r t" rowspan="2" thead="row">
+                  <text fontsize="90%">Short</text>
+                </td>
+                <td align="center" border="t">
+                  <emph fontsize="90%" font="italic">" These are the solutions to the problem from other agents: [other answers]</emph>
+                </td>
+              </tr>
+              <tr>
+                <td align="center">
+                  <emph fontsize="90%" font="italic">Based off the opinion of other agents, can you give an updated response <Math mode="inline" xml:id="S2.SS1.m1" tex="\ldots" text="ldots" fragid="S2.SS1.m1"><m:math alttext="\ldots" display="inline"><m:semantics><m:mi mathvariant="normal" xml:id="S2.SS1.m1.1" xref="S2.SS1.m1.1.cmml">…</m:mi><m:annotation-xml encoding="MathML-Content"><m:ci xml:id="S2.SS1.m1.1.cmml" xref="S2.SS1.m1.1">…</m:ci></m:annotation-xml><m:annotation encoding="application/x-tex">\ldots</m:annotation></m:semantics></m:math></Math>"</emph>
+                </td>
+              </tr>
+              <tr>
+                <td align="center" border="bb r t" rowspan="2" thead="row">
+                  <text fontsize="90%">Long</text>
+                </td>
+                <td align="center" border="t">
+                  <emph fontsize="90%" font="italic">" These are the solutions to the problem from other agents: [other answers]</emph>
+                </td>
+              </tr>
+              <tr>
+                <td align="center" border="bb">
+                  <emph fontsize="90%" font="italic">Using the opinion of other agents as additional advice, can you give an updated response <Math mode="inline" xml:id="S2.SS1.m2" tex="\ldots" text="ldots" fragid="S2.SS1.m2"><m:math alttext="\ldots" display="inline"><m:semantics><m:mi mathvariant="normal" xml:id="S2.SS1.m2.1" xref="S2.SS1.m2.1.cmml">…</m:mi><m:annotation-xml encoding="MathML-Content"><m:ci xml:id="S2.SS1.m2.1.cmml" xref="S2.SS1.m2.1">…</m:ci></m:annotation-xml><m:annotation encoding="application/x-tex">\ldots</m:annotation></m:semantics></m:math></Math>"</emph>
+                </td>
+              </tr>
+            </tbody>
+          </tabular>
+        </inline-block>
+        <break class="ltx_break"/>
+        <tags>
+          <tag>
+            <text fontsize="90%">Figure 3</text>
+          </tag>
+          <tag role="autoref">Figure 3</tag>
+          <tag role="refnum">3</tag>
+          <tag role="typerefnum">Figure 3</tag>
+        </tags>
+        <toccaption>
+          <tag close=" ">
+            <text fontsize="90%">3</text>
+          </tag>
+          <text fontsize="90%" font="bold">Prompts to induce long and short form debate.</text>
+          <text fontsize="90%"> Responses of other agents to questions are are inserted in the middle of the prompt (indicated with </text>
+          <emph font="italic" fontsize="90%">[other answers]</emph>
+          <text fontsize="90%">)</text>
+        </toccaption>
+        <caption fontsize="90%"><tag close=": ">Figure 3</tag><text font="bold">Prompts to induce long and short form debate.</text> Responses of other agents to questions are are inserted in the middle of the prompt (indicated with <emph font="italic">[other answers]</emph>)</caption>
+      </table>
+    </subsection>
+    <subsection inlist="toc" xml:id="S2.SS2" labels="LABEL:sect:consensus" fragid="S2.SS2">
+      <tags>
+        <tag>2.2</tag>
+        <tag role="autoref">subsection 2.2</tag>
+        <tag role="refnum">2.2</tag>
+        <tag role="typerefnum">§2.2</tag>
+      </tags>
+      <title><tag close=" ">2.2</tag>Consensus in Debates</title>
+      <para xml:id="S2.SS2.p1" fragid="S2.SS2.p1">
+        <p>Given multiple rounds of debate, how can we ensure that a set of language model agents will converge to a final consensus answer? In general, debate can be seen as a multi-agent game, where convergence is not guaranteed. Empirically, however, we find that language models are able to converge on a single shared answer after multiple rounds of debate (Figure <ref labelref="LABEL:fig:math_overview" idref="S3.F4" href="#S3.F4" title="Figure 4 ‣ 3 Experiments ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">4</text></ref>).</p>
+      </para>
+      <para xml:id="S2.SS2.p2" fragid="S2.SS2.p2">
+        <p>We found that we could control the duration of debates by how changing how much a language model trusts its own outputs over those generated by other models through different prompts. We illustrate two prompts below in Figure <ref labelref="LABEL:tbl:prompt" idref="S2.F3" href="#S2.F3" title="Figure 3 ‣ 2.1 Multiagent Language Generation ‣ 2 Language Generation through Multiagent Debate ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">3</text></ref>, which we use to induce different debate durations between language models, and illustrate the effect of such prompts in Figure <ref labelref="LABEL:fig:convergence" idref="S3.F12" href="#S3.F12" title="Figure 12 ‣ Rounds of Debate ‣ 3.3 Analysis: Understanding Multiagent Debate ‣ 3 Experiments ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">12</text></ref>. In general, we found that prompts that encouraged models to be more “stubborn’ based on their own solutions led to longer debates and better final solutions. Overall, we observed that language model agents were relatively "agreeable", perhaps as a result of instruction tuning or reinforcement learning based on human feedback  <cite class="ltx_citemacro_cite">[<ref href="#bib.bib22" idref="bib.bib22">22</ref>]</cite>.</p>
+      </para>
+    </subsection>
+  </section>
+  <section inlist="toc" xml:id="S3" fragid="S3">
+    <tags>
+      <tag>3</tag>
+      <tag role="autoref">section 3</tag>
+      <tag role="refnum">3</tag>
+      <tag role="typerefnum">§3</tag>
+    </tags>
+    <title><tag close=" ">3</tag>Experiments</title>
+    <para xml:id="S3.p1" fragid="S3.p1">
+      <p>In our experiments, we evaluate our multiagent debate procedure and answer the following questions: <text font="bold">(1)</text> To what extent does multiagent debate improve reasoning? <text font="bold">(2)</text> To what extent does multiagent debate improve factual validity? <text font="bold">(3)</text> What design choices enable multiagent debate to improve language generation performance?</p>
+    </para>
+    <figure inlist="lof" placement="!t" xml:id="S3.F4" labels="LABEL:fig:math_overview" fragid="S3.F4">
+      <tags>
+        <tag>
+          <text fontsize="90%">Figure 4</text>
+        </tag>
+        <tag role="autoref">Figure 4</tag>
+        <tag role="refnum">4</tag>
+        <tag role="typerefnum">Figure 4</tag>
+      </tags>
+      <graphics candidates="fig/result_math-3.pdf" graphic="fig/result_math-3.pdf" options="width=433.6pt,keepaspectratio=true" xml:id="S3.F4.g1" class="ltx_centering" fragid="S3.F4.g1"/>
+      <toccaption class="ltx_centering"><tag close=" ">4</tag><text font="bold">Illustration of Solving Math.</text> Reasoning between agents is omitted.</toccaption>
+      <caption class="ltx_centering">
+        <tag close=": ">
+          <text fontsize="90%">Figure 4</text>
+        </tag>
+        <text font="bold" fontsize="90%">Illustration of Solving Math.<text font="medium"> Reasoning between agents is omitted.</text></text>
+      </caption>
+    </figure>
+    <figure inlist="lof" placement="t" xml:id="S3.F5" labels="LABEL:fig:reasoning_overview" fragid="S3.F5">
+      <tags>
+        <tag>
+          <text fontsize="90%">Figure 5</text>
+        </tag>
+        <tag role="autoref">Figure 5</tag>
+        <tag role="refnum">5</tag>
+        <tag role="typerefnum">Figure 5</tag>
+      </tags>
+      <graphics candidates="fig/result_gsm-2.pdf" graphic="fig/result_gsm-2.pdf" options="width=390.3pt,keepaspectratio=true" xml:id="S3.F5.g1" class="ltx_centering" fragid="S3.F5.g1"/>
+      <toccaption class="ltx_centering"><tag close=" ">5</tag><text font="bold">Illustration of Solving Grade School Math.</text> Reasoning between agents omitted.</toccaption>
+      <caption class="ltx_centering">
+        <tag close=": ">
+          <text fontsize="90%">Figure 5</text>
+        </tag>
+        <text fontsize="90%" font="bold">Illustration of Solving Grade School Math.<text font="medium"> Reasoning between agents omitted.</text></text>
+      </caption>
+    </figure>
+    <table inlist="lot" placement="t" xml:id="S3.T1" labels="LABEL:tbl:reasoning" fragid="S3.T1">
+      <tags>
+        <tag>
+          <text fontsize="90%">Table 1</text>
+        </tag>
+        <tag role="autoref">Table 1</tag>
+        <tag role="refnum">1</tag>
+        <tag role="typerefnum">Table 1</tag>
+      </tags>
+      <tabular colsep="5.5pt" vattach="middle" class="ltx_centering ltx_guessed_headers">
+        <thead>
+          <tr>
+            <td align="left" thead="column row">
+              <text fontsize="90%" font="bold">Model</text>
+            </td>
+            <td align="center" thead="column">
+              <text font="bold" fontsize="90%">Arithmetic (%) <Math mode="inline" xml:id="S3.T1.m1" tex="\uparrow" text="uparrow" fragid="S3.T1.m1"><m:math alttext="\uparrow" display="inline"><m:semantics><m:mo stretchy="false" xml:id="S3.T1.m1.1" xref="S3.T1.m1.1.cmml">↑</m:mo><m:annotation-xml encoding="MathML-Content"><m:ci xml:id="S3.T1.m1.1.cmml" xref="S3.T1.m1.1">↑</m:ci></m:annotation-xml><m:annotation encoding="application/x-tex">\uparrow</m:annotation></m:semantics></m:math></Math></text>
+            </td>
+            <td align="center" thead="column">
+              <text font="bold" fontsize="90%">Grade School Math (%) <Math mode="inline" xml:id="S3.T1.m2" tex="\uparrow" text="uparrow" fragid="S3.T1.m2"><m:math alttext="\uparrow" display="inline"><m:semantics><m:mo stretchy="false" xml:id="S3.T1.m2.1" xref="S3.T1.m2.1.cmml">↑</m:mo><m:annotation-xml encoding="MathML-Content"><m:ci xml:id="S3.T1.m2.1.cmml" xref="S3.T1.m2.1">↑</m:ci></m:annotation-xml><m:annotation encoding="application/x-tex">\uparrow</m:annotation></m:semantics></m:math></Math></text>
+            </td>
+            <td align="center" thead="column">
+              <text fontsize="90%" font="bold">Chess (<Math mode="inline" xml:id="S3.T1.m3" tex="\Delta" text="Delta" fragid="S3.T1.m3"><m:math alttext="\Delta" display="inline"><m:semantics><m:mi mathvariant="normal" xml:id="S3.T1.m3.1" xref="S3.T1.m3.1.cmml">Δ</m:mi><m:annotation-xml encoding="MathML-Content"><m:ci xml:id="S3.T1.m3.1.cmml" xref="S3.T1.m3.1">Δ</m:ci></m:annotation-xml><m:annotation encoding="application/x-tex">\Delta</m:annotation></m:semantics></m:math></Math>PS) <Math mode="inline" xml:id="S3.T1.m4" tex="\uparrow" text="uparrow" fragid="S3.T1.m4"><m:math alttext="\uparrow" display="inline"><m:semantics><m:mo stretchy="false" xml:id="S3.T1.m4.1" xref="S3.T1.m4.1.cmml">↑</m:mo><m:annotation-xml encoding="MathML-Content"><m:ci xml:id="S3.T1.m4.1.cmml" xref="S3.T1.m4.1">↑</m:ci></m:annotation-xml><m:annotation encoding="application/x-tex">\uparrow</m:annotation></m:semantics></m:math></Math></text>
+            </td>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td align="left" border="t" thead="row">
+              <text fontsize="90%">Single Agent</text>
+            </td>
+            <td align="center" border="t">
+              <text fontsize="90%">67.0 </text>
+              <Math mode="inline" xml:id="S3.T1.m5" tex="\pm" text="plus-or-minus" fragid="S3.T1.m5">
+                <m:math alttext="\pm" display="inline">
+                  <m:semantics>
+                    <m:mo mathsize="0.900em" xml:id="S3.T1.m5.1" xref="S3.T1.m5.1.cmml">±</m:mo>
+                    <m:annotation-xml encoding="MathML-Content">
+                      <m:csymbol cd="latexml" xml:id="S3.T1.m5.1.cmml" xref="S3.T1.m5.1">plus-or-minus</m:csymbol>
+                    </m:annotation-xml>
+                    <m:annotation encoding="application/x-tex">\pm</m:annotation>
+                  </m:semantics>
+                </m:math>
+              </Math>
+              <text fontsize="90%"> 4.7</text>
+            </td>
+            <td align="center" border="t">
+              <text fontsize="90%">77.0 </text>
+              <Math mode="inline" xml:id="S3.T1.m6" tex="\pm" text="plus-or-minus" fragid="S3.T1.m6">
+                <m:math alttext="\pm" display="inline">
+                  <m:semantics>
+                    <m:mo mathsize="0.900em" xml:id="S3.T1.m6.1" xref="S3.T1.m6.1.cmml">±</m:mo>
+                    <m:annotation-xml encoding="MathML-Content">
+                      <m:csymbol cd="latexml" xml:id="S3.T1.m6.1.cmml" xref="S3.T1.m6.1">plus-or-minus</m:csymbol>
+                    </m:annotation-xml>
+                    <m:annotation encoding="application/x-tex">\pm</m:annotation>
+                  </m:semantics>
+                </m:math>
+              </Math>
+              <text fontsize="90%"> 4.2</text>
+            </td>
+            <td align="center" border="t">
+              <text fontsize="90%">91.4 </text>
+              <Math mode="inline" xml:id="S3.T1.m7" tex="\pm" text="plus-or-minus" fragid="S3.T1.m7">
+                <m:math alttext="\pm" display="inline">
+                  <m:semantics>
+                    <m:mo mathsize="0.900em" xml:id="S3.T1.m7.1" xref="S3.T1.m7.1.cmml">±</m:mo>
+                    <m:annotation-xml encoding="MathML-Content">
+                      <m:csymbol cd="latexml" xml:id="S3.T1.m7.1.cmml" xref="S3.T1.m7.1">plus-or-minus</m:csymbol>
+                    </m:annotation-xml>
+                    <m:annotation encoding="application/x-tex">\pm</m:annotation>
+                  </m:semantics>
+                </m:math>
+              </Math>
+              <text fontsize="90%"> 10.6</text>
+            </td>
+          </tr>
+          <tr>
+            <td align="left" thead="row">
+              <text fontsize="90%">Single Agent (Reflection)</text>
+            </td>
+            <td align="center">
+              <text fontsize="90%">72.1 </text>
+              <Math mode="inline" xml:id="S3.T1.m8" tex="\pm" text="plus-or-minus" fragid="S3.T1.m8">
+                <m:math alttext="\pm" display="inline">
+                  <m:semantics>
+                    <m:mo mathsize="0.900em" xml:id="S3.T1.m8.1" xref="S3.T1.m8.1.cmml">±</m:mo>
+                    <m:annotation-xml encoding="MathML-Content">
+                      <m:csymbol cd="latexml" xml:id="S3.T1.m8.1.cmml" xref="S3.T1.m8.1">plus-or-minus</m:csymbol>
+                    </m:annotation-xml>
+                    <m:annotation encoding="application/x-tex">\pm</m:annotation>
+                  </m:semantics>
+                </m:math>
+              </Math>
+              <text fontsize="90%"> 4.5</text>
+            </td>
+            <td align="center">
+              <text fontsize="90%">75.0 </text>
+              <Math mode="inline" xml:id="S3.T1.m9" tex="\pm" text="plus-or-minus" fragid="S3.T1.m9">
+                <m:math alttext="\pm" display="inline">
+                  <m:semantics>
+                    <m:mo mathsize="0.900em" xml:id="S3.T1.m9.1" xref="S3.T1.m9.1.cmml">±</m:mo>
+                    <m:annotation-xml encoding="MathML-Content">
+                      <m:csymbol cd="latexml" xml:id="S3.T1.m9.1.cmml" xref="S3.T1.m9.1">plus-or-minus</m:csymbol>
+                    </m:annotation-xml>
+                    <m:annotation encoding="application/x-tex">\pm</m:annotation>
+                  </m:semantics>
+                </m:math>
+              </Math>
+              <text fontsize="90%"> 4.3</text>
+            </td>
+            <td align="center">
+              <text fontsize="90%">102.1 </text>
+              <Math mode="inline" xml:id="S3.T1.m10" tex="\pm" text="plus-or-minus" fragid="S3.T1.m10">
+                <m:math alttext="\pm" display="inline">
+                  <m:semantics>
+                    <m:mo mathsize="0.900em" xml:id="S3.T1.m10.1" xref="S3.T1.m10.1.cmml">±</m:mo>
+                    <m:annotation-xml encoding="MathML-Content">
+                      <m:csymbol cd="latexml" xml:id="S3.T1.m10.1.cmml" xref="S3.T1.m10.1">plus-or-minus</m:csymbol>
+                    </m:annotation-xml>
+                    <m:annotation encoding="application/x-tex">\pm</m:annotation>
+                  </m:semantics>
+                </m:math>
+              </Math>
+              <text fontsize="90%"> 11.9</text>
+            </td>
+          </tr>
+          <tr>
+            <td align="left" thead="row">
+              <text fontsize="90%">Multi-Agent (Majority)</text>
+            </td>
+            <td align="center">
+              <text fontsize="90%">69.0 </text>
+              <Math mode="inline" xml:id="S3.T1.m11" tex="\pm" text="plus-or-minus" fragid="S3.T1.m11">
+                <m:math alttext="\pm" display="inline">
+                  <m:semantics>
+                    <m:mo mathsize="0.900em" xml:id="S3.T1.m11.1" xref="S3.T1.m11.1.cmml">±</m:mo>
+                    <m:annotation-xml encoding="MathML-Content">
+                      <m:csymbol cd="latexml" xml:id="S3.T1.m11.1.cmml" xref="S3.T1.m11.1">plus-or-minus</m:csymbol>
+                    </m:annotation-xml>
+                    <m:annotation encoding="application/x-tex">\pm</m:annotation>
+                  </m:semantics>
+                </m:math>
+              </Math>
+              <text fontsize="90%"> 4.6</text>
+            </td>
+            <td align="center">
+              <text fontsize="90%">81.0 </text>
+              <Math mode="inline" xml:id="S3.T1.m12" tex="\pm" text="plus-or-minus" fragid="S3.T1.m12">
+                <m:math alttext="\pm" display="inline">
+                  <m:semantics>
+                    <m:mo mathsize="0.900em" xml:id="S3.T1.m12.1" xref="S3.T1.m12.1.cmml">±</m:mo>
+                    <m:annotation-xml encoding="MathML-Content">
+                      <m:csymbol cd="latexml" xml:id="S3.T1.m12.1.cmml" xref="S3.T1.m12.1">plus-or-minus</m:csymbol>
+                    </m:annotation-xml>
+                    <m:annotation encoding="application/x-tex">\pm</m:annotation>
+                  </m:semantics>
+                </m:math>
+              </Math>
+              <text fontsize="90%"> 3.9</text>
+            </td>
+            <td align="center">
+              <text fontsize="90%">102.2 </text>
+              <Math mode="inline" xml:id="S3.T1.m13" tex="\pm" text="plus-or-minus" fragid="S3.T1.m13">
+                <m:math alttext="\pm" display="inline">
+                  <m:semantics>
+                    <m:mo mathsize="0.900em" xml:id="S3.T1.m13.1" xref="S3.T1.m13.1.cmml">±</m:mo>
+                    <m:annotation-xml encoding="MathML-Content">
+                      <m:csymbol cd="latexml" xml:id="S3.T1.m13.1.cmml" xref="S3.T1.m13.1">plus-or-minus</m:csymbol>
+                    </m:annotation-xml>
+                    <m:annotation encoding="application/x-tex">\pm</m:annotation>
+                  </m:semantics>
+                </m:math>
+              </Math>
+              <text fontsize="90%"> 6.2</text>
+            </td>
+          </tr>
+          <tr>
+            <td align="left" border="bb" thead="row">
+              <text fontsize="90%">Multi-Agent (Debate)</text>
+            </td>
+            <td align="center" border="bb">
+              <text fontsize="90%" font="bold">81.8 <Math mode="inline" xml:id="S3.T1.m14" tex="\pm" text="plus-or-minus" fragid="S3.T1.m14"><m:math alttext="\pm" display="inline"><m:semantics><m:mo xml:id="S3.T1.m14.1" xref="S3.T1.m14.1.cmml">±</m:mo><m:annotation-xml encoding="MathML-Content"><m:csymbol cd="latexml" xml:id="S3.T1.m14.1.cmml" xref="S3.T1.m14.1">plus-or-minus</m:csymbol></m:annotation-xml><m:annotation encoding="application/x-tex">\pm</m:annotation></m:semantics></m:math></Math> 2.3</text>
+            </td>
+            <td align="center" border="bb">
+              <text font="bold" fontsize="90%">85.0 <Math mode="inline" xml:id="S3.T1.m15" tex="\pm" text="plus-or-minus" fragid="S3.T1.m15"><m:math alttext="\pm" display="inline"><m:semantics><m:mo xml:id="S3.T1.m15.1" xref="S3.T1.m15.1.cmml">±</m:mo><m:annotation-xml encoding="MathML-Content"><m:csymbol cd="latexml" xml:id="S3.T1.m15.1.cmml" xref="S3.T1.m15.1">plus-or-minus</m:csymbol></m:annotation-xml><m:annotation encoding="application/x-tex">\pm</m:annotation></m:semantics></m:math></Math> 3.5</text>
+            </td>
+            <td align="center" border="bb">
+              <text font="bold" fontsize="90%">122.9 <Math mode="inline" xml:id="S3.T1.m16" tex="\pm" text="plus-or-minus" fragid="S3.T1.m16"><m:math alttext="\pm" display="inline"><m:semantics><m:mo xml:id="S3.T1.m16.1" xref="S3.T1.m16.1.cmml">±</m:mo><m:annotation-xml encoding="MathML-Content"><m:csymbol cd="latexml" xml:id="S3.T1.m16.1.cmml" xref="S3.T1.m16.1">plus-or-minus</m:csymbol></m:annotation-xml><m:annotation encoding="application/x-tex">\pm</m:annotation></m:semantics></m:math></Math> 7.6</text>
+            </td>
+          </tr>
+        </tbody>
+      </tabular>
+      <toccaption class="ltx_centering">
+        <tag close=" ">
+          <text fontsize="90%">1</text>
+        </tag>
+        <text font="bold" fontsize="90%">Multiagent Debate Improves Reasoning</text>
+        <text fontsize="90%"> Multi-agent debate improves the reasoning abilities of language models. Multi-agent results in the table are run with 3 agents and two rounds of debate.</text>
+      </toccaption>
+      <caption class="ltx_centering" fontsize="90%"><tag close=": ">Table 1</tag><text font="bold">Multiagent Debate Improves Reasoning</text> Multi-agent debate improves the reasoning abilities of language models. Multi-agent results in the table are run with 3 agents and two rounds of debate.</caption>
+    </table>
+    <subsection inlist="toc" xml:id="S3.SS1" labels="LABEL:sect:reasoning" fragid="S3.SS1">
+      <tags>
+        <tag>3.1</tag>
+        <tag role="autoref">subsection 3.1</tag>
+        <tag role="refnum">3.1</tag>
+        <tag role="typerefnum">§3.1</tag>
+      </tags>
+      <title><tag close=" ">3.1</tag>Improving Reasoning with Multiagent Debate</title>
+      <para xml:id="S3.SS1.p1" fragid="S3.SS1.p1">
+        <p>We first evaluate the extent to which multiagent debate improves the underlying reasoning process in language models.</p>
+      </para>
+      <paragraph inlist="toc" xml:id="S3.SS1.SSS0.Px1" fragid="S3.SS1.SSS0.Px1">
+        <title>Tasks.</title>
+        <para xml:id="S3.SS1.SSS0.Px1.p1" fragid="S3.SS1.SSS0.Px1.p1">
+          <p>We evaluate our approach on three reasoning tasks of increasing difficulty:</p>
+          <itemize xml:id="S3.I1" fragid="S3.I1">
+            <item xml:id="S3.I1.i1" fragid="S3.I1.i1">
+              <tags>
+                <tag>•</tag>
+                <tag role="autoref">item </tag>
+                <tag role="typerefnum">1st item</tag>
+              </tags>
+              <para xml:id="S3.I1.i1.p1" fragid="S3.I1.i1.p1">
+                <p><text font="typewriter">Arithmetic.</text> We first evaluate the ability of models to correctly evaluate an arithmetic expression (containing addition, multiplication, and subtraction) consisting of six different two-digit numbers. For example: <text font="italic">What is the result of 12+15*21+0-3*27?</text></p>
+              </para>
+            </item>
+            <item xml:id="S3.I1.i2" fragid="S3.I1.i2">
+              <tags>
+                <tag>•</tag>
+                <tag role="autoref">item </tag>
+                <tag role="typerefnum">2nd item</tag>
+              </tags>
+              <para xml:id="S3.I1.i2.p1" fragid="S3.I1.i2.p1">
+                <p><text font="typewriter">GSM8K.</text> Next, we consider harder mathematical reasoning tasks. Using the GSM8K dataset <cite class="ltx_citemacro_cite">[<ref href="#bib.bib3" idref="bib.bib3">3</ref>]</cite>, the models must correctly solve grade school mathematical reasoning tasks.</p>
+              </para>
+            </item>
+            <item xml:id="S3.I1.i3" fragid="S3.I1.i3">
+              <tags>
+                <tag>•</tag>
+                <tag role="autoref">item </tag>
+                <tag role="typerefnum">3rd item</tag>
+              </tags>
+              <para xml:id="S3.I1.i3.p1" fragid="S3.I1.i3.p1">
+                <p><text font="typewriter">Chess Move Prediction.</text> Finally, we consider the strategic reasoning of the ability of models, and ask models to predict the best next move in a game of chess, given the first 14 moves of a chess game between two chess grand-masters described in PGN notation <cite class="ltx_citemacro_cite">[<ref href="#bib.bib6" idref="bib.bib6">6</ref>]</cite>.</p>
+              </para>
+            </item>
+          </itemize>
+          <p>We report the accuracy of final answers in arithmetic and GSM8K tasks and report the pawn score (advantage) of predicted moves, as estimated by Stockfish in the Chess move prediction tasks. Additional details may be found in the Appendix.</p>
+        </para>
+        <figure float="right" inlist="lof" xml:id="S3.F6" labels="LABEL:fig:prompt_ablation" fragid="S3.F6">
+          <tags>
+            <tag>
+              <text fontsize="90%">Figure 6</text>
+            </tag>
+            <tag role="autoref">Figure 6</tag>
+            <tag role="refnum">6</tag>
+            <tag role="typerefnum">Figure 6</tag>
+          </tags>
+          <graphics candidates="fig/prompt_ablation_new.pdf" graphic="fig/prompt_ablation_new.pdf" options="width=433.6pt,keepaspectratio=true" xml:id="S3.F6.g1" class="ltx_centering" fragid="S3.F6.g1"/>
+          <toccaption class="ltx_centering"><tag close=" ">6</tag><text font="bold">Synergy with Other Methods.</text> Performance of debate increases with use of Chain of Thought prompting.</toccaption>
+          <caption class="ltx_centering">
+            <tag close=": ">
+              <text fontsize="90%">Figure 6</text>
+            </tag>
+            <text font="bold" fontsize="90%">Synergy with Other Methods.<text font="medium"> Performance of debate increases with use of Chain of Thought prompting.</text></text>
+          </caption>
+        </figure>
+        <figure inlist="lof" placement="t" xml:id="S3.F7" labels="LABEL:fig:validity_overview" fragid="S3.F7">
+          <tags>
+            <tag>
+              <text fontsize="90%">Figure 7</text>
+            </tag>
+            <tag role="autoref">Figure 7</tag>
+            <tag role="refnum">7</tag>
+            <tag role="typerefnum">Figure 7</tag>
+          </tags>
+          <graphics candidates="fig/result_bio.pdf" graphic="fig/result_bio.pdf" options="width=390.3pt,keepaspectratio=true" xml:id="S3.F7.g1" class="ltx_centering" fragid="S3.F7.g1"/>
+          <toccaption class="ltx_centering"><tag close=" ">7</tag><text font="bold">Illustration of Generating Biographies.</text> Illustration of generating bullet biographies of computer scientists. For brevity, only the first 3 generated bullets are shown.</toccaption>
+          <caption class="ltx_centering">
+            <tag close=": ">
+              <text fontsize="90%">Figure 7</text>
+            </tag>
+            <text font="bold" fontsize="90%">Illustration of Generating Biographies.<text font="medium"> Illustration of generating bullet biographies of computer scientists. For brevity, only the first 3 generated bullets are shown.</text></text>
+          </caption>
+        </figure>
+        <figure inlist="lof" placement="t" xml:id="S3.F8" labels="LABEL:fig:mmlu_result" fragid="S3.F8">
+          <tags>
+            <tag>
+              <text fontsize="90%">Figure 8</text>
+            </tag>
+            <tag role="autoref">Figure 8</tag>
+            <tag role="refnum">8</tag>
+            <tag role="typerefnum">Figure 8</tag>
+          </tags>
+          <graphics candidates="fig/result_mmlu.pdf" graphic="fig/result_mmlu.pdf" options="width=433.6pt,keepaspectratio=true" xml:id="S3.F8.g1" class="ltx_centering" fragid="S3.F8.g1"/>
+          <toccaption class="ltx_centering"><tag close=" ">8</tag><text font="bold">Illustration of MMLU.</text> Illustration of debate when answering factual tasks. Reasoning omitted.</toccaption>
+          <caption class="ltx_centering">
+            <tag close=": ">
+              <text fontsize="90%">Figure 8</text>
+            </tag>
+            <text fontsize="90%" font="bold">Illustration of MMLU.<text font="medium"> Illustration of debate when answering factual tasks. Reasoning omitted.</text></text>
+          </caption>
+        </figure>
+      </paragraph>
+      <paragraph inlist="toc" xml:id="S3.SS1.SSS0.Px2" fragid="S3.SS1.SSS0.Px2">
+        <title>Baselines.</title>
+        <para xml:id="S3.SS1.SSS0.Px2.p1" fragid="S3.SS1.SSS0.Px2.p1">
+          <p>We compare our approach to three alternative approaches to generate responses for reasoning problems. First, we ask agents to directly generate responses (single agent). Next, we consider asking language models to generate and then "self-reflect" on the responses generated <cite class="ltx_citemacro_cite">[<ref href="#bib.bib26" idref="bib.bib26">26</ref>, <ref href="#bib.bib18" idref="bib.bib18">18</ref>]</cite>. Finally, we consider generating responses using multiple agents and performing majority voting <cite class="ltx_citemacro_cite">[<ref href="#bib.bib15" idref="bib.bib15">15</ref>, <ref href="#bib.bib3" idref="bib.bib3">3</ref>]</cite>. As the focus of our experiments is to verify the effectiveness of multiagent agent debate, we run both baselines and our approach, using the identical starting prompt and language model across all evaluations. We evaluate models in a zero-shot setting, with prompts found in the Appendix of the paper. We use chatGPT-based language model  <cite class="ltx_citemacro_cite">[<ref href="#bib.bib21" idref="bib.bib21">21</ref>]</cite> in all our experiments except those in Figure <ref labelref="LABEL:fig:chatgpt_bard" idref="S3.F11" href="#S3.F11" title="Figure 11 ‣ Results. ‣ 3.2 Extracting Factual Information from Multiagent Debate ‣ 3 Experiments ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">11</text></ref> where we compare multiple language models.</p>
+        </para>
+        <para xml:id="S3.SS1.SSS0.Px2.p2" fragid="S3.SS1.SSS0.Px2.p2">
+          <p>Due to computational expense, we evaluate our approach across benchmarks mainly using three agents with two rounds of debates, although we found further gains with both more agents and rounds of debate (Figure <ref labelref="LABEL:fig:round_agents" idref="S3.F10" href="#S3.F10" title="Figure 10 ‣ Compatibility with other reasoning methods. ‣ 3.1 Improving Reasoning with Multiagent Debate ‣ 3 Experiments ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">10</text></ref>). Additional evaluation details are found in the Appendix.</p>
+        </para>
+      </paragraph>
+      <paragraph inlist="toc" xml:id="S3.SS1.SSS0.Px3" fragid="S3.SS1.SSS0.Px3">
+        <title>Quantitative Results.</title>
+        <para xml:id="S3.SS1.SSS0.Px3.p1" fragid="S3.SS1.SSS0.Px3.p1">
+          <p>In Table <ref labelref="LABEL:tbl:reasoning" idref="S3.T1" href="#S3.T1" title="Table 1 ‣ 3 Experiments ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">1</text></ref>, we report the results of each approach on arithmetic, grade school math, and chess reasoning task. In each task, we observe that utilizing multiple different agents to generate solutions improves performance over using a single language model agent to generate a solution. Simultaneously, we also see that reflection, where a language model is asked to critique its early generation, generally gives a modest boost in performance. Multiagent debate, which may be seen as a combination of both reflection and multiagent generation, gives a substantial boost in reasoning across each of the tasks.</p>
+        </para>
+      </paragraph>
+      <paragraph inlist="toc" xml:id="S3.SS1.SSS0.Px4" fragid="S3.SS1.SSS0.Px4">
+        <title>Qualitative Results.</title>
+        <para xml:id="S3.SS1.SSS0.Px4.p1" fragid="S3.SS1.SSS0.Px4.p1">
+          <p>In Figure  <ref labelref="LABEL:fig:math_overview" idref="S3.F4" href="#S3.F4" title="Figure 4 ‣ 3 Experiments ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">4</text></ref>, <ref labelref="LABEL:fig:reasoning_overview" idref="S3.F5" href="#S3.F5" title="Figure 5 ‣ 3 Experiments ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">5</text></ref>, we provide qualitative illustrations of the debate procedure between models. Interestingly, we find cases in which all models initially give an incorrect response, yet the result of debate still obtains the correct answer as agents critique each others’ reasoning. Thus, the purpose of our debate isn’t just to amplify a correct answer – all models can initially be wrong but arrive at the correct answer through the debate process.</p>
+        </para>
+      </paragraph>
+      <paragraph inlist="toc" xml:id="S3.SS1.SSS0.Px5" fragid="S3.SS1.SSS0.Px5">
+        <title>Compatibility with other reasoning methods.</title>
+        <para xml:id="S3.SS1.SSS0.Px5.p1" fragid="S3.SS1.SSS0.Px5.p1">
+          <p>Our multiagent generation procedure operates orthogonally approach to other prompting methods which focus on single-agent generation. In Figure <ref labelref="LABEL:fig:prompt_ablation" idref="S3.F6" href="#S3.F6" title="Figure 6 ‣ Tasks. ‣ 3.1 Improving Reasoning with Multiagent Debate ‣ 3 Experiments ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">6</text></ref>, we illustrate the performance of multi-agent debate with and without zero-shot chain-of-thought prompting <cite class="ltx_citemacro_cite">[<ref href="#bib.bib11" idref="bib.bib11">11</ref>]</cite> on GSM8K. In both settings, multiagent generation is beneficial.</p>
+        </para>
+        <table inlist="lot" placement="t" xml:id="S3.T2" labels="LABEL:tbl:accuracy" fragid="S3.T2">
+          <tags>
+            <tag>
+              <text fontsize="90%">Table 2</text>
+            </tag>
+            <tag role="autoref">Table 2</tag>
+            <tag role="refnum">2</tag>
+            <tag role="typerefnum">Table 2</tag>
+          </tags>
+          <tabular colsep="5.5pt" vattach="middle" class="ltx_centering ltx_guessed_headers">
+            <thead>
+              <tr>
+                <td align="left" thead="column row">
+                  <text font="bold" fontsize="90%">Model</text>
+                </td>
+                <td align="center" thead="column">
+                  <text fontsize="90%" font="bold">Biographies</text>
+                </td>
+                <td align="center" thead="column">
+                  <text fontsize="90%" font="bold">MMLU</text>
+                </td>
+                <td align="center" thead="column">
+                  <text font="bold" fontsize="90%">Chess Move Validity</text>
+                </td>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td align="left" border="t" thead="row">
+                  <text fontsize="90%">Single Agent</text>
+                </td>
+                <td align="center" border="t">
+                  <text fontsize="90%">66.0 </text>
+                  <Math mode="inline" xml:id="S3.T2.m1" tex="\pm" text="plus-or-minus" fragid="S3.T2.m1">
+                    <m:math alttext="\pm" display="inline">
+                      <m:semantics>
+                        <m:mo mathsize="0.900em" xml:id="S3.T2.m1.1" xref="S3.T2.m1.1.cmml">±</m:mo>
+                        <m:annotation-xml encoding="MathML-Content">
+                          <m:csymbol cd="latexml" xml:id="S3.T2.m1.1.cmml" xref="S3.T2.m1.1">plus-or-minus</m:csymbol>
+                        </m:annotation-xml>
+                        <m:annotation encoding="application/x-tex">\pm</m:annotation>
+                      </m:semantics>
+                    </m:math>
+                  </Math>
+                  <text fontsize="90%"> 2.2</text>
+                </td>
+                <td align="center" border="t">
+                  <text fontsize="90%">63.9 </text>
+                  <Math mode="inline" xml:id="S3.T2.m2" tex="\pm" text="plus-or-minus" fragid="S3.T2.m2">
+                    <m:math alttext="\pm" display="inline">
+                      <m:semantics>
+                        <m:mo mathsize="0.900em" xml:id="S3.T2.m2.1" xref="S3.T2.m2.1.cmml">±</m:mo>
+                        <m:annotation-xml encoding="MathML-Content">
+                          <m:csymbol cd="latexml" xml:id="S3.T2.m2.1.cmml" xref="S3.T2.m2.1">plus-or-minus</m:csymbol>
+                        </m:annotation-xml>
+                        <m:annotation encoding="application/x-tex">\pm</m:annotation>
+                      </m:semantics>
+                    </m:math>
+                  </Math>
+                  <text fontsize="90%"> 4.8</text>
+                </td>
+                <td align="center" border="t">
+                  <text fontsize="90%">29.3 </text>
+                  <Math mode="inline" xml:id="S3.T2.m3" tex="\pm" text="plus-or-minus" fragid="S3.T2.m3">
+                    <m:math alttext="\pm" display="inline">
+                      <m:semantics>
+                        <m:mo mathsize="0.900em" xml:id="S3.T2.m3.1" xref="S3.T2.m3.1.cmml">±</m:mo>
+                        <m:annotation-xml encoding="MathML-Content">
+                          <m:csymbol cd="latexml" xml:id="S3.T2.m3.1.cmml" xref="S3.T2.m3.1">plus-or-minus</m:csymbol>
+                        </m:annotation-xml>
+                        <m:annotation encoding="application/x-tex">\pm</m:annotation>
+                      </m:semantics>
+                    </m:math>
+                  </Math>
+                  <text fontsize="90%"> 2.6</text>
+                </td>
+              </tr>
+              <tr>
+                <td align="left" thead="row">
+                  <text fontsize="90%">Single Agent (Reflection)</text>
+                </td>
+                <td align="center">
+                  <text fontsize="90%">68.3 </text>
+                  <Math mode="inline" xml:id="S3.T2.m4" tex="\pm" text="plus-or-minus" fragid="S3.T2.m4">
+                    <m:math alttext="\pm" display="inline">
+                      <m:semantics>
+                        <m:mo mathsize="0.900em" xml:id="S3.T2.m4.1" xref="S3.T2.m4.1.cmml">±</m:mo>
+                        <m:annotation-xml encoding="MathML-Content">
+                          <m:csymbol cd="latexml" xml:id="S3.T2.m4.1.cmml" xref="S3.T2.m4.1">plus-or-minus</m:csymbol>
+                        </m:annotation-xml>
+                        <m:annotation encoding="application/x-tex">\pm</m:annotation>
+                      </m:semantics>
+                    </m:math>
+                  </Math>
+                  <text fontsize="90%"> 2.9</text>
+                </td>
+                <td align="center">
+                  <text fontsize="90%">57.7 </text>
+                  <Math mode="inline" xml:id="S3.T2.m5" tex="\pm" text="plus-or-minus" fragid="S3.T2.m5">
+                    <m:math alttext="\pm" display="inline">
+                      <m:semantics>
+                        <m:mo mathsize="0.900em" xml:id="S3.T2.m5.1" xref="S3.T2.m5.1.cmml">±</m:mo>
+                        <m:annotation-xml encoding="MathML-Content">
+                          <m:csymbol cd="latexml" xml:id="S3.T2.m5.1.cmml" xref="S3.T2.m5.1">plus-or-minus</m:csymbol>
+                        </m:annotation-xml>
+                        <m:annotation encoding="application/x-tex">\pm</m:annotation>
+                      </m:semantics>
+                    </m:math>
+                  </Math>
+                  <text fontsize="90%"> 5.0</text>
+                </td>
+                <td align="center">
+                  <text fontsize="90%">38.8 </text>
+                  <Math mode="inline" xml:id="S3.T2.m6" tex="\pm" text="plus-or-minus" fragid="S3.T2.m6">
+                    <m:math alttext="\pm" display="inline">
+                      <m:semantics>
+                        <m:mo mathsize="0.900em" xml:id="S3.T2.m6.1" xref="S3.T2.m6.1.cmml">±</m:mo>
+                        <m:annotation-xml encoding="MathML-Content">
+                          <m:csymbol cd="latexml" xml:id="S3.T2.m6.1.cmml" xref="S3.T2.m6.1">plus-or-minus</m:csymbol>
+                        </m:annotation-xml>
+                        <m:annotation encoding="application/x-tex">\pm</m:annotation>
+                      </m:semantics>
+                    </m:math>
+                  </Math>
+                  <text fontsize="90%"> 2.9</text>
+                </td>
+              </tr>
+              <tr>
+                <td align="left" border="bb" thead="row">
+                  <text fontsize="90%">Multi-Agent (Debate)</text>
+                </td>
+                <td align="center" border="bb">
+                  <text font="bold" fontsize="90%">73.8 <Math mode="inline" xml:id="S3.T2.m7" tex="\pm" text="plus-or-minus" fragid="S3.T2.m7"><m:math alttext="\pm" display="inline"><m:semantics><m:mo xml:id="S3.T2.m7.1" xref="S3.T2.m7.1.cmml">±</m:mo><m:annotation-xml encoding="MathML-Content"><m:csymbol cd="latexml" xml:id="S3.T2.m7.1.cmml" xref="S3.T2.m7.1">plus-or-minus</m:csymbol></m:annotation-xml><m:annotation encoding="application/x-tex">\pm</m:annotation></m:semantics></m:math></Math> 2.3</text>
+                </td>
+                <td align="center" border="bb">
+                  <text fontsize="90%" font="bold">71.1 <Math mode="inline" xml:id="S3.T2.m8" tex="\pm" text="plus-or-minus" fragid="S3.T2.m8"><m:math alttext="\pm" display="inline"><m:semantics><m:mo xml:id="S3.T2.m8.1" xref="S3.T2.m8.1.cmml">±</m:mo><m:annotation-xml encoding="MathML-Content"><m:csymbol cd="latexml" xml:id="S3.T2.m8.1.cmml" xref="S3.T2.m8.1">plus-or-minus</m:csymbol></m:annotation-xml><m:annotation encoding="application/x-tex">\pm</m:annotation></m:semantics></m:math></Math> 4.6</text>
+                </td>
+                <td align="center" border="bb">
+                  <text fontsize="90%" font="bold">45.2 <Math mode="inline" xml:id="S3.T2.m9" tex="\pm" text="plus-or-minus" fragid="S3.T2.m9"><m:math alttext="\pm" display="inline"><m:semantics><m:mo xml:id="S3.T2.m9.1" xref="S3.T2.m9.1.cmml">±</m:mo><m:annotation-xml encoding="MathML-Content"><m:csymbol cd="latexml" xml:id="S3.T2.m9.1.cmml" xref="S3.T2.m9.1">plus-or-minus</m:csymbol></m:annotation-xml><m:annotation encoding="application/x-tex">\pm</m:annotation></m:semantics></m:math></Math> 2.9</text>
+                </td>
+              </tr>
+            </tbody>
+          </tabular>
+          <toccaption class="ltx_centering">
+            <tag close=" ">
+              <text fontsize="90%">2</text>
+            </tag>
+            <text font="bold" fontsize="90%">Multiagent Debate Improves Factual Accuracy</text>
+            <text fontsize="90%"> Multi-agent debate improves the factual accuracy.</text>
+          </toccaption>
+          <caption class="ltx_centering" fontsize="90%"><tag close=": ">Table 2</tag><text font="bold">Multiagent Debate Improves Factual Accuracy</text> Multi-agent debate improves the factual accuracy.</caption>
+        </table>
+        <figure inlist="lof" placement="t" xml:id="S3.F9" labels="LABEL:fig:uncertainty_generation" fragid="S3.F9">
+          <tags>
+            <tag>
+              <text fontsize="90%">Figure 9</text>
+            </tag>
+            <tag role="autoref">Figure 9</tag>
+            <tag role="refnum">9</tag>
+            <tag role="typerefnum">Figure 9</tag>
+          </tags>
+          <graphics candidates="fig/result_tomas.pdf" graphic="fig/result_tomas.pdf" options="width=433.6pt,keepaspectratio=true" xml:id="S3.F9.g1" class="ltx_centering" fragid="S3.F9.g1"/>
+          <toccaption class="ltx_centering"><tag close=" ">9</tag><text font="bold">Expressing Uncertainty with Multiple Answers.</text> For facts that a language model is uncertain about, different language agents generate different facts. Debate causes agents to converge to one fact that is more accurate, but not necessarily always factually correct.</toccaption>
+          <caption class="ltx_centering">
+            <tag close=": ">
+              <text fontsize="90%">Figure 9</text>
+            </tag>
+            <text font="bold" fontsize="90%">Expressing Uncertainty with Multiple Answers.<text font="medium"> For facts that a language model is uncertain about, different language agents generate different facts. Debate causes agents to converge to one fact that is more accurate, but not necessarily always factually correct.</text></text>
+          </caption>
+        </figure>
+        <figure inlist="lof" placement="!t" xml:id="S3.F10" labels="LABEL:fig:round_agents" fragid="S3.F10">
+          <tags>
+            <tag>
+              <text fontsize="90%">Figure 10</text>
+            </tag>
+            <tag role="autoref">Figure 10</tag>
+            <tag role="refnum">10</tag>
+            <tag role="typerefnum">Figure 10</tag>
+          </tags>
+          <graphics candidates="fig/debate_rounds.pdf" graphic="fig/debate_rounds.pdf" options="width=433.6pt,keepaspectratio=true" xml:id="S3.F10.g1" class="ltx_centering" fragid="S3.F10.g1"/>
+          <toccaption class="ltx_centering"><tag close=" ">10</tag><text font="bold">(a) Performance with Increased Agents.</text> Performance improves as the number of underlying agents involved in debate increases. <text font="bold">(b) Performance with Increased Rounds.</text> Performance rises as the number of rounds of underlying debate increases.</toccaption>
+          <caption class="ltx_centering">
+            <tag close=": ">
+              <text fontsize="90%">Figure 10</text>
+            </tag>
+            <text font="bold" fontsize="90%">(a) Performance with Increased Agents.<text font="medium"> Performance improves as the number of underlying agents involved in debate increases. </text>(b) Performance with Increased Rounds.<text font="medium"> Performance rises as the number of rounds of underlying debate increases.</text></text>
+          </caption>
+        </figure>
+      </paragraph>
+    </subsection>
+    <subsection inlist="toc" xml:id="S3.SS2" fragid="S3.SS2">
+      <tags>
+        <tag>3.2</tag>
+        <tag role="autoref">subsection 3.2</tag>
+        <tag role="refnum">3.2</tag>
+        <tag role="typerefnum">§3.2</tag>
+      </tags>
+      <title><tag close=" ">3.2</tag>Extracting Factual Information from Multiagent Debate</title>
+      <para xml:id="S3.SS2.p1" fragid="S3.SS2.p1">
+        <p>We next evaluate the extent to which multiagent debate improves the underlying factuality in language models.</p>
+      </para>
+      <paragraph inlist="toc" xml:id="S3.SS2.SSS0.Px1" fragid="S3.SS2.SSS0.Px1">
+        <title>Tasks.</title>
+        <para xml:id="S3.SS2.SSS0.Px1.p1" fragid="S3.SS2.SSS0.Px1.p1">
+          <p>We evaluate the factuality of language models in three different settings:</p>
+        </para>
+        <para xml:id="S3.SS2.SSS0.Px1.p2" fragid="S3.SS2.SSS0.Px1.p2">
+          <itemize xml:id="S3.I2" fragid="S3.I2">
+            <item xml:id="S3.I2.i1" fragid="S3.I2.i1">
+              <tags>
+                <tag>•</tag>
+                <tag role="autoref">item </tag>
+                <tag role="typerefnum">1st item</tag>
+              </tags>
+              <para xml:id="S3.I2.i1.p1" fragid="S3.I2.i1.p1">
+                <p><text font="typewriter">Biographies.</text> To evaluate the factuality of language models, we introduce a novel task of accurately generating historical biographies of people. In preliminary testing, we found that existing language models had a tendency to hallucinate many facts on this task. We constructed ground truth bullet point biographies of 524 well-known computer scientists. We then asked language models to generate bullet point biographies for each person, and evaluated the accuracy at which each ground truth bullet point agreed with generated bullets. We report additional evaluation details in the Appendix.</p>
+              </para>
+            </item>
+            <item xml:id="S3.I2.i2" fragid="S3.I2.i2">
+              <tags>
+                <tag>•</tag>
+                <tag role="autoref">item </tag>
+                <tag role="typerefnum">2nd item</tag>
+              </tags>
+              <para xml:id="S3.I2.i2.p1" fragid="S3.I2.i2.p1">
+                <p><text font="typewriter">MMLU.</text> Next, we assess the factuality of language models in responding to different factual knowledge questions typically learned and assessed in different exams. We utilize the existing MMLU dataset <cite class="ltx_citemacro_cite">[<ref href="#bib.bib8" idref="bib.bib8">8</ref>]</cite> to benchmark the accuracy of responses.</p>
+              </para>
+            </item>
+            <item xml:id="S3.I2.i3" fragid="S3.I2.i3">
+              <tags>
+                <tag>•</tag>
+                <tag role="autoref">item </tag>
+                <tag role="typerefnum">3rd item</tag>
+              </tags>
+              <para xml:id="S3.I2.i3.p1" fragid="S3.I2.i3.p1">
+                <p><text font="typewriter">Chess Move Validity.</text> Lastly, we study the hallucinations in language models when planning under to the given rules of an existing environment or game. Specifically, we measure the validity of possible moves in a game of Chess given by BIG-Bench Chess-State Tracking Benchmark  <cite class="ltx_citemacro_cite">[<ref href="#bib.bib27" idref="bib.bib27">27</ref>]</cite> task of chess-move prediction. In this task, an agent is given a set of next moves, and must make a valid next move of a piece on a board.</p>
+              </para>
+            </item>
+          </itemize>
+        </para>
+      </paragraph>
+      <paragraph inlist="toc" xml:id="S3.SS2.SSS0.Px2" fragid="S3.SS2.SSS0.Px2">
+        <title>Baselines.</title>
+        <para xml:id="S3.SS2.SSS0.Px2.p1" fragid="S3.SS2.SSS0.Px2.p1">
+          <p>We use the same baselines as in Section <ref labelref="LABEL:sect:reasoning" idref="S3.SS1" href="#S3.SS1" title="3.1 Improving Reasoning with Multiagent Debate ‣ 3 Experiments ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">3.1</text></ref>. The multiagent (majority) is not directly applicable in this setting as individual responses are not easily comparable, and so we omit baseline comparison with the majority voting in this setting.</p>
+        </para>
+      </paragraph>
+      <paragraph inlist="toc" xml:id="S3.SS2.SSS0.Px3" fragid="S3.SS2.SSS0.Px3">
+        <title>Results.</title>
+        <para xml:id="S3.SS2.SSS0.Px3.p1" fragid="S3.SS2.SSS0.Px3.p1">
+          <p>We analyze the performance of each method in Table <ref labelref="LABEL:tbl:accuracy" idref="S3.T2" href="#S3.T2" title="Table 2 ‣ Compatibility with other reasoning methods. ‣ 3.1 Improving Reasoning with Multiagent Debate ‣ 3 Experiments ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">2</text></ref>. We found that approaches based on reflection led to poor performance in the factuality setting. In contrast, debate gives the best performance in this setting also, and significantly outperforms each baseline. We illustrate a debate between agents on the biography task in Figure <ref labelref="LABEL:fig:validity_overview" idref="S3.F7" href="#S3.F7" title="Figure 7 ‣ Tasks. ‣ 3.1 Improving Reasoning with Multiagent Debate ‣ 3 Experiments ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">7</text></ref> and on MMLU in Figure <ref labelref="LABEL:fig:mmlu_result" idref="S3.F8" href="#S3.F8" title="Figure 8 ‣ Tasks. ‣ 3.1 Improving Reasoning with Multiagent Debate ‣ 3 Experiments ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">8</text></ref>. We found that multiagent debate improved and settled on bullets that were more consistent across agents.</p>
+        </para>
+        <para xml:id="S3.SS2.SSS0.Px3.p2" fragid="S3.SS2.SSS0.Px3.p2">
+          <p>We found that different language agents tended to give different answers when the underlying language model was uncertain about the question. However, directly asking each agent about their confidence  <cite class="ltx_citemacro_cite">[<ref href="#bib.bib10" idref="bib.bib10">10</ref>]</cite> of the answer led to high confidence assessments on each answer. However, when these different language agents were asked to communicate with each other, each agent would quickly change their opinion to a consensus answer which was more accurate. We illustrate this in Figure <ref labelref="LABEL:fig:uncertainty_generation" idref="S3.F9" href="#S3.F9" title="Figure 9 ‣ Compatibility with other reasoning methods. ‣ 3.1 Improving Reasoning with Multiagent Debate ‣ 3 Experiments ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">9</text></ref>. Interestingly, we found that on facts that the language model was confident in (i.e. many instances of the same model all gave the same answer), it was very difficult to convince an agent to change their opinion, suggesting that “ease of persuasion” may be a method to assess factual confidence.</p>
+        </para>
+        <figure inlist="lof" placement="t" xml:id="S3.F11" labels="LABEL:fig:chatgpt_bard" fragid="S3.F11">
+          <tags>
+            <tag>
+              <text fontsize="90%">Figure 11</text>
+            </tag>
+            <tag role="autoref">Figure 11</tag>
+            <tag role="refnum">11</tag>
+            <tag role="typerefnum">Figure 11</tag>
+          </tags>
+          <graphics candidates="fig/result_gpt_bard.pdf" graphic="fig/result_gpt_bard.pdf" options="width=433.6pt,keepaspectratio=true" xml:id="S3.F11.g1" class="ltx_centering" fragid="S3.F11.g1"/>
+          <toccaption class="ltx_centering"><tag close=" ">11</tag><text font="bold">Debate Between chatGPT and Bard</text> Illustration of debate between different models.</toccaption>
+          <caption class="ltx_centering">
+            <tag close=": ">
+              <text fontsize="90%">Figure 11</text>
+            </tag>
+            <text font="bold" fontsize="90%">Debate Between chatGPT and Bard<text font="medium"> Illustration of debate between different models.</text></text>
+          </caption>
+        </figure>
+      </paragraph>
+    </subsection>
+    <subsection inlist="toc" xml:id="S3.SS3" fragid="S3.SS3">
+      <tags>
+        <tag>3.3</tag>
+        <tag role="autoref">subsection 3.3</tag>
+        <tag role="refnum">3.3</tag>
+        <tag role="typerefnum">§3.3</tag>
+      </tags>
+      <title><tag close=" ">3.3</tag>Analysis: Understanding Multiagent Debate</title>
+      <para xml:id="S3.SS3.p1" fragid="S3.SS3.p1">
+        <p>Finally, we analyze how multiagent debate improves the underlying language generation procedure in language models.</p>
+      </para>
+      <paragraph inlist="toc" xml:id="S3.SS3.SSS0.Px1" fragid="S3.SS3.SSS0.Px1">
+        <title>Number of Agents.</title>
+        <para xml:id="S3.SS3.SSS0.Px1.p1" fragid="S3.SS3.SSS0.Px1.p1">
+          <p>First, we analyze the impact of agents number in debate. In Figure <ref labelref="LABEL:fig:round_agents" idref="S3.F10" href="#S3.F10" title="Figure 10 ‣ Compatibility with other reasoning methods. ‣ 3.1 Improving Reasoning with Multiagent Debate ‣ 3 Experiments ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">10</text></ref>(a), we increase the number of agents used in debate, while fixing the debate length to be two. On arithmetic, performance monotonically increases with the increased number of agents. For larger number of agents, we first summarize all agent responses with chatGPT instead of directly concatenating responses due to context length error.</p>
+        </para>
+      </paragraph>
+      <paragraph inlist="toc" xml:id="S3.SS3.SSS0.Px2" fragid="S3.SS3.SSS0.Px2">
+        <title>Rounds of Debate</title>
+        <para xml:id="S3.SS3.SSS0.Px2.p1" fragid="S3.SS3.SSS0.Px2.p1">
+          <p>Next, we analyze the impact of the number of rounds of debate in multiagent debate. In Figure <ref labelref="LABEL:fig:round_agents" idref="S3.F10" href="#S3.F10" title="Figure 10 ‣ Compatibility with other reasoning methods. ‣ 3.1 Improving Reasoning with Multiagent Debate ‣ 3 Experiments ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">10</text></ref>(b), we increase the debate length between agents, while fixing the number of agents to three. We find that on the arithmetic task, the performance also monotonically increases with debate length. However, we found that additional debate rounds above four led to a similar final performance to 4 rounds of debate.</p>
+        </para>
+        <figure float="right" inlist="lof" xml:id="S3.F12" labels="LABEL:fig:convergence" fragid="S3.F12">
+          <tags>
+            <tag>
+              <text fontsize="90%">Figure 12</text>
+            </tag>
+            <tag role="autoref">Figure 12</tag>
+            <tag role="refnum">12</tag>
+            <tag role="typerefnum">Figure 12</tag>
+          </tags>
+          <graphics candidates="fig/debate_length.pdf" graphic="fig/debate_length.pdf" options="width=433.6pt,keepaspectratio=true" xml:id="S3.F12.g1" class="ltx_centering" fragid="S3.F12.g1"/>
+          <toccaption class="ltx_centering"><tag close=" ">12</tag><text font="bold">Performance vs Debate Length.</text> Prompts which induce longer debate improve performance.</toccaption>
+          <caption class="ltx_centering">
+            <tag close=": ">
+              <text fontsize="90%">Figure 12</text>
+            </tag>
+            <text fontsize="90%" font="bold">Performance vs Debate Length.<text font="medium"> Prompts which induce longer debate improve performance.</text></text>
+          </caption>
+        </figure>
+      </paragraph>
+      <paragraph inlist="toc" xml:id="S3.SS3.SSS0.Px3" fragid="S3.SS3.SSS0.Px3">
+        <title>Effect of Debate Length on Accuracy</title>
+        <para xml:id="S3.SS3.SSS0.Px3.p1" fragid="S3.SS3.SSS0.Px3.p1">
+          <p>As discussed in Section <ref labelref="LABEL:sect:consensus" idref="S2.SS2" href="#S2.SS2" title="2.2 Consensus in Debates ‣ 2 Language Generation through Multiagent Debate ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">2.2</text></ref>, the underlying convergence time in the debate between agents can be controlled by the extent to which agents are encouraged to maintain their opinions.
+In Figure <ref labelref="LABEL:fig:convergence" idref="S3.F12" href="#S3.F12" title="Figure 12 ‣ Rounds of Debate ‣ 3.3 Analysis: Understanding Multiagent Debate ‣ 3 Experiments ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">12</text></ref>, we consider the effect of short and long-form prompts discussed in Figure <ref labelref="LABEL:tbl:prompt" idref="S2.F3" href="#S2.F3" title="Figure 3 ‣ 2.1 Multiagent Language Generation ‣ 2 Language Generation through Multiagent Debate ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">3</text></ref>. We find that debates using longer prompts lead to slower convergence to correct answers, but also lead to a better final consensus on the correct answer. We provide an analysis of consensus between agents in Figure <ref labelref="LABEL:fig:consensus" idref="A1.F14" href="#A1.F14" title="Figure 14 ‣ A.1 Additional Results ‣ Appendix A Appendix ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">14</text></ref>.</p>
+        </para>
+      </paragraph>
+      <paragraph inlist="toc" xml:id="S3.SS3.SSS0.Px4" fragid="S3.SS3.SSS0.Px4">
+        <title>Using Different Initialization Prompts</title>
+        <para xml:id="S3.SS3.SSS0.Px4.p1" fragid="S3.SS3.SSS0.Px4.p1">
+          <p>In our experiments we use the same prompts for all agents. We also consider the effect of using different questions, where we first instruct each language model to behave like a different persona (professor, doctor, mathematician) on the MMLU dataset. We found that improved performance on MMLU from 71.1 to 74.2 with different agents, suggesting further gains can be obtained with different initialization prompts.</p>
+        </para>
+        <figure float="right" inlist="lof" xml:id="S3.F13" labels="LABEL:fig:summarize" fragid="S3.F13">
+          <tags>
+            <tag>
+              <text fontsize="90%">Figure 13</text>
+            </tag>
+            <tag role="autoref">Figure 13</tag>
+            <tag role="refnum">13</tag>
+            <tag role="typerefnum">Figure 13</tag>
+          </tags>
+          <graphics candidates="fig/summarize.pdf" graphic="fig/summarize.pdf" options="width=433.6pt,keepaspectratio=true" xml:id="S3.F13.g1" class="ltx_centering" fragid="S3.F13.g1"/>
+          <toccaption class="ltx_centering"><tag close=" ">13</tag><text font="bold">Effect of Summarization.</text> When there are many agents in a debate, responses from other agents may be first summarized and then given as context, reducing context length. This operation improves performance.</toccaption>
+          <caption class="ltx_centering">
+            <tag close=": ">
+              <text fontsize="90%">Figure 13</text>
+            </tag>
+            <text font="bold" fontsize="90%">Effect of Summarization.<text font="medium"> When there are many agents in a debate, responses from other agents may be first summarized and then given as context, reducing context length. This operation improves performance.</text></text>
+          </caption>
+        </figure>
+      </paragraph>
+      <paragraph inlist="toc" xml:id="S3.SS3.SSS0.Px5" fragid="S3.SS3.SSS0.Px5">
+        <title>Summarization.</title>
+        <para xml:id="S3.SS3.SSS0.Px5.p1" fragid="S3.SS3.SSS0.Px5.p1">
+          <p>While in the majority of experiments in the paper we directly concatenate the responses of other agents as context for an agent to generate a new response, this is expensive when the number of agents involved in debate gets large. We may alternatively first summarize the responses from all other agents into a single response that we provide to agent at each round for more efficient debate. We apply this strategy in Figure <ref labelref="LABEL:fig:round_agents" idref="S3.F10" href="#S3.F10" title="Figure 10 ‣ Compatibility with other reasoning methods. ‣ 3.1 Improving Reasoning with Multiagent Debate ‣ 3 Experiments ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">10</text></ref> to enable the use of five or more agents in debate. In Figure <ref labelref="LABEL:fig:summarize" idref="S3.F13" href="#S3.F13" title="Figure 13 ‣ Using Different Initialization Prompts ‣ 3.3 Analysis: Understanding Multiagent Debate ‣ 3 Experiments ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">13</text></ref>, we analyze the effect compared to directly concatenating the responses of other agents. We find this improves the performance of debate, suggesting that summarization is another tool that can further improve multiagent debate.</p>
+        </para>
+      </paragraph>
+      <paragraph inlist="toc" xml:id="S3.SS3.SSS0.Px6" fragid="S3.SS3.SSS0.Px6">
+        <title>Utilizing Different Language Models</title>
+        <para xml:id="S3.SS3.SSS0.Px6.p1" fragid="S3.SS3.SSS0.Px6.p1">
+          <p>Our existing debate results are reported using multiple instances of a chatGPT language model. We further assess the impact of using two different language models, where we ask chatGPT and Bard  <cite class="ltx_citemacro_cite">[<ref href="#bib.bib23" idref="bib.bib23">23</ref>]</cite> language models to debate with each other on a set of 20 GSM8K math problems. In this set, we find that multi-agent debate improves the performance of both agents, with Bard solving 11 problems, chatGPT solving 14 problems, and joint multi-agent debate solving 17 problems. We qualitatively illustrate a debate between agents in Figure <ref labelref="LABEL:fig:chatgpt_bard" idref="S3.F11" href="#S3.F11" title="Figure 11 ‣ Results. ‣ 3.2 Extracting Factual Information from Multiagent Debate ‣ 3 Experiments ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">11</text></ref>. While both agents initially provide incorrect answers to the problem, chatGPT is able to utilize the incorrect response given by Bard to generate the final correct answer.</p>
+        </para>
+      </paragraph>
+    </subsection>
+  </section>
+  <section inlist="toc" xml:id="S4" fragid="S4">
+    <tags>
+      <tag>4</tag>
+      <tag role="autoref">section 4</tag>
+      <tag role="refnum">4</tag>
+      <tag role="typerefnum">§4</tag>
+    </tags>
+    <title><tag close=" ">4</tag>Related Work</title>
+    <paragraph inlist="toc" xml:id="S4.SS0.SSS0.Px1" fragid="S4.SS0.SSS0.Px1">
+      <title>Reasoning and Factuality in Language Models.</title>
+      <para xml:id="S4.SS0.SSS0.Px1.p1" fragid="S4.SS0.SSS0.Px1.p1">
+        <p>A wide range of work has explored how to enable reasoning and factuality in language models. To improve reasoning, approaches have relied on prompting techniques such as scratchpads  <cite class="ltx_citemacro_cite">[<ref href="#bib.bib20" idref="bib.bib20">20</ref>]</cite>, verification  <cite class="ltx_citemacro_cite">[<ref href="#bib.bib3" idref="bib.bib3">3</ref>]</cite>, chain-of-thought demonstrations  <cite class="ltx_citemacro_cite">[<ref href="#bib.bib30" idref="bib.bib30">30</ref>, <ref href="#bib.bib11" idref="bib.bib11">11</ref>, <ref href="#bib.bib25" idref="bib.bib25">25</ref>]</cite>, and intermediate self-reflection  <cite class="ltx_citemacro_cite">[<ref href="#bib.bib26" idref="bib.bib26">26</ref>, <ref href="#bib.bib18" idref="bib.bib18">18</ref>]</cite> and finetuning <cite class="ltx_citemacro_cite">[<ref href="#bib.bib13" idref="bib.bib13">13</ref>, <ref href="#bib.bib24" idref="bib.bib24">24</ref>, <ref href="#bib.bib31" idref="bib.bib31">31</ref>]</cite>. To improve factuality, approaches have relied on training techniques such as RLHF  <cite class="ltx_citemacro_citep">[<ref href="#bib.bib33" idref="bib.bib33">33</ref>, <ref href="#bib.bib16" idref="bib.bib16">16</ref>, <ref href="#bib.bib2" idref="bib.bib2">2</ref>]</cite>, pruning truthful datasets <cite class="ltx_citemacro_citep">[<ref href="#bib.bib12" idref="bib.bib12">12</ref>]</cite>, external knowledge retrieval <cite class="ltx_citemacro_citep">[<ref href="#bib.bib7" idref="bib.bib7">7</ref>]</cite> and training-free methods based off likelihood estimation  <cite class="ltx_citemacro_citep">[<ref href="#bib.bib10" idref="bib.bib10">10</ref>]</cite>.</p>
+      </para>
+      <para xml:id="S4.SS0.SSS0.Px1.p2" fragid="S4.SS0.SSS0.Px1.p2">
+        <p>Our work provides an alternative way to obtain reasoning and factuality in language models using multiagent debates, which only requires black-box access to a language generator. Prior work also has explored how to take the majority vote across different models  <cite class="ltx_citemacro_cite">[<ref href="#bib.bib15" idref="bib.bib15">15</ref>, <ref href="#bib.bib3" idref="bib.bib3">3</ref>, <ref href="#bib.bib29" idref="bib.bib29">29</ref>, <ref href="#bib.bib28" idref="bib.bib28">28</ref>]</cite> while in this work, we use the power of a language model to combine different answers. Most similar to our work, <cite class="ltx_citemacro_citet">Irving et al. [<ref href="#bib.bib9" idref="bib.bib9">9</ref>]</cite> also proposes a debate procedure to verify the accuracy and safety of powerful AI agents. In contrast to our approach, in their work, agents are asked to alternatively provide proof of a input, and humans are tasked with assessing these debates and determining safety.</p>
+      </para>
+    </paragraph>
+    <paragraph inlist="toc" xml:id="S4.SS0.SSS0.Px2" fragid="S4.SS0.SSS0.Px2">
+      <title>Compositional Generation.</title>
+      <para xml:id="S4.SS0.SSS0.Px2.p1" fragid="S4.SS0.SSS0.Px2.p1">
+        <p>Our work is also related to existing works that focus on text generation by combining different models  <cite class="ltx_citemacro_cite">[<ref href="#bib.bib4" idref="bib.bib4">4</ref>, <ref href="#bib.bib17" idref="bib.bib17">17</ref>, <ref href="#bib.bib32" idref="bib.bib32">32</ref>, <ref href="#bib.bib1" idref="bib.bib1">1</ref>, <ref href="#bib.bib5" idref="bib.bib5">5</ref>]</cite>. Most similar to our work, <cite class="ltx_citemacro_cite">[<ref href="#bib.bib14" idref="bib.bib14">14</ref>, <ref href="#bib.bib32" idref="bib.bib32">32</ref>]</cite> propose to combine multiple different large pretrained models together for multimodal reasoning. In contrast, in our work, we aim to use communication between different language models to enable more effective reasoning and factuality in language models.</p>
+      </para>
+    </paragraph>
+  </section>
+  <section inlist="toc" xml:id="S5" fragid="S5">
+    <tags>
+      <tag>5</tag>
+      <tag role="autoref">section 5</tag>
+      <tag role="refnum">5</tag>
+      <tag role="typerefnum">§5</tag>
+    </tags>
+    <title><tag close=" ">5</tag>Limitations and Discussion</title>
+    <para xml:id="S5.p1" fragid="S5.p1">
+      <p>In this paper, we present an orthogonal approach to improve the performance of language models using multi-agent debate. We find that the approach is simple and effective across a wide set of different reasoning and validity language modeling tasks.</p>
+    </para>
+    <paragraph inlist="toc" xml:id="S5.SS0.SSS0.Px1" fragid="S5.SS0.SSS0.Px1">
+      <title>Limitations.</title>
+      <para xml:id="S5.SS0.SSS0.Px1.p1" fragid="S5.SS0.SSS0.Px1.p1">
+        <p>In comparison to other prompting techniques, our multiagent debate procedure is more computationally expensive, as it requires both multiple language generations, and an underlying debate procedure. However, we believe that this approach may be seen as a method to generate additional data that may be distilled back to self-improve the original base model.</p>
+      </para>
+      <para xml:id="S5.SS0.SSS0.Px1.p2" fragid="S5.SS0.SSS0.Px1.p2">
+        <p>Further, we observed that as debates became longer in duration, current language models sometimes struggled to fully process the entire debate input, and typically only focused on the most recent generations. We believe that this performance will be alleviated with longer-context and improved language models or by summarizing early portions of the debate.</p>
+      </para>
+      <para xml:id="S5.SS0.SSS0.Px1.p3" fragid="S5.SS0.SSS0.Px1.p3">
+        <p>Finally, we found that while debates typically converged into single final answers, these answers were not necessarily correct. Despite answers being incorrect, language models would confidently affirm that their answer is correct and consistent with all other agent responses. We believe this result is in part due to the fact that LMs do not correctly express their uncertainty when generating responses, and believe that other orthogonal approaches to improve this performance would improve the results of multiagent debate.</p>
+      </para>
+    </paragraph>
+  </section>
+  <bibliography xml:id="bib" fragid="bib">
+    <title>References</title>
+    <biblist>
+      <bibitem key="alayrac2022flamingo" xml:id="bib.bib1" fragid="bib.bib1">
+        <tags>
+          <tag role="number">1</tag>
+          <tag role="year">2022</tag>
+          <tag role="authors">Alayrac et al.</tag>
+          <tag role="fullauthors">Alayrac, Donahue, Luc, Miech, Barr, Hasson, Lenc,
+Mensch, Millican, Reynolds, et al.</tag>
+          <tag role="refnum">Alayrac et al. [2022]</tag>
+          <tag role="key">alayrac2022flamingo</tag>
+        </tags>
+        <bibblock>
+J.-B. Alayrac, J. Donahue, P. Luc, A. Miech, I. Barr, Y. Hasson, K. Lenc,
+A. Mensch, K. Millican, M. Reynolds, et al.
+</bibblock>
+        <bibblock>Flamingo: A visual language model for few-shot learning.
+</bibblock>
+        <bibblock><emph font="italic">NeurIPS</emph>, 2022.
+</bibblock>
+        <bibblock>URL <ref class="ltx_url" href="https://arxiv.org/abs/2204.14198" font="typewriter">https://arxiv.org/abs/2204.14198</ref>.
+</bibblock>
+      </bibitem>
+      <bibitem key="christiano2017rlhf" xml:id="bib.bib2" fragid="bib.bib2">
+        <tags>
+          <tag role="number">2</tag>
+          <tag role="year">2017</tag>
+          <tag role="authors">Christiano et al.</tag>
+          <tag role="fullauthors">Christiano, Leike, Brown, Martic, Legg, and
+Amodei</tag>
+          <tag role="refnum">Christiano et al. [2017]</tag>
+          <tag role="key">christiano2017rlhf</tag>
+        </tags>
+        <bibblock>
+P. F. Christiano, J. Leike, T. Brown, M. Martic, S. Legg, and D. Amodei.
+</bibblock>
+        <bibblock>Deep reinforcement learning from human preferences.
+</bibblock>
+        <bibblock>In <emph font="italic">Neural Information Processing Systems</emph>, 2017.
+</bibblock>
+      </bibitem>
+      <bibitem key="verifier" xml:id="bib.bib3" fragid="bib.bib3">
+        <tags>
+          <tag role="number">3</tag>
+          <tag role="year">2021</tag>
+          <tag role="authors">Cobbe et al.</tag>
+          <tag role="fullauthors">Cobbe, Kosaraju, Bavarian, Chen, Jun, Kaiser,
+Plappert, Tworek, Hilton, Nakano, et al.</tag>
+          <tag role="refnum">Cobbe et al. [2021]</tag>
+          <tag role="key">verifier</tag>
+        </tags>
+        <bibblock>
+K. Cobbe, V. Kosaraju, M. Bavarian, M. Chen, H. Jun, L. Kaiser, M. Plappert,
+J. Tworek, J. Hilton, R. Nakano, et al.
+</bibblock>
+        <bibblock>Training verifiers to solve math word problems.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:2110.14168</emph>, 2021.
+</bibblock>
+      </bibitem>
+      <bibitem key="du2020compositional" xml:id="bib.bib4" fragid="bib.bib4">
+        <tags>
+          <tag role="number">4</tag>
+          <tag role="year">2020</tag>
+          <tag role="authors">Du et al.</tag>
+          <tag role="fullauthors">Du, Li, and Mordatch</tag>
+          <tag role="refnum">Du et al. [2020]</tag>
+          <tag role="key">du2020compositional</tag>
+        </tags>
+        <bibblock>
+Y. Du, S. Li, and I. Mordatch.
+</bibblock>
+        <bibblock>Compositional visual generation with energy based models.
+</bibblock>
+        <bibblock>In <emph font="italic">Advances in Neural Information Processing Systems</emph>, 2020.
+</bibblock>
+      </bibitem>
+      <bibitem key="du2023reduce" xml:id="bib.bib5" fragid="bib.bib5">
+        <tags>
+          <tag role="number">5</tag>
+          <tag role="year">2023</tag>
+          <tag role="authors">Du et al.</tag>
+          <tag role="fullauthors">Du, Durkan, Strudel, Tenenbaum, Dieleman, Fergus,
+Sohl-Dickstein, Doucet, and Grathwohl</tag>
+          <tag role="refnum">Du et al. [2023]</tag>
+          <tag role="key">du2023reduce</tag>
+        </tags>
+        <bibblock>
+Y. Du, C. Durkan, R. Strudel, J. B. Tenenbaum, S. Dieleman, R. Fergus,
+J. Sohl-Dickstein, A. Doucet, and W. Grathwohl.
+</bibblock>
+        <bibblock>Reduce, reuse, recycle: Compositional generation with energy-based
+diffusion models and mcmc.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:2302.11552</emph>, 2023.
+</bibblock>
+      </bibitem>
+      <bibitem key="Fsmosca" xml:id="bib.bib6" fragid="bib.bib6">
+        <tags>
+          <tag role="number">6</tag>
+          <tag role="authors">Fsmosca</tag>
+          <tag role="refnum">[6]</tag>
+          <tag role="key">Fsmosca</tag>
+        </tags>
+        <bibblock>
+Fsmosca.
+</bibblock>
+        <bibblock>Fsmosca/pgn-standard: Portable game notation specification and
+implementation guide.
+</bibblock>
+        <bibblock>URL <ref class="ltx_url" href="https://github.com/fsmosca/PGN-Standard" font="typewriter">https://github.com/fsmosca/PGN-Standard</ref>.
+</bibblock>
+      </bibitem>
+      <bibitem key="guu2020realm" xml:id="bib.bib7" fragid="bib.bib7">
+        <tags>
+          <tag role="number">7</tag>
+          <tag role="year">2020</tag>
+          <tag role="authors">Guu et al.</tag>
+          <tag role="fullauthors">Guu, Lee, Tung, Pasupat, and Chang</tag>
+          <tag role="refnum">Guu et al. [2020]</tag>
+          <tag role="key">guu2020realm</tag>
+        </tags>
+        <bibblock>
+K. Guu, K. Lee, Z. Tung, P. Pasupat, and M.-W. Chang.
+</bibblock>
+        <bibblock>REALM: Retrieval-augmented language model pre-training.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:2002.08909</emph>, 2020.
+</bibblock>
+      </bibitem>
+      <bibitem key="hendrycks2020measuring" xml:id="bib.bib8" fragid="bib.bib8">
+        <tags>
+          <tag role="number">8</tag>
+          <tag role="year">2020</tag>
+          <tag role="authors">Hendrycks et al.</tag>
+          <tag role="fullauthors">Hendrycks, Burns, Basart, Zou, Mazeika, Song,
+and Steinhardt</tag>
+          <tag role="refnum">Hendrycks et al. [2020]</tag>
+          <tag role="key">hendrycks2020measuring</tag>
+        </tags>
+        <bibblock>
+D. Hendrycks, C. Burns, S. Basart, A. Zou, M. Mazeika, D. Song, and
+J. Steinhardt.
+</bibblock>
+        <bibblock>Measuring massive multitask language understanding.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:2009.03300</emph>, 2020.
+</bibblock>
+      </bibitem>
+      <bibitem key="irving2018ai" xml:id="bib.bib9" fragid="bib.bib9">
+        <tags>
+          <tag role="number">9</tag>
+          <tag role="year">2018</tag>
+          <tag role="authors">Irving et al.</tag>
+          <tag role="fullauthors">Irving, Christiano, and Amodei</tag>
+          <tag role="refnum">Irving et al. [2018]</tag>
+          <tag role="key">irving2018ai</tag>
+        </tags>
+        <bibblock>
+G. Irving, P. Christiano, and D. Amodei.
+</bibblock>
+        <bibblock>Ai safety via debate.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:1805.00899</emph>, 2018.
+</bibblock>
+      </bibitem>
+      <bibitem key="kadavath2022language" xml:id="bib.bib10" fragid="bib.bib10">
+        <tags>
+          <tag role="number">10</tag>
+          <tag role="year">2022</tag>
+          <tag role="authors">Kadavath et al.</tag>
+          <tag role="fullauthors">Kadavath, Conerly, Askell, Henighan, Drain,
+Perez, Schiefer, Dodds, DasSarma, Tran-Johnson, et al.</tag>
+          <tag role="refnum">Kadavath et al. [2022]</tag>
+          <tag role="key">kadavath2022language</tag>
+        </tags>
+        <bibblock>
+S. Kadavath, T. Conerly, A. Askell, T. Henighan, D. Drain, E. Perez,
+N. Schiefer, Z. H. Dodds, N. DasSarma, E. Tran-Johnson, et al.
+</bibblock>
+        <bibblock>Language models (mostly) know what they know.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:2207.05221</emph>, 2022.
+</bibblock>
+      </bibitem>
+      <bibitem key="kojima2022large" xml:id="bib.bib11" fragid="bib.bib11">
+        <tags>
+          <tag role="number">11</tag>
+          <tag role="year">2022</tag>
+          <tag role="authors">Kojima et al.</tag>
+          <tag role="fullauthors">Kojima, Gu, Reid, Matsuo, and
+Iwasawa</tag>
+          <tag role="refnum">Kojima et al. [2022]</tag>
+          <tag role="key">kojima2022large</tag>
+        </tags>
+        <bibblock>
+T. Kojima, S. S. Gu, M. Reid, Y. Matsuo, and Y. Iwasawa.
+</bibblock>
+        <bibblock>Large language models are zero-shot reasoners.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:2205.11916</emph>, 2022.
+</bibblock>
+      </bibitem>
+      <bibitem key="lee2022factuality" xml:id="bib.bib12" fragid="bib.bib12">
+        <tags>
+          <tag role="number">12</tag>
+          <tag role="year">2022</tag>
+          <tag role="authors">Lee et al.</tag>
+          <tag role="fullauthors">Lee, Ping, Xu, Patwary, Fung, Shoeybi, and
+Catanzaro</tag>
+          <tag role="refnum">Lee et al. [2022]</tag>
+          <tag role="key">lee2022factuality</tag>
+        </tags>
+        <bibblock>
+N. Lee, W. Ping, P. Xu, M. Patwary, P. N. Fung, M. Shoeybi, and B. Catanzaro.
+</bibblock>
+        <bibblock>Factuality enhanced language models for open-ended text generation.
+</bibblock>
+        <bibblock><emph font="italic">Advances in Neural Information Processing Systems</emph>,
+35:34586–34599, 2022.
+</bibblock>
+      </bibitem>
+      <bibitem key="lewkowycz2022solving" xml:id="bib.bib13" fragid="bib.bib13">
+        <tags>
+          <tag role="number">13</tag>
+          <tag role="year">2022</tag>
+          <tag role="authors">Lewkowycz et al.</tag>
+          <tag role="fullauthors">Lewkowycz, Andreassen, Dohan, Dyer, Michalewski,
+Ramasesh, Slone, Anil, Schlag, Gutman-Solo, et al.</tag>
+          <tag role="refnum">Lewkowycz et al. [2022]</tag>
+          <tag role="key">lewkowycz2022solving</tag>
+        </tags>
+        <bibblock>
+A. Lewkowycz, A. Andreassen, D. Dohan, E. Dyer, H. Michalewski, V. Ramasesh,
+A. Slone, C. Anil, I. Schlag, T. Gutman-Solo, et al.
+</bibblock>
+        <bibblock>Solving quantitative reasoning problems with language models.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:2206.14858</emph>, 2022.
+</bibblock>
+      </bibitem>
+      <bibitem key="li2022composing" xml:id="bib.bib14" fragid="bib.bib14">
+        <tags>
+          <tag role="number">14</tag>
+          <tag role="year">2022a</tag>
+          <tag role="authors">Li et al.</tag>
+          <tag role="fullauthors">Li, Du, Tenenbaum, Torralba, and
+Mordatch</tag>
+          <tag role="refnum">Li et al. [2022a]</tag>
+          <tag role="key">li2022composing</tag>
+        </tags>
+        <bibblock>
+S. Li, Y. Du, J. B. Tenenbaum, A. Torralba, and I. Mordatch.
+</bibblock>
+        <bibblock>Composing ensembles of pre-trained models via iterative consensus.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:2210.11522</emph>, 2022a.
+</bibblock>
+      </bibitem>
+      <bibitem key="alphacode" xml:id="bib.bib15" fragid="bib.bib15">
+        <tags>
+          <tag role="number">15</tag>
+          <tag role="year">2022b</tag>
+          <tag role="authors">Li et al.</tag>
+          <tag role="fullauthors">Li, Choi, Chung, Kushman, Schrittwieser,
+Leblond, Eccles, Keeling, Gimeno, Dal Lago, et al.</tag>
+          <tag role="refnum">Li et al. [2022b]</tag>
+          <tag role="key">alphacode</tag>
+        </tags>
+        <bibblock>
+Y. Li, D. Choi, J. Chung, N. Kushman, J. Schrittwieser, R. Leblond, T. Eccles,
+J. Keeling, F. Gimeno, A. Dal Lago, et al.
+</bibblock>
+        <bibblock>Competition-level code generation with alphacode.
+</bibblock>
+        <bibblock><emph font="italic">Science</emph>, 378(6624):1092–1097,
+2022b.
+</bibblock>
+      </bibitem>
+      <bibitem key="liu2022instruction" xml:id="bib.bib16" fragid="bib.bib16">
+        <tags>
+          <tag role="number">16</tag>
+          <tag role="year">2022a</tag>
+          <tag role="authors">Liu et al.</tag>
+          <tag role="fullauthors">Liu, Lee, Lee, and
+Abbeel</tag>
+          <tag role="refnum">Liu et al. [2022a]</tag>
+          <tag role="key">liu2022instruction</tag>
+        </tags>
+        <bibblock>
+H. Liu, L. Lee, K. Lee, and P. Abbeel.
+</bibblock>
+        <bibblock>Instruction-following agents with jointly pre-trained vision-language
+models.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:2210.13431</emph>, 2022a.
+</bibblock>
+      </bibitem>
+      <bibitem key="liu2022compositional" xml:id="bib.bib17" fragid="bib.bib17">
+        <tags>
+          <tag role="number">17</tag>
+          <tag role="year">2022b</tag>
+          <tag role="authors">Liu et al.</tag>
+          <tag role="fullauthors">Liu, Li, Du, Torralba, and
+Tenenbaum</tag>
+          <tag role="refnum">Liu et al. [2022b]</tag>
+          <tag role="key">liu2022compositional</tag>
+        </tags>
+        <bibblock>
+N. Liu, S. Li, Y. Du, A. Torralba, and J. B. Tenenbaum.
+</bibblock>
+        <bibblock>Compositional visual generation with composable diffusion models.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:2206.01714</emph>, 2022b.
+</bibblock>
+      </bibitem>
+      <bibitem key="madaan2023self" xml:id="bib.bib18" fragid="bib.bib18">
+        <tags>
+          <tag role="number">18</tag>
+          <tag role="year">2023</tag>
+          <tag role="authors">Madaan et al.</tag>
+          <tag role="fullauthors">Madaan, Tandon, Gupta, Hallinan, Gao, Wiegreffe,
+Alon, Dziri, Prabhumoye, Yang, et al.</tag>
+          <tag role="refnum">Madaan et al. [2023]</tag>
+          <tag role="key">madaan2023self</tag>
+        </tags>
+        <bibblock>
+A. Madaan, N. Tandon, P. Gupta, S. Hallinan, L. Gao, S. Wiegreffe, U. Alon,
+N. Dziri, S. Prabhumoye, Y. Yang, et al.
+</bibblock>
+        <bibblock>Self-refine: Iterative refinement with self-feedback.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:2303.17651</emph>, 2023.
+</bibblock>
+      </bibitem>
+      <bibitem key="minsky1988society" xml:id="bib.bib19" fragid="bib.bib19">
+        <tags>
+          <tag role="number">19</tag>
+          <tag role="year">1988</tag>
+          <tag role="authors">Minsky</tag>
+          <tag role="refnum">Minsky [1988]</tag>
+          <tag role="key">minsky1988society</tag>
+        </tags>
+        <bibblock>
+M. Minsky.
+</bibblock>
+        <bibblock><emph font="italic">Society of mind</emph>.
+</bibblock>
+        <bibblock>Simon and Schuster, 1988.
+</bibblock>
+      </bibitem>
+      <bibitem key="nye2021show" xml:id="bib.bib20" fragid="bib.bib20">
+        <tags>
+          <tag role="number">20</tag>
+          <tag role="year">2021</tag>
+          <tag role="authors">Nye et al.</tag>
+          <tag role="fullauthors">Nye, Andreassen, Gur-Ari, Michalewski, Austin, Bieber,
+Dohan, Lewkowycz, Bosma, Luan, et al.</tag>
+          <tag role="refnum">Nye et al. [2021]</tag>
+          <tag role="key">nye2021show</tag>
+        </tags>
+        <bibblock>
+M. Nye, A. J. Andreassen, G. Gur-Ari, H. Michalewski, J. Austin, D. Bieber,
+D. Dohan, A. Lewkowycz, M. Bosma, D. Luan, et al.
+</bibblock>
+        <bibblock>Show your work: Scratchpads for intermediate computation with
+language models.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:2112.00114</emph>, 2021.
+</bibblock>
+      </bibitem>
+      <bibitem key="chatgpt2022" xml:id="bib.bib21" fragid="bib.bib21">
+        <tags>
+          <tag role="number">21</tag>
+          <tag role="year">2022</tag>
+          <tag role="authors">OpenAI</tag>
+          <tag role="refnum">OpenAI [2022]</tag>
+          <tag role="key">chatgpt2022</tag>
+        </tags>
+        <bibblock>
+OpenAI.
+</bibblock>
+        <bibblock>Chatgpt: Optimizing language models for dialogue, Dec 2022.
+</bibblock>
+        <bibblock>URL <ref class="ltx_url" href="https://openai.com/blog/chatgpt/" font="typewriter">https://openai.com/blog/chatgpt/</ref>.
+</bibblock>
+      </bibitem>
+      <bibitem key="ouyang2022training" xml:id="bib.bib22" fragid="bib.bib22">
+        <tags>
+          <tag role="number">22</tag>
+          <tag role="year">2022</tag>
+          <tag role="authors">Ouyang et al.</tag>
+          <tag role="fullauthors">Ouyang, Wu, Jiang, Almeida, Wainwright, Mishkin,
+Zhang, Agarwal, Slama, Ray, et al.</tag>
+          <tag role="refnum">Ouyang et al. [2022]</tag>
+          <tag role="key">ouyang2022training</tag>
+        </tags>
+        <bibblock>
+L. Ouyang, J. Wu, X. Jiang, D. Almeida, C. L. Wainwright, P. Mishkin, C. Zhang,
+S. Agarwal, K. Slama, A. Ray, et al.
+</bibblock>
+        <bibblock>Training language models to follow instructions with human feedback.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:2203.02155</emph>, 2022.
+</bibblock>
+      </bibitem>
+      <bibitem key="Pichai_2023" xml:id="bib.bib23" fragid="bib.bib23">
+        <tags>
+          <tag role="number">23</tag>
+          <tag role="year">2023</tag>
+          <tag role="authors">Pichai</tag>
+          <tag role="refnum">Pichai [2023]</tag>
+          <tag role="key">Pichai_2023</tag>
+        </tags>
+        <bibblock>
+S. Pichai.
+</bibblock>
+        <bibblock>An important next step on our ai journey, Feb 2023.
+</bibblock>
+        <bibblock>URL
+<ref class="ltx_url" href="https://blog.google/technology/ai/bard-google-ai-search-updates/" font="typewriter">https://blog.google/technology/ai/bard-google-ai-search-updates/</ref>.
+</bibblock>
+      </bibitem>
+      <bibitem key="rajani2019explain" xml:id="bib.bib24" fragid="bib.bib24">
+        <tags>
+          <tag role="number">24</tag>
+          <tag role="year">2019</tag>
+          <tag role="authors">Rajani et al.</tag>
+          <tag role="fullauthors">Rajani, McCann, Xiong, and
+Socher</tag>
+          <tag role="refnum">Rajani et al. [2019]</tag>
+          <tag role="key">rajani2019explain</tag>
+        </tags>
+        <bibblock>
+N. F. Rajani, B. McCann, C. Xiong, and R. Socher.
+</bibblock>
+        <bibblock>Explain yourself! leveraging language models for commonsense
+reasoning.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:1906.02361</emph>, 2019.
+</bibblock>
+      </bibitem>
+      <bibitem key="reynolds2021prompt" xml:id="bib.bib25" fragid="bib.bib25">
+        <tags>
+          <tag role="number">25</tag>
+          <tag role="year">2021</tag>
+          <tag role="authors">Reynolds and McDonell</tag>
+          <tag role="refnum">Reynolds and McDonell [2021]</tag>
+          <tag role="key">reynolds2021prompt</tag>
+        </tags>
+        <bibblock>
+L. Reynolds and K. McDonell.
+</bibblock>
+        <bibblock>Prompt programming for large language models: Beyond the few-shot
+paradigm.
+</bibblock>
+        <bibblock>In <emph font="italic">Extended Abstracts of the 2021 CHI Conference on Human
+Factors in Computing Systems</emph>, pages 1–7, 2021.
+</bibblock>
+      </bibitem>
+      <bibitem key="reflexion" xml:id="bib.bib26" fragid="bib.bib26">
+        <tags>
+          <tag role="number">26</tag>
+          <tag role="year">2023</tag>
+          <tag role="authors">Shinn et al.</tag>
+          <tag role="fullauthors">Shinn, Labash, and Gopinath</tag>
+          <tag role="refnum">Shinn et al. [2023]</tag>
+          <tag role="key">reflexion</tag>
+        </tags>
+        <bibblock>
+N. Shinn, B. Labash, and A. Gopinath.
+</bibblock>
+        <bibblock>Reflexion: an autonomous agent with dynamic memory and
+self-reflection.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:2303.11366</emph>, 2023.
+</bibblock>
+      </bibitem>
+      <bibitem key="srivastava2022beyond" xml:id="bib.bib27" fragid="bib.bib27">
+        <tags>
+          <tag role="number">27</tag>
+          <tag role="year">2022</tag>
+          <tag role="authors">Srivastava et al.</tag>
+          <tag role="fullauthors">Srivastava, Rastogi, Rao, Shoeb, Abid, Fisch,
+Brown, Santoro, Gupta, Garriga-Alonso, et al.</tag>
+          <tag role="refnum">Srivastava et al. [2022]</tag>
+          <tag role="key">srivastava2022beyond</tag>
+        </tags>
+        <bibblock>
+A. Srivastava, A. Rastogi, A. Rao, A. A. M. Shoeb, A. Abid, A. Fisch, A. R.
+Brown, A. Santoro, A. Gupta, A. Garriga-Alonso, et al.
+</bibblock>
+        <bibblock>Beyond the imitation game: Quantifying and extrapolating the
+capabilities of language models.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:2206.04615</emph>, 2022.
+</bibblock>
+      </bibitem>
+      <bibitem key="thoppilan2022lamda" xml:id="bib.bib28" fragid="bib.bib28">
+        <tags>
+          <tag role="number">28</tag>
+          <tag role="year">2022</tag>
+          <tag role="authors">Thoppilan et al.</tag>
+          <tag role="fullauthors">Thoppilan, De Freitas, Hall, Shazeer,
+Kulshreshtha, Cheng, Jin, Bos, Baker, Du, et al.</tag>
+          <tag role="refnum">Thoppilan et al. [2022]</tag>
+          <tag role="key">thoppilan2022lamda</tag>
+        </tags>
+        <bibblock>
+R. Thoppilan, D. De Freitas, J. Hall, N. Shazeer, A. Kulshreshtha, H.-T. Cheng,
+A. Jin, T. Bos, L. Baker, Y. Du, et al.
+</bibblock>
+        <bibblock>Lamda: Language models for dialog applications.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:2201.08239</emph>, 2022.
+</bibblock>
+      </bibitem>
+      <bibitem key="wang2022self" xml:id="bib.bib29" fragid="bib.bib29">
+        <tags>
+          <tag role="number">29</tag>
+          <tag role="year">2022</tag>
+          <tag role="authors">Wang et al.</tag>
+          <tag role="fullauthors">Wang, Wei, Schuurmans, Le, Chi, and
+Zhou</tag>
+          <tag role="refnum">Wang et al. [2022]</tag>
+          <tag role="key">wang2022self</tag>
+        </tags>
+        <bibblock>
+X. Wang, J. Wei, D. Schuurmans, Q. Le, E. Chi, and D. Zhou.
+</bibblock>
+        <bibblock>Self-consistency improves chain of thought reasoning in language
+models.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:2203.11171</emph>, 2022.
+</bibblock>
+      </bibitem>
+      <bibitem key="wei2022chain" xml:id="bib.bib30" fragid="bib.bib30">
+        <tags>
+          <tag role="number">30</tag>
+          <tag role="year">2022</tag>
+          <tag role="authors">Wei et al.</tag>
+          <tag role="fullauthors">Wei, Wang, Schuurmans, Bosma, Chi, Le, and
+Zhou</tag>
+          <tag role="refnum">Wei et al. [2022]</tag>
+          <tag role="key">wei2022chain</tag>
+        </tags>
+        <bibblock>
+J. Wei, X. Wang, D. Schuurmans, M. Bosma, E. Chi, Q. Le, and D. Zhou.
+</bibblock>
+        <bibblock>Chain of thought prompting elicits reasoning in large language
+models.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:2201.11903</emph>, 2022.
+</bibblock>
+      </bibitem>
+      <bibitem key="zelikman2022star" xml:id="bib.bib31" fragid="bib.bib31">
+        <tags>
+          <tag role="number">31</tag>
+          <tag role="year">2022</tag>
+          <tag role="authors">Zelikman et al.</tag>
+          <tag role="fullauthors">Zelikman, Wu, Mu, and Goodman</tag>
+          <tag role="refnum">Zelikman et al. [2022]</tag>
+          <tag role="key">zelikman2022star</tag>
+        </tags>
+        <bibblock>
+E. Zelikman, Y. Wu, J. Mu, and N. Goodman.
+</bibblock>
+        <bibblock>Star: Bootstrapping reasoning with reasoning.
+</bibblock>
+        <bibblock><emph font="italic">Advances in Neural Information Processing Systems</emph>,
+35:15476–15488, 2022.
+</bibblock>
+      </bibitem>
+      <bibitem key="zeng2022socratic" xml:id="bib.bib32" fragid="bib.bib32">
+        <tags>
+          <tag role="number">32</tag>
+          <tag role="year">2022</tag>
+          <tag role="authors">Zeng et al.</tag>
+          <tag role="fullauthors">Zeng, Wong, Welker, Choromanski, Tombari, Purohit,
+Ryoo, Sindhwani, Lee, Vanhoucke, et al.</tag>
+          <tag role="refnum">Zeng et al. [2022]</tag>
+          <tag role="key">zeng2022socratic</tag>
+        </tags>
+        <bibblock>
+A. Zeng, A. Wong, S. Welker, K. Choromanski, F. Tombari, A. Purohit, M. Ryoo,
+V. Sindhwani, J. Lee, V. Vanhoucke, et al.
+</bibblock>
+        <bibblock>Socratic models: Composing zero-shot multimodal reasoning with
+language.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:2204.00598</emph>, 2022.
+</bibblock>
+        <bibblock>URL <ref class="ltx_url" href="https://arxiv.org/abs/2204.00598" font="typewriter">https://arxiv.org/abs/2204.00598</ref>.
+</bibblock>
+      </bibitem>
+      <bibitem key="ziegler2019rlhf" xml:id="bib.bib33" fragid="bib.bib33">
+        <tags>
+          <tag role="number">33</tag>
+          <tag role="year">2019</tag>
+          <tag role="authors">Ziegler et al.</tag>
+          <tag role="fullauthors">Ziegler, Stiennon, Wu, Brown, Radford, Amodei,
+Christiano, and Irving</tag>
+          <tag role="refnum">Ziegler et al. [2019]</tag>
+          <tag role="key">ziegler2019rlhf</tag>
+        </tags>
+        <bibblock>
+D. M. Ziegler, N. Stiennon, J. Wu, T. B. Brown, A. Radford, D. Amodei,
+P. Christiano, and G. Irving.
+</bibblock>
+        <bibblock>Fine-tuning language models from human preferences.
+</bibblock>
+        <bibblock><emph font="italic">arXiv preprint arXiv:1909.08593</emph>, 2019.
+</bibblock>
+      </bibitem>
+    </biblist>
+  </bibliography>
+  <pagination role="newpage"/>
+  <appendix inlist="toc" xml:id="A1" fragid="A1">
+    <tags>
+      <tag>Appendix A</tag>
+      <tag role="autoref">Appendix A</tag>
+      <tag role="refnum">A</tag>
+      <tag role="typerefnum">Appendix A</tag>
+    </tags>
+    <title><tag close=" ">Appendix A</tag>Appendix</title>
+    <toctitle><tag close=" ">A</tag>Appendix</toctitle>
+    <para xml:id="A1.p1" fragid="A1.p1">
+      <p>In this appendix, we provide additional analysis and visualizations of the debates used in the main paper in Section <ref labelref="LABEL:sect:additional_results" idref="A1.SS1" href="#A1.SS1" title="A.1 Additional Results ‣ Appendix A Appendix ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">A.1</text></ref>. We further provide detailed experimental details on each dataset in Section <ref labelref="LABEL:sect:evaluation" idref="A1.SS2" href="#A1.SS2" title="A.2 Evaluation Details ‣ Appendix A Appendix ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">A.2</text></ref>.</p>
+    </para>
+    <subsection inlist="toc" xml:id="A1.SS1" labels="LABEL:sect:additional_results" fragid="A1.SS1">
+      <tags>
+        <tag>A.1</tag>
+        <tag role="autoref">subsection A.1</tag>
+        <tag role="refnum">A.1</tag>
+        <tag role="typerefnum">§A.1</tag>
+      </tags>
+      <title><tag close=" ">A.1</tag>Additional Results</title>
+      <figure float="right" inlist="lof" xml:id="A1.F14" labels="LABEL:fig:consensus" fragid="A1.F14">
+        <tags>
+          <tag>
+            <text fontsize="90%">Figure 14</text>
+          </tag>
+          <tag role="autoref">Figure 14</tag>
+          <tag role="refnum">14</tag>
+          <tag role="typerefnum">Figure 14</tag>
+        </tags>
+        <graphics candidates="fig/consensus_agents.pdf" graphic="fig/consensus_agents.pdf" options="width=433.6pt,keepaspectratio=true" xml:id="A1.F14.g1" class="ltx_centering" fragid="A1.F14.g1"/>
+        <toccaption class="ltx_centering"><tag close=" ">14</tag><text font="bold">Effect of Prompts on Consensus.</text> Using a short debate prompt induces faster consensus between agents</toccaption>
+        <caption class="ltx_centering">
+          <tag close=": ">
+            <text fontsize="90%">Figure 14</text>
+          </tag>
+          <text fontsize="90%" font="bold">Effect of Prompts on Consensus.<text font="medium"> Using a short debate prompt induces faster consensus between agents</text></text>
+        </caption>
+      </figure>
+      <paragraph inlist="toc" xml:id="A1.SS1.SSS0.Px1" fragid="A1.SS1.SSS0.Px1">
+        <title>Consensus Between Agents.</title>
+        <para xml:id="A1.SS1.SSS0.Px1.p1" fragid="A1.SS1.SSS0.Px1.p1">
+          <p>In Figure <ref labelref="LABEL:fig:consensus" idref="A1.F14" href="#A1.F14" title="Figure 14 ‣ A.1 Additional Results ‣ Appendix A Appendix ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">14</text></ref>, we illustrate the consensus between agents using either short or long consensus prompts discussed in Figure <ref labelref="LABEL:tbl:prompt" idref="S2.F3" href="#S2.F3" title="Figure 3 ‣ 2.1 Multiagent Language Generation ‣ 2 Language Generation through Multiagent Debate ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">3</text></ref>. The use of debate prompts that encourage agents to adapt more to the opinions of other agents improves consensus.</p>
+        </para>
+      </paragraph>
+      <paragraph inlist="toc" xml:id="A1.SS1.SSS0.Px2" fragid="A1.SS1.SSS0.Px2">
+        <title>Additional Qualitative Visualizations.</title>
+        <para xml:id="A1.SS1.SSS0.Px2.p1" fragid="A1.SS1.SSS0.Px2.p1">
+          <p>We added additional qualitative visualizations of the debate process. In Figure <ref labelref="LABEL:fig:gsm-1" idref="A1.F16" href="#A1.F16" title="Figure 16 ‣ Chess Validity. ‣ A.2 Evaluation Details ‣ Appendix A Appendix ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">16</text></ref>, Figure <ref labelref="LABEL:fig:gsm-2" idref="A1.F17" href="#A1.F17" title="Figure 17 ‣ Chess Validity. ‣ A.2 Evaluation Details ‣ Appendix A Appendix ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">17</text></ref>, Figure <ref labelref="LABEL:fig:gsm-3" idref="A1.F18" href="#A1.F18" title="Figure 18 ‣ Chess Validity. ‣ A.2 Evaluation Details ‣ Appendix A Appendix ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">18</text></ref>, Figure <ref labelref="LABEL:fig:gsm-4" idref="A1.F19" href="#A1.F19" title="Figure 19 ‣ Chess Validity. ‣ A.2 Evaluation Details ‣ Appendix A Appendix ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">19</text></ref>, Figure <ref labelref="LABEL:fig:gsm-5" idref="A1.F20" href="#A1.F20" title="Figure 20 ‣ Chess Validity. ‣ A.2 Evaluation Details ‣ Appendix A Appendix ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">20</text></ref>, we illustrate debates between agents in the GSM8K dataset which result in the correct answer. In Figure <ref labelref="LABEL:fig:gsm-6" idref="A1.F21" href="#A1.F21" title="Figure 21 ‣ Chess Validity. ‣ A.2 Evaluation Details ‣ Appendix A Appendix ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">21</text></ref>, Figure <ref labelref="LABEL:fig:gsm-7" idref="A1.F22" href="#A1.F22" title="Figure 22 ‣ Chess Validity. ‣ A.2 Evaluation Details ‣ Appendix A Appendix ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">22</text></ref>, Figure <ref labelref="LABEL:fig:gsm-8" idref="A1.F23" href="#A1.F23" title="Figure 23 ‣ Chess Validity. ‣ A.2 Evaluation Details ‣ Appendix A Appendix ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">23</text></ref>, we further illustrate debates in GSM8K which lead to the incorrect answer. We further provide an example illustration of debate in arithmetic in Figure <ref labelref="LABEL:fig:result_math" idref="A1.F24" href="#A1.F24" title="Figure 24 ‣ Chess Validity. ‣ A.2 Evaluation Details ‣ Appendix A Appendix ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">24</text></ref>, arithmetic with summarization of individual responses of agents in Figure <ref labelref="LABEL:fig:result_math_summarize" idref="A1.F25" href="#A1.F25" title="Figure 25 ‣ Chess Validity. ‣ A.2 Evaluation Details ‣ Appendix A Appendix ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">25</text></ref>, MMLU in Figure <ref labelref="LABEL:fig:result_mmlu" idref="A1.F26" href="#A1.F26" title="Figure 26 ‣ Chess Validity. ‣ A.2 Evaluation Details ‣ Appendix A Appendix ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">26</text></ref>, a debate with the full contents biographies in Figure <ref labelref="LABEL:fig:result_biography" idref="A1.F27" href="#A1.F27" title="Figure 27 ‣ Chess Validity. ‣ A.2 Evaluation Details ‣ Appendix A Appendix ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">27</text></ref>, and debate in chess in Figure <ref labelref="LABEL:fig:result_chess" idref="A1.F28" href="#A1.F28" title="Figure 28 ‣ Chess Validity. ‣ A.2 Evaluation Details ‣ Appendix A Appendix ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">28</text></ref>. In general, we found that debate improved the performance of final generated answers, though sometimes answers would converge to the incorrect value.</p>
+        </para>
+      </paragraph>
+    </subsection>
+    <subsection inlist="toc" xml:id="A1.SS2" labels="LABEL:sect:evaluation" fragid="A1.SS2">
+      <tags>
+        <tag>A.2</tag>
+        <tag role="autoref">subsection A.2</tag>
+        <tag role="refnum">A.2</tag>
+        <tag role="typerefnum">§A.2</tag>
+      </tags>
+      <title><tag close=" ">A.2</tag>Evaluation Details</title>
+      <para xml:id="A1.SS2.p1" fragid="A1.SS2.p1">
+        <p>We provided detailed evaluation details for each setting in the paper. We run all experiments using the <text font="typewriter">gpt-3.5-turbo-0301</text> model. We provide a table listing the prompts used to prompt models and initialize debate in Table <ref labelref="LABEL:tbl:prompt_appendix" idref="A1.F15" href="#A1.F15" title="Figure 15 ‣ Chess Validity. ‣ A.2 Evaluation Details ‣ Appendix A Appendix ‣ Improving Factuality and Reasoning in Language Models through Multiagent Debate"><text class="ltx_ref_tag">15</text></ref>.</p>
+      </para>
+      <paragraph inlist="toc" xml:id="A1.SS2.SSS0.Px1" fragid="A1.SS2.SSS0.Px1">
+        <title>Arithmetic.</title>
+        <para xml:id="A1.SS2.SSS0.Px1.p1" fragid="A1.SS2.SSS0.Px1.p1">
+          <p>To evaluate the arithmetic task, we generated six random integers for each task between 0 and 30. We then evaluated the extent to which the correct integer answer was correctly obtained. We evaluated models on one hundred generated arithmetic tasks.</p>
+        </para>
+      </paragraph>
+      <paragraph inlist="toc" xml:id="A1.SS2.SSS0.Px2" fragid="A1.SS2.SSS0.Px2">
+        <title>Grade School Math.</title>
+        <para xml:id="A1.SS2.SSS0.Px2.p1" fragid="A1.SS2.SSS0.Px2.p1">
+          <p>To evaluate the GSM8K task, we evaluated the accuracy at which models were able to obtain the final correct answer, as extracted from a box. We evaluated models on one hundred grade school math problems.</p>
+        </para>
+      </paragraph>
+      <paragraph inlist="toc" xml:id="A1.SS2.SSS0.Px3" fragid="A1.SS2.SSS0.Px3">
+        <title>Chess.</title>
+        <para xml:id="A1.SS2.SSS0.Px3.p1" fragid="A1.SS2.SSS0.Px3.p1">
+          <p>To evaluate the chess reasoning task, we used chess games from <ref class="ltx_url" href="https://www.pgnmentor.com/players/Adams.zip" font="typewriter">https://www.pgnmentor.com/players/Adams.zip</ref>. We asked chatGPT to predict the next move for white to move at turn 14 and reported the relative Stockfish pawn score with search depth 20 after executing the suggested move from chatGPT. We evaluated models on three hundred selected chess games.</p>
+        </para>
+      </paragraph>
+      <paragraph inlist="toc" xml:id="A1.SS2.SSS0.Px4" fragid="A1.SS2.SSS0.Px4">
+        <title>Biographies.</title>
+        <para xml:id="A1.SS2.SSS0.Px4.p1" fragid="A1.SS2.SSS0.Px4.p1">
+          <p>To evaluate the biographies task, we compare each generated bullet point biography for a person with a ground truth set of facts about the person extracted from Wikipedia. We iteratively loop through each ground truth fact, and validate the extent to which the generated biography matches a particular bullet by prompting chatGPT with the prompt: <emph font="italic">Consider the following biography of &lt;person&gt;: &lt;generated biography&gt; Is the above biography above consistent with the fact below? &lt;ground truth bullet&gt; Give a single-word answer, yes, no, or uncertain.</emph> We then evaluate and report the percentage of ground bullets that chatGPT returns either yes or no on. We ignored ground truth bullets that chatGPT returns returned uncertain.</p>
+        </para>
+        <para xml:id="A1.SS2.SSS0.Px4.p2" fragid="A1.SS2.SSS0.Px4.p2">
+          <p>We found this evaluation metric provided a fast way to evaluate how relatively correct a generated bullet point biography is. However, we found that generated facts could contain incorrect information that was not captured in the ground truth bullet and thus could not be validated through this metric. Nevertheless, we believe this evaluation scheme estimates the relative accuracy of a generated biography.</p>
+        </para>
+      </paragraph>
+      <paragraph inlist="toc" xml:id="A1.SS2.SSS0.Px5" fragid="A1.SS2.SSS0.Px5">
+        <title>MMLU.</title>
+        <para xml:id="A1.SS2.SSS0.Px5.p1" fragid="A1.SS2.SSS0.Px5.p1">
+          <p>To evaluate MMLU, we measured the accuracy in which models were able to select the correct multiple-choice answer in each problem. We evaluated models on one hundred selected MMLU questions randomly distributed across each of the subject areas.</p>
+        </para>
+      </paragraph>
+      <paragraph inlist="toc" xml:id="A1.SS2.SSS0.Px6" fragid="A1.SS2.SSS0.Px6">
+        <title>Chess Validity.</title>
+        <para xml:id="A1.SS2.SSS0.Px6.p1" fragid="A1.SS2.SSS0.Px6.p1">
+          <p>To evaluate chess validity, we consider the BIG-Bench Chess-State Tracking Benchmark  <cite class="ltx_citemacro_cite">[<ref href="#bib.bib27" idref="bib.bib27">27</ref>]</cite>, where we used the hardest reported task in the benchmark <text font="typewriter">synthetic_short</text>. Each generated answer was deemed correct as long as it was one of the valid answers in the sequence. We evaluated models of one hundred selected chess validity tasks.</p>
+        </para>
+        <table placement="t" xml:id="A1.F15" inlist="lof" labels="LABEL:tbl:prompt_appendix" align="center" class="ltx_figure_panel" fragid="A1.F15">
+          <inline-block depth="159.0pt" height="162.6pt" width="478.3pt" xscale="0.8" xtranslate="-59.8pt" yscale="0.8" ytranslate="40.2pt" align="center" class="ltx_figure_panel">
+            <tabular colsep="5.5pt" vattach="middle">
+              <tbody>
+                <tr>
+                  <td align="center" border="r">
+                    <text fontsize="90%" font="bold">Task</text>
+                  </td>
+                  <td align="center" border="r">
+                    <text fontsize="90%">Type</text>
+                  </td>
+                  <td align="left">
+                    <text font="bold" fontsize="90%">Prompt</text>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" border="r t" rowspan="4">
+                    <text fontsize="90%">Arithmetic</text>
+                  </td>
+                  <td align="center" border="r t">
+                    <text fontsize="90%">Starting</text>
+                  </td>
+                  <td align="left" border="t">
+                    <emph fontsize="90%" font="italic">What is the result of <text font="upright">{}</text>+<text font="upright">{}</text>*<text font="upright">{}</text>+<text font="upright">{}</text>-<text font="upright">{}</text>*<text font="upright">{}</text>? Make sure to state your answer at the end of the response.</emph>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" border="r t" rowspan="3">
+                    <text fontsize="90%">Debate</text>
+                  </td>
+                  <td align="left" border="t">
+                    <emph font="italic" fontsize="90%">These are the recent/updated opinions from other agents: &lt;other agent responses&gt; Use these opinions</emph>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="left">
+                    <emph fontsize="90%" font="italic">carefully as additional advice, can you provide an updated answer? Make sure to state your answer</emph>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="left">
+                    <emph font="italic" fontsize="90%">at the end of the response.</emph>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" border="r t" rowspan="6">
+                    <text fontsize="90%">GSM8K</text>
+                  </td>
+                  <td align="center" border="r t" rowspan="2">
+                    <text fontsize="90%">Starting</text>
+                  </td>
+                  <td align="left" border="t">
+                    <emph font="italic" fontsize="90%">Can you solve the following math problem? &lt;Problem&gt; Explain your reasoning. Your final answer</emph>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="left">
+                    <emph fontsize="90%" font="italic">should be a single numerical number, in the form \boxed<text font="upright">{{</text>answer<text font="upright">}}</text>, at the end of your response.</emph>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" border="r t" rowspan="4">
+                    <text fontsize="90%">Debate</text>
+                  </td>
+                  <td align="left" border="t">
+                    <emph font="italic" fontsize="90%">These are the solutions to the problem from other agents: &lt;other agent responses&gt; Using the solutions</emph>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="left">
+                    <emph font="italic" fontsize="90%">from other agents as additional information, can you provide your answer to the math problem? The original</emph>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="left">
+                    <emph fontsize="90%" font="italic">math problem is &lt;Problem&gt;. Your final answer should be a single numerical number, in the form</emph>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="left">
+                    <emph font="italic" fontsize="90%">\boxed<text font="upright">{{</text>answer<text font="upright">}}</text>, at the end of your response.</emph>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" border="r t" rowspan="2">
+                    <text fontsize="90%">Chess</text>
+                  </td>
+                  <td align="center" border="r t" rowspan="3">
+                    <text fontsize="90%">Starting</text>
+                  </td>
+                  <td align="left" border="t">
+                    <emph fontsize="90%" font="italic">Here is the current sequence of moves in a chess game: &lt;moves&gt;. What is the best chess move I should</emph>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="left">
+                    <emph fontsize="90%" font="italic">execute next? Give a single move suggestion of the form 14. &lt;XXX&gt; and make sure the chess move</emph>
+                  </td>
+                </tr>
+                <tr>
+                  <td border="r"/>
+                  <td align="left">
+                    <emph fontsize="90%" font="italic">is valid in the current board state.</emph>
+                  </td>
+                </tr>
+                <tr>
+                  <td border="r"/>
+                  <td align="center" border="r t" rowspan="3">
+                    <text fontsize="90%">Debate</text>
+                  </td>
+                  <td align="left" border="t">
+                    <emph font="italic" fontsize="90%">Here are other chess move suggestions from other agents: &lt;other agent responses&gt; Using the chess suggestions</emph>
+                  </td>
+                </tr>
+                <tr>
+                  <td border="r"/>
+                  <td align="left">
+                    <emph font="italic" fontsize="90%">from other agents as additional advice and your earlier generated solution, can you give me your updated thoughts</emph>
+                  </td>
+                </tr>
+                <tr>
+                  <td border="r"/>
+                  <td align="left">
+                    <emph fontsize="90%" font="italic">on the best next chess move I should play given the chess sequence ? Give a single move suggestion of the form</emph>
+                  </td>
+                </tr>
+                <tr>
+                  <td border="r"/>
+                  <td border="r"/>
+                  <td align="left">
+                    <emph font="italic" fontsize="90%">14. &lt;XXX&gt; and make sure the chess move is valid in the current board state.</emph>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" border="r t" rowspan="4">
+                    <text fontsize="90%">Biographies</text>
+                  </td>
+                  <td align="center" border="r t" rowspan="2">
+                    <text fontsize="90%">Starting</text>
+                  </td>
+                  <td align="left" border="t">
+                    <emph font="italic" fontsize="90%">Give a bullet point biography of  highlighting their contributions and achievements as a computer scientist,</emph>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="left">
+                    <emph font="italic" fontsize="90%">with each fact separated with a new line character.</emph>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" border="r t" rowspan="2">
+                    <text fontsize="90%">Debate</text>
+                  </td>
+                  <td align="left" border="t">
+                    <emph fontsize="90%" font="italic">Here are some bullet point biographies of &lt;person&gt; given by other agents: &lt;other agent response&gt; Closely</emph>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="left">
+                    <emph font="italic" fontsize="90%">examine your biography and the biography of other agents and provide an updated bullet point biography.</emph>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" border="r t" rowspan="5">
+                    <text fontsize="90%">MMLU</text>
+                  </td>
+                  <td align="center" border="r t" rowspan="2">
+                    <text fontsize="90%">Starting</text>
+                  </td>
+                  <td align="left" border="t">
+                    <emph fontsize="90%" font="italic">Can you answer the following question as accurately as possible? : A) , B) , C) , D)  Explain your answer,</emph>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="left">
+                    <emph font="italic" fontsize="90%">putting the answer in the form (X) at the end of your response.</emph>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" border="r t" rowspan="3">
+                    <text fontsize="90%">Debate</text>
+                  </td>
+                  <td align="left" border="t">
+                    <emph fontsize="90%" font="italic">These are the solutions to the problem from other agents: &lt;other agent responses&gt; Using the reasoning</emph>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="left">
+                    <emph font="italic" fontsize="90%">from other agents as additional advice, can you give an updated answer? Examine your solution and</emph>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="left">
+                    <emph font="italic" fontsize="90%">that other agents. Put your answer in the form (X) at the end of your response.</emph>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" border="bb r t" rowspan="6">
+                    <text fontsize="90%">Chess Validity</text>
+                  </td>
+                  <td align="center" border="r t" rowspan="3">
+                    <text fontsize="90%">Starting</text>
+                  </td>
+                  <td align="left" border="t">
+                    <emph font="italic" fontsize="90%">Given the chess game , give one valid destination square for the chess piece at . State the destination square</emph>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="left">
+                    <emph font="italic" fontsize="90%">in the form (X), where X follows the regex [a-h][1-8], for example (e5). Give a one line explanation</emph>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="left">
+                    <emph font="italic" fontsize="90%">of why your destination square is a valid move.</emph>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" border="bb r t" rowspan="3">
+                    <text fontsize="90%">Debate</text>
+                  </td>
+                  <td align="left" border="t">
+                    <emph fontsize="90%" font="italic">Here are destination square suggestions from other agents: &lt;other agent responses&gt; Can you double</emph>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="left">
+                    <emph fontsize="90%" font="italic">check that your destination square is a valid move? Check the valid move justifications from other agents.</emph>
+                  </td>
+                </tr>
+                <tr>
+                  <td align="left" border="bb">
+                    <emph fontsize="90%" font="italic">State your final answer in a newline with a 2 letter response following the regex [a-h][1-8].</emph>
+                  </td>
+                </tr>
+              </tbody>
+            </tabular>
+          </inline-block>
+          <break class="ltx_break"/>
+          <tags>
+            <tag>
+              <text fontsize="90%">Figure 15</text>
+            </tag>
+            <tag role="autoref">Figure 15</tag>
+            <tag role="refnum">15</tag>
+            <tag role="typerefnum">Figure 15</tag>
+          </tags>
+          <toccaption>
+            <tag close=" ">
+              <text fontsize="90%">15</text>
+            </tag>
+            <text font="bold" fontsize="90%">Prompts in each task.</text>
+            <text fontsize="90%"> List of prompts used in each task </text>
+          </toccaption>
+          <caption fontsize="90%"><tag close=": ">Figure 15</tag><text font="bold">Prompts in each task.</text> List of prompts used in each task </caption>
+        </table>
+        <figure inlist="lof" placement="t" xml:id="A1.F16" labels="LABEL:fig:gsm-1" fragid="A1.F16">
+          <tags>
+            <tag>
+              <text fontsize="90%">Figure 16</text>
+            </tag>
+            <tag role="autoref">Figure 16</tag>
+            <tag role="refnum">16</tag>
+            <tag role="typerefnum">Figure 16</tag>
+          </tags>
+          <graphics candidates="fig/gsm-1.pdf" graphic="fig/gsm-1.pdf" options="width=433.6pt,keepaspectratio=true" xml:id="A1.F16.g1" class="ltx_centering" fragid="A1.F16.g1"/>
+          <toccaption class="ltx_centering">
+            <tag close=" ">16</tag>
+            <text font="bold">Example of a correct GSM8K Debate.</text>
+          </toccaption>
+          <caption class="ltx_centering">
+            <tag close=": ">
+              <text fontsize="90%">Figure 16</text>
+            </tag>
+            <text fontsize="90%" font="bold">Example of a correct GSM8K Debate.</text>
+          </caption>
+        </figure>
+        <figure inlist="lof" placement="t" xml:id="A1.F17" labels="LABEL:fig:gsm-2" fragid="A1.F17">
+          <tags>
+            <tag>
+              <text fontsize="90%">Figure 17</text>
+            </tag>
+            <tag role="autoref">Figure 17</tag>
+            <tag role="refnum">17</tag>
+            <tag role="typerefnum">Figure 17</tag>
+          </tags>
+          <graphics candidates="fig/gsm-2.pdf" graphic="fig/gsm-2.pdf" options="width=433.6pt,keepaspectratio=true" xml:id="A1.F17.g1" class="ltx_centering" fragid="A1.F17.g1"/>
+          <toccaption class="ltx_centering">
+            <tag close=" ">17</tag>
+            <text font="bold">Example of Correct GSM8K Debate.</text>
+          </toccaption>
+          <caption class="ltx_centering">
+            <tag close=": ">
+              <text fontsize="90%">Figure 17</text>
+            </tag>
+            <text fontsize="90%" font="bold">Example of Correct GSM8K Debate.</text>
+          </caption>
+        </figure>
+        <figure inlist="lof" placement="t" xml:id="A1.F18" labels="LABEL:fig:gsm-3" fragid="A1.F18">
+          <tags>
+            <tag>
+              <text fontsize="90%">Figure 18</text>
+            </tag>
+            <tag role="autoref">Figure 18</tag>
+            <tag role="refnum">18</tag>
+            <tag role="typerefnum">Figure 18</tag>
+          </tags>
+          <graphics candidates="fig/gsm-3.pdf" graphic="fig/gsm-3.pdf" options="width=433.6pt,keepaspectratio=true" xml:id="A1.F18.g1" class="ltx_centering" fragid="A1.F18.g1"/>
+          <toccaption class="ltx_centering">
+            <tag close=" ">18</tag>
+            <text font="bold">Example of Correct GSM8K Debate.</text>
+          </toccaption>
+          <caption class="ltx_centering">
+            <tag close=": ">
+              <text fontsize="90%">Figure 18</text>
+            </tag>
+            <text font="bold" fontsize="90%">Example of Correct GSM8K Debate.</text>
+          </caption>
+        </figure>
+        <figure inlist="lof" placement="t" xml:id="A1.F19" labels="LABEL:fig:gsm-4" fragid="A1.F19">
+          <tags>
+            <tag>
+              <text fontsize="90%">Figure 19</text>
+            </tag>
+            <tag role="autoref">Figure 19</tag>
+            <tag role="refnum">19</tag>
+            <tag role="typerefnum">Figure 19</tag>
+          </tags>
+          <graphics candidates="fig/gsm-4.pdf" graphic="fig/gsm-4.pdf" options="width=433.6pt,keepaspectratio=true" xml:id="A1.F19.g1" class="ltx_centering" fragid="A1.F19.g1"/>
+          <toccaption class="ltx_centering">
+            <tag close=" ">19</tag>
+            <text font="bold">Example of Correct GSM8K Debate.</text>
+          </toccaption>
+          <caption class="ltx_centering">
+            <tag close=": ">
+              <text fontsize="90%">Figure 19</text>
+            </tag>
+            <text fontsize="90%" font="bold">Example of Correct GSM8K Debate.</text>
+          </caption>
+        </figure>
+        <figure inlist="lof" placement="t" xml:id="A1.F20" labels="LABEL:fig:gsm-5" fragid="A1.F20">
+          <tags>
+            <tag>
+              <text fontsize="90%">Figure 20</text>
+            </tag>
+            <tag role="autoref">Figure 20</tag>
+            <tag role="refnum">20</tag>
+            <tag role="typerefnum">Figure 20</tag>
+          </tags>
+          <graphics candidates="fig/gsm-5.pdf" graphic="fig/gsm-5.pdf" options="width=433.6pt,keepaspectratio=true" xml:id="A1.F20.g1" class="ltx_centering" fragid="A1.F20.g1"/>
+          <toccaption class="ltx_centering">
+            <tag close=" ">20</tag>
+            <text font="bold">Example of Correct GSM8K Debate.</text>
+          </toccaption>
+          <caption class="ltx_centering">
+            <tag close=": ">
+              <text fontsize="90%">Figure 20</text>
+            </tag>
+            <text font="bold" fontsize="90%">Example of Correct GSM8K Debate.</text>
+          </caption>
+        </figure>
+        <figure inlist="lof" placement="t" xml:id="A1.F21" labels="LABEL:fig:gsm-6" fragid="A1.F21">
+          <tags>
+            <tag>
+              <text fontsize="90%">Figure 21</text>
+            </tag>
+            <tag role="autoref">Figure 21</tag>
+            <tag role="refnum">21</tag>
+            <tag role="typerefnum">Figure 21</tag>
+          </tags>
+          <graphics candidates="fig/gsm-6.pdf" graphic="fig/gsm-6.pdf" options="width=433.6pt,keepaspectratio=true" xml:id="A1.F21.g1" class="ltx_centering" fragid="A1.F21.g1"/>
+          <toccaption class="ltx_centering">
+            <tag close=" ">21</tag>
+            <text font="bold">Example of Incorrect GSM8K Debate.</text>
+          </toccaption>
+          <caption class="ltx_centering">
+            <tag close=": ">
+              <text fontsize="90%">Figure 21</text>
+            </tag>
+            <text fontsize="90%" font="bold">Example of Incorrect GSM8K Debate.</text>
+          </caption>
+        </figure>
+        <figure inlist="lof" placement="t" xml:id="A1.F22" labels="LABEL:fig:gsm-7" fragid="A1.F22">
+          <tags>
+            <tag>
+              <text fontsize="90%">Figure 22</text>
+            </tag>
+            <tag role="autoref">Figure 22</tag>
+            <tag role="refnum">22</tag>
+            <tag role="typerefnum">Figure 22</tag>
+          </tags>
+          <graphics candidates="fig/gsm-7.pdf" graphic="fig/gsm-7.pdf" options="width=411.9pt,keepaspectratio=true" xml:id="A1.F22.g1" class="ltx_centering" fragid="A1.F22.g1"/>
+          <toccaption class="ltx_centering">
+            <tag close=" ">22</tag>
+            <text font="bold">Example of Incorrect GSM8K Debate.</text>
+          </toccaption>
+          <caption class="ltx_centering">
+            <tag close=": ">
+              <text fontsize="90%">Figure 22</text>
+            </tag>
+            <text font="bold" fontsize="90%">Example of Incorrect GSM8K Debate.</text>
+          </caption>
+        </figure>
+        <figure inlist="lof" placement="t" xml:id="A1.F23" labels="LABEL:fig:gsm-8" fragid="A1.F23">
+          <tags>
+            <tag>
+              <text fontsize="90%">Figure 23</text>
+            </tag>
+            <tag role="autoref">Figure 23</tag>
+            <tag role="refnum">23</tag>
+            <tag role="typerefnum">Figure 23</tag>
+          </tags>
+          <graphics candidates="fig/gsm-8.pdf" graphic="fig/gsm-8.pdf" options="width=433.6pt,keepaspectratio=true" xml:id="A1.F23.g1" class="ltx_centering" fragid="A1.F23.g1"/>
+          <toccaption class="ltx_centering">
+            <tag close=" ">23</tag>
+            <text font="bold">Example of Incorrect GSM8K Debate.</text>
+          </toccaption>
+          <caption class="ltx_centering">
+            <tag close=": ">
+              <text fontsize="90%">Figure 23</text>
+            </tag>
+            <text font="bold" fontsize="90%">Example of Incorrect GSM8K Debate.</text>
+          </caption>
+        </figure>
+        <figure inlist="lof" placement="t" xml:id="A1.F24" labels="LABEL:fig:result_math" fragid="A1.F24">
+          <tags>
+            <tag>
+              <text fontsize="90%">Figure 24</text>
+            </tag>
+            <tag role="autoref">Figure 24</tag>
+            <tag role="refnum">24</tag>
+            <tag role="typerefnum">Figure 24</tag>
+          </tags>
+          <graphics candidates="fig/math.pdf" graphic="fig/math.pdf" options="width=433.6pt,keepaspectratio=true" xml:id="A1.F24.g1" class="ltx_centering" fragid="A1.F24.g1"/>
+          <toccaption class="ltx_centering">
+            <tag close=" ">24</tag>
+            <text font="bold">Example of Arithmetic Debate.</text>
+          </toccaption>
+          <caption class="ltx_centering">
+            <tag close=": ">
+              <text fontsize="90%">Figure 24</text>
+            </tag>
+            <text font="bold" fontsize="90%">Example of Arithmetic Debate.</text>
+          </caption>
+        </figure>
+        <figure inlist="lof" placement="t" xml:id="A1.F25" labels="LABEL:fig:result_math_summarize" fragid="A1.F25">
+          <tags>
+            <tag>
+              <text fontsize="90%">Figure 25</text>
+            </tag>
+            <tag role="autoref">Figure 25</tag>
+            <tag role="refnum">25</tag>
+            <tag role="typerefnum">Figure 25</tag>
+          </tags>
+          <graphics candidates="fig/math.pdf" graphic="fig/math.pdf" options="width=433.6pt,keepaspectratio=true" xml:id="A1.F25.g1" class="ltx_centering" fragid="A1.F25.g1"/>
+          <toccaption class="ltx_centering"><tag close=" ">25</tag><text font="bold">Example of Arithmetic Debate with Summarization.</text> Four separate agents participate in debate, with two illustrated above. Instruction contains the summarized responses across agents.</toccaption>
+          <caption class="ltx_centering">
+            <tag close=": ">
+              <text fontsize="90%">Figure 25</text>
+            </tag>
+            <text font="bold" fontsize="90%">Example of Arithmetic Debate with Summarization.<text font="medium"> Four separate agents participate in debate, with two illustrated above. Instruction contains the summarized responses across agents.</text></text>
+          </caption>
+        </figure>
+        <figure inlist="lof" placement="t" xml:id="A1.F26" labels="LABEL:fig:result_mmlu" fragid="A1.F26">
+          <tags>
+            <tag>
+              <text fontsize="90%">Figure 26</text>
+            </tag>
+            <tag role="autoref">Figure 26</tag>
+            <tag role="refnum">26</tag>
+            <tag role="typerefnum">Figure 26</tag>
+          </tags>
+          <graphics candidates="fig/mmlu.pdf" graphic="fig/mmlu.pdf" options="width=433.6pt,keepaspectratio=true" xml:id="A1.F26.g1" class="ltx_centering" fragid="A1.F26.g1"/>
+          <toccaption class="ltx_centering">
+            <tag close=" ">26</tag>
+            <text font="bold">Example of MMLU Debate.</text>
+          </toccaption>
+          <caption class="ltx_centering">
+            <tag close=": ">
+              <text fontsize="90%">Figure 26</text>
+            </tag>
+            <text fontsize="90%" font="bold">Example of MMLU Debate.</text>
+          </caption>
+        </figure>
+        <figure inlist="lof" placement="t" xml:id="A1.F27" labels="LABEL:fig:result_biography" fragid="A1.F27">
+          <tags>
+            <tag>
+              <text fontsize="90%">Figure 27</text>
+            </tag>
+            <tag role="autoref">Figure 27</tag>
+            <tag role="refnum">27</tag>
+            <tag role="typerefnum">Figure 27</tag>
+          </tags>
+          <graphics candidates="fig/biography.pdf" graphic="fig/biography.pdf" options="width=433.6pt,keepaspectratio=true" xml:id="A1.F27.g1" class="ltx_centering" fragid="A1.F27.g1"/>
+          <toccaption class="ltx_centering"><tag close=" ">27</tag><text font="bold">Example of Biography Debate.</text> While we found that generated biographies after debate to be more accurate, many facts remain incorrect.</toccaption>
+          <caption class="ltx_centering">
+            <tag close=": ">
+              <text fontsize="90%">Figure 27</text>
+            </tag>
+            <text font="bold" fontsize="90%">Example of Biography Debate.<text font="medium"> While we found that generated biographies after debate to be more accurate, many facts remain incorrect.</text></text>
+          </caption>
+        </figure>
+        <figure inlist="lof" placement="t" xml:id="A1.F28" labels="LABEL:fig:result_chess LABEL:lastpage" fragid="A1.F28">
+          <tags>
+            <tag>
+              <text fontsize="90%">Figure 28</text>
+            </tag>
+            <tag role="autoref">Figure 28</tag>
+            <tag role="refnum">28</tag>
+            <tag role="typerefnum">Figure 28</tag>
+          </tags>
+          <graphics candidates="fig/result_chess.pdf" graphic="fig/result_chess.pdf" options="width=433.6pt,keepaspectratio=true" xml:id="A1.F28.g1" class="ltx_centering" fragid="A1.F28.g1"/>
+          <toccaption class="ltx_centering">
+            <tag close=" ">28</tag>
+            <text font="bold">Example of Chess Debate.</text>
+          </toccaption>
+          <caption class="ltx_centering">
+            <tag close=": ">
+              <text fontsize="90%">Figure 28</text>
+            </tag>
+            <text fontsize="90%" font="bold">Example of Chess Debate.</text>
+          </caption>
+        </figure>
+      </paragraph>
+    </subsection>
+  </appendix>
+  <navigation>
+    <title>Improving Factuality and Reasoning in Language Models through Multiagent Debate</title>
+  </navigation>
+</document>

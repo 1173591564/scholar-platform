@@ -1,0 +1,923 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?latexml searchpaths="/opt/ar5iv-bindings/supported_originals,/opt/ar5iv-bindings/bindings,/custom-bindings,/work"?>
+<?latexml class="acmart" options="10pt, sigconf"?>
+<?latexml package="hyperref"?>
+<?latexml package="babel" options="english"?>
+<?latexml package="blindtext"?>
+<?latexml package="algorithm"?>
+<?latexml package="algpseudocode" options="noend"?>
+<?latexml package="graphicx"?>
+<?latexml package="newtxmath"?>
+<?latexml package="lipsum"?>
+<?latexml package="subfigure"?>
+<?latexml package="textcomp"?>
+<?latexml package="xcolor"?>
+<?latexml package="bm"?>
+<?latexml package="url"?>
+<?latexml package="tabularx,booktabs"?>
+<?latexml package="tabularray"?>
+<?latexml RelaxNGSchema="LaTeXML"?>
+<document xmlns="http://dlmf.nist.gov/LaTeXML" xmlns:m="http://www.w3.org/1998/Math/MathML" class="ltx_authors_1line ltx_leqno" xml:lang="en" xml:id="Document">
+  <resource src="LaTeXML.css" type="text/css"/>
+  <resource src="ltx-article.css" type="text/css"/>
+  <resource src="ltx-amsart.css" type="text/css"/>
+  <title>Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks</title>
+  <toctitle>Atom: Neural Traffic Compression with STGNNs</toctitle>
+  <creator role="author">
+    <personname>Paul Almasan<note mark="1" role="footnotemark" xml:id="footnotex1" fragid="footnotex1"><tags><tag>1</tag><tag role="autoref">footnote 1</tag><tag role="refnum">1</tag><tag role="typerefnum">footnote 1</tag></tags></note><sup><text font="italic">⋄</text></sup>, Krzysztof Rusek<note mark="2" role="footnotemark" xml:id="footnotex2" fragid="footnotex2"><tags><tag>2</tag><tag role="autoref">footnote 2</tag><tag role="refnum">2</tag><tag role="typerefnum">footnote 2</tag></tags></note>, Shihan Xiao<note mark="3" role="footnotemark" xml:id="footnotex3" fragid="footnotex3"><tags><tag>3</tag><tag role="autoref">footnote 3</tag><tag role="refnum">3</tag><tag role="typerefnum">footnote 3</tag></tags></note>, Xiang Shi<note mark="3" role="footnotemark" xml:id="footnotex4" fragid="footnotex4"><tags><tag>3</tag><tag role="autoref">footnote 3</tag><tag role="refnum">3</tag><tag role="typerefnum">footnote 3</tag></tags></note>, Xiangle Cheng<note mark="3" role="footnotemark" xml:id="footnotex5" fragid="footnotex5"><tags><tag>3</tag><tag role="autoref">footnote 3</tag><tag role="refnum">3</tag><tag role="typerefnum">footnote 3</tag></tags></note>,<break/>Albert Cabellos-Aparicio<note mark="4" role="footnotemark" xml:id="footnotex6" fragid="footnotex6"><tags><tag>4</tag><tag role="autoref">footnote 4</tag><tag role="refnum">4</tag><tag role="typerefnum">footnote 4</tag></tags></note>, Pere Barlet-Ros<note mark="4" role="footnotemark" xml:id="footnotex7" fragid="footnotex7"><tags><tag>4</tag><tag role="autoref">footnote 4</tag><tag role="refnum">4</tag><tag role="typerefnum">footnote 4</tag></tags></note></personname>
+    <contact role="affiliation"><text class="ltx_affiliation_institution">
+<note mark="1" role="footnotemark" xml:id="footnotex8" fragid="footnotex8"><tags><tag>1</tag><tag role="autoref">footnote 1</tag><tag role="refnum">1</tag><tag role="typerefnum">footnote 1</tag></tags></note>Telefónica Research
+<note mark="2" role="footnotemark" xml:id="footnotex9" fragid="footnotex9"><tags><tag>2</tag><tag role="autoref">footnote 2</tag><tag role="refnum">2</tag><tag role="typerefnum">footnote 2</tag></tags></note>AGH University of Science and Technology, Institute of Telecommunications<break/><note mark="3" role="footnotemark" xml:id="footnotex10" fragid="footnotex10"><tags><tag>3</tag><tag role="autoref">footnote 3</tag><tag role="refnum">3</tag><tag role="typerefnum">footnote 3</tag></tags></note>Network Technology Lab., Huawei Technologies Co., Ltd.<break/>
+<note mark="4" role="footnotemark" xml:id="footnotex11" fragid="footnotex11"><tags><tag>4</tag><tag role="autoref">footnote 4</tag><tag role="refnum">4</tag><tag role="typerefnum">footnote 4</tag></tags></note>Barcelona Neural Networking Center, Universitat Politècnica de Catalunya<break/></text>
+</contact>
+  </creator>
+  <abstract name="Abstract.">
+    <p>Storing network traffic data is key to efficient network management; however, it is becoming more challenging and costly due to the ever-increasing data transmission rates, traffic volumes, and connected devices. In this paper, we explore the use of neural architectures for network traffic compression. Specifically, we consider a network scenario with multiple measurement points in a network topology. Such measurements can be interpreted as multiple time series that exhibit spatial and temporal correlations induced by network topology, routing, or user behavior. We present <text font="italic">Atom</text>, a neural traffic compression method that leverages spatial and temporal correlations present in network traffic. <text font="italic">Atom</text> implements a customized spatio-temporal graph neural network design that effectively exploits both types of correlations simultaneously. The experimental results show that <text font="italic">Atom</text> can outperform GZIP’s compression ratios by 50%-65% on three real-world networks.</p>
+  </abstract>
+  <acknowledgements><Math mode="inline" xml:id="m2" tex="\diamond" text="diamond" fragid="m2"><m:math alttext="\diamond" display="inline"><m:semantics><m:mo xml:id="m2.1" xref="m2.1.cmml">⋄</m:mo><m:annotation-xml encoding="MathML-Content"><m:ci xml:id="m2.1.cmml" xref="m2.1">⋄</m:ci></m:annotation-xml><m:annotation encoding="application/x-tex">\diamond</m:annotation></m:semantics></m:math></Math> Work undertaken during a PhD program at Universitat Politècnica de Catalunya.</acknowledgements>
+  <note class="ltx_note_frontmatter" role="copyright">none</note>
+  <note class="ltx_note_frontmatter" role="conference">Proceedings of the 2nd Graph Neural Networking Workshop 2023; December 8, 2023; Paris, France.</note>
+  <section inlist="toc" xml:id="S1" fragid="S1">
+    <tags>
+      <tag>1</tag>
+      <tag role="autoref">section 1</tag>
+      <tag role="refnum">1</tag>
+      <tag role="typerefnum">§1</tag>
+    </tags>
+    <title><tag close=". ">1</tag>Introduction</title>
+    <toctitle><tag close=" ">1</tag>Introduction</toctitle>
+    <note role="footnote" xml:id="footnote1" fragid="footnote1"><tags><tag role="autoref">footnote </tag><tag role="typerefnum">footnote</tag></tags>If you cite this paper, please use the CoNEXT ’23 reference:
+Paul Almasan, Krzysztof Rusek, Shihan Xiao, Xiang Shi, Xiangle Cheng, Albert Cabellos-Aparicio, Pere Barlet-Ros. 2023. Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks. In Proceedings of the 2nd International Workshop on Graph Neural Networking (GNNet ’23). Association for Computing Machinery, New York, NY, USA. <ref class="ltx_url" href="https://doi.org/10.1145/3630049.3630170" font="typewriter">https://doi.org/10.1145/3630049.3630170</ref></note>
+    <para xml:id="S1.p1" fragid="S1.p1">
+      <p>In recent years, modern networks have experienced a significant surge in both network traffic and connected devices <cite class="ltx_citemacro_citep">(Tune<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib9" idref="bib.bib9" title="Internet traffic matrices: a primer">2013</ref>; Alam, <ref href="#bib.bib7" idref="bib.bib7" title="A reliable communication framework and its use in internet of things (iot)">2018</ref>)</cite>. This growth has been fueled by the widespread deployment of advanced applications such as vehicular networks, IoT, virtual reality, video streaming, and Industry 4.0. Simultaneously, ongoing advancements in network technology such as improved link speeds have intensified this upward trajectory. To manage these networks effectively, network operators must store network traffic information, including packet traces, link-level traffic measurements, and flow-level measurements. This information plays a crucial role in various network management tasks, including network planning, traffic engineering, traffic classification, anomaly detection, and network forensics. In addition, the emerging concept of network digital twins requires the storage and analysis of vast volumes of network traffic data <cite class="ltx_citemacro_citep">(Nguyen<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib1" idref="bib.bib1" title="Digital twin for 5g and beyond">2021</ref>; Almasan<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib16" idref="bib.bib16" title="Network digital twin: context, enabling technologies and opportunities">2022</ref>)</cite>.</p>
+    </para>
+    <para xml:id="S1.p2" fragid="S1.p2">
+      <p>The efficient storage of network traffic has become increasingly challenging due to the exponential growth in data volume. Traffic traces generated by Internet Service Providers (ISPs), backbone networks, mobile networks, or data centers can easily consume hundreds of terabytes or petabytes per day <cite class="ltx_citemacro_citep">(Roy<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib6" idref="bib.bib6" title="Inside the social network’s (datacenter) network">2015</ref>; Alam, <ref href="#bib.bib7" idref="bib.bib7" title="A reliable communication framework and its use in internet of things (iot)">2018</ref>)</cite>.
+This problem is exacerbated because current network topologies can have hundreds of links <cite class="ltx_citemacro_citep">(Knight<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib17" idref="bib.bib17" title="The internet topology zoo">2011</ref>)</cite>.</p>
+    </para>
+    <para xml:id="S1.p3" fragid="S1.p3">
+      <p>Typically, network operators use generic lossless compression methods such as GZIP <cite class="ltx_citemacro_citep">(<ref href="#bib.bib18" idref="bib.bib18" title="The gzip home page. https://www.gzip.org/">19</ref>)</cite> to compress network traffic data. However, traditional compression methods may not deliver optimal compression performance when applied to network-traffic data.
+Previous studies have consistently demonstrated that network traffic has an inherent structure, refuting the notion that is purely random  <cite class="ltx_citemacro_citep">(Tune<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib9" idref="bib.bib9" title="Internet traffic matrices: a primer">2013</ref>; Benson<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib19" idref="bib.bib19" title="Network traffic characteristics of data centers in the wild">2010</ref>; Lan and Heidemann, <ref href="#bib.bib8" idref="bib.bib8" title="A measurement study of correlations of internet flow characteristics">2006</ref>; Gao<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib5" idref="bib.bib5" title="Predicting traffic demand matrix by considering inter-flow correlations">2020</ref>)</cite>. Consequently, network traffic exhibits discernible spatial and temporal patterns that offer opportunities for improving compression ratios.</p>
+    </para>
+    <para xml:id="S1.p4" fragid="S1.p4">
+      <p>In this work, we aimed to investigate whether recent advancements in Neural Network (NN) architectures can effectively harness the spatial and temporal correlations present in network traffic to achieve better compression ratios compared to conventional tools such as GZIP. To this end, we considered a scenario that involves the compression of network traffic data obtained using standard tools such as SNMP or NetFlow from multiple vantage points. We expected the data collected from multiple measurement points within a network topology to exhibit spatio-temporal correlations.</p>
+    </para>
+    <para xml:id="S1.p5" fragid="S1.p5">
+      <p>In this paper, we first introduce <text font="italic">Atom</text>, a neural traffic compression method that exploits spatial and temporal correlations naturally present in network traffic. Our compression method combines a neural network with Arithmetic Coding (AC) <cite class="ltx_citemacro_citep">(Witten<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib15" idref="bib.bib15" title="Arithmetic coding for data compression">1987</ref>)</cite> to effectively compress link-level traffic measurements. Second, we describe a custom Spatio-Temporal Graph Neural Network (ST-GNN) used to exploit spatial and temporal correlations. Finally, we evaluate <text font="italic">Atom</text>’s compression performance by conducting comprehensive experiments on synthetic and real-world datasets.</p>
+    </para>
+    <para xml:id="S1.p6" fragid="S1.p6">
+      <p>The experimental results show that <text font="italic">Atom</text> can improve GZIP’s compression ratios by 35%-95% on synthetic data with different levels of spatial and temporal correlation. When compressing real-world data, the experimental results indicate that <text font="italic">Atom</text> can reduce the data size by 50%-65% compared to GZIP, and by a factor between 2.6x and 4.2x with respect to the original file. The source code of <text font="italic">Atom</text> together with the datasets are publicly available<note mark="1" role="footnote" xml:id="footnote1a" fragid="footnote1a"><tags><tag>1</tag><tag role="autoref">footnote 1</tag><tag role="refnum">1</tag><tag role="typerefnum">footnote 1</tag></tags><ref class="ltx_url" href="https://github.com/BNN-UPC/Atom_Neural_Traffic_Compression" font="typewriter">https://github.com/BNN-UPC/Atom_Neural_Traffic_Compression</ref></note>.</p>
+    </para>
+  </section>
+  <section inlist="toc" xml:id="S2" fragid="S2">
+    <tags>
+      <tag>2</tag>
+      <tag role="autoref">section 2</tag>
+      <tag role="refnum">2</tag>
+      <tag role="typerefnum">§2</tag>
+    </tags>
+    <title><tag close=". ">2</tag>Methodology</title>
+    <toctitle><tag close=" ">2</tag>Methodology</toctitle>
+    <para xml:id="S2.p1" fragid="S2.p1">
+      <p>We consider a network scenario with multiple vantage points within a network topology (e.g., one per link), where traffic measurements are preformed periodically over time using standard measurement tools, such as SNMP or NetFlow. Traffic data is stored in time bins (e.g., bins of 5 minutes), resulting in a sequence of traffic data that we want to compress. Figure <ref labelref="LABEL:fig:compress_scenario" idref="S2.F1" href="#S2.F1" title="Figure 1 ‣ 2. Methodology ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">1</text></ref> shows an overview of the compression scenario.
+The metric we use to compare the compression performance of different methods is the Compression Ratio (CR). This ratio is computed by dividing the uncompressed file size by the compressed file size, returning a value that indicates how much smaller is the file size after compression.</p>
+    </para>
+    <figure inlist="lof" placement="!t" xml:id="S2.F1" labels="LABEL:fig:compress_scenario" fragid="S2.F1">
+      <tags>
+        <tag>Figure 1</tag>
+        <tag role="autoref">Figure 1</tag>
+        <tag role="refnum">1</tag>
+        <tag role="typerefnum">Figure 1</tag>
+      </tags>
+      <graphics candidates="Resources/Figures/compression_scenario.pdf" graphic="Resources/Figures/compression_scenario.pdf" options="width=346.9pt,keepaspectratio=true" xml:id="S2.F1.g1" class="ltx_centering" fragid="S2.F1.g1"/>
+      <toccaption class="ltx_centering"><tag close=" ">1</tag>Overview of the network traffic compression scenario.
+</toccaption>
+      <caption class="ltx_centering"><tag close=". ">Figure 1</tag>Overview of the network traffic compression scenario.
+</caption>
+    </figure>
+    <para xml:id="S2.p2" fragid="S2.p2">
+      <p>We consider two different compression scenarios. In the first scenario, we want to compress the traffic values from a single measurement point independently (e.g., access link). This is a common practice in small- or medium-sized networks, where internal traffic is smaller and is not considered to be of interest in many cases (e.g., enterprise, or campus networks). The second scenario represents a more general use case, where we want to simultaneously compress the traffic from multiple measurement points of a network topology (i.e., network-wide compression). This situation is more common in large networks, such as ISPs or mobile networks, which can have a global view of the network topology.</p>
+    </para>
+    <subsection inlist="toc" xml:id="S2.SS1" labels="LABEL:subsec:arithm_coding" fragid="S2.SS1">
+      <tags>
+        <tag>2.1</tag>
+        <tag role="autoref">subsection 2.1</tag>
+        <tag role="refnum">2.1</tag>
+        <tag role="typerefnum">§2.1</tag>
+      </tags>
+      <title><tag close=". ">2.1</tag>Arithmetic Coding</title>
+      <toctitle><tag close=" ">2.1</tag>Arithmetic Coding</toctitle>
+      <para xml:id="S2.SS1.p1" fragid="S2.SS1.p1">
+        <p><text font="italic">Atom</text> leverages arithmetic coding <cite class="ltx_citemacro_citep">(Witten<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib15" idref="bib.bib15" title="Arithmetic coding for data compression">1987</ref>)</cite> to implement the <text font="italic">encoder/decoder</text> (see Section <ref labelref="LABEL:subsec:encoddecod" idref="S3.SS2" href="#S3.SS2" title="3.2. Encoder/Decoder ‣ 3. Design ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">3.2</text></ref>). AC is a lossless method that compresses a stream of symbols (e.g., text characters) into a single number between [0, 1). This is done by assigning fewer bits to frequent symbols and more bits to less frequent symbols. In contrast to other popular compression methods such as Huffman coding <cite class="ltx_citemacro_citep">(Huffman, <ref href="#bib.bib3" idref="bib.bib3" title="A method for the construction of minimum-redundancy codes">1952</ref>)</cite>, AC achieves better compression ratios and it can work in an online fashion. In addition, AC works with probability distributions, making it a good fit with NN technologies.</p>
+      </para>
+      <para xml:id="S2.SS1.p2" fragid="S2.SS1.p2">
+        <p>The compression performance of AC is defined by the quality of the probability distribution. In other words, if the predictor is accurate, AC will assign fewer bits to encode the symbol, resulting in close-to-optimal compression performance. On the other hand, if the predictor is not accurate, the probabilities will not correspond to the real symbol, which results in poor compression or it can even increase the final file size.</p>
+      </para>
+    </subsection>
+    <subsection inlist="toc" xml:id="S2.SS2" labels="LABEL:subsec:notation" fragid="S2.SS2">
+      <tags>
+        <tag>2.2</tag>
+        <tag role="autoref">subsection 2.2</tag>
+        <tag role="refnum">2.2</tag>
+        <tag role="typerefnum">§2.2</tag>
+      </tags>
+      <title><tag close=". ">2.2</tag>Notation and problem statement</title>
+      <toctitle><tag close=" ">2.2</tag>Notation and problem statement</toctitle>
+      <para xml:id="S2.SS2.p1" fragid="S2.SS2.p1">
+        <p>Formally, traffic measurements are represented as a matrix <Math mode="inline" xml:id="S2.SS2.p1.m1" tex="\bm{X}\in\mathbb{N}^{w\times l}" text="X element-of N ^ (w * l)" fragid="S2.SS2.p1.m1"><m:math alttext="\bm{X}\in\mathbb{N}^{w\times l}" display="inline"><m:semantics><m:mrow xml:id="S2.SS2.p1.m1.9" xref="S2.SS2.p1.m1.9.cmml"><m:mi xml:id="S2.SS2.p1.m1.1" xref="S2.SS2.p1.m1.1.cmml">𝑿</m:mi><m:mo xml:id="S2.SS2.p1.m1.2" xref="S2.SS2.p1.m1.2.cmml">∈</m:mo><m:msup xml:id="S2.SS2.p1.m1.8" xref="S2.SS2.p1.m1.8.cmml"><m:mi xml:id="S2.SS2.p1.m1.3" xref="S2.SS2.p1.m1.3.cmml">ℕ</m:mi><m:mrow xml:id="S2.SS2.p1.m1.7" xref="S2.SS2.p1.m1.7.cmml"><m:mi xml:id="S2.SS2.p1.m1.4" xref="S2.SS2.p1.m1.4.cmml">w</m:mi><m:mo lspace="0.222em" rspace="0.222em" xml:id="S2.SS2.p1.m1.5" xref="S2.SS2.p1.m1.5.cmml">×</m:mo><m:mi xml:id="S2.SS2.p1.m1.6" xref="S2.SS2.p1.m1.6.cmml">l</m:mi></m:mrow></m:msup></m:mrow><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S2.SS2.p1.m1.9.cmml" xref="S2.SS2.p1.m1.9"><m:in xml:id="S2.SS2.p1.m1.2.cmml" xref="S2.SS2.p1.m1.2"/><m:ci xml:id="S2.SS2.p1.m1.1.cmml" xref="S2.SS2.p1.m1.1">𝑿</m:ci><m:apply xml:id="S2.SS2.p1.m1.8.cmml" xref="S2.SS2.p1.m1.8"><m:csymbol cd="ambiguous" xml:id="S2.SS2.p1.m1.8.1.cmml" xref="S2.SS2.p1.m1.8">superscript</m:csymbol><m:ci xml:id="S2.SS2.p1.m1.3.cmml" xref="S2.SS2.p1.m1.3">ℕ</m:ci><m:apply xml:id="S2.SS2.p1.m1.7.cmml" xref="S2.SS2.p1.m1.7"><m:times xml:id="S2.SS2.p1.m1.5.cmml" xref="S2.SS2.p1.m1.5"/><m:ci xml:id="S2.SS2.p1.m1.4.cmml" xref="S2.SS2.p1.m1.4">𝑤</m:ci><m:ci xml:id="S2.SS2.p1.m1.6.cmml" xref="S2.SS2.p1.m1.6">𝑙</m:ci></m:apply></m:apply></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">\bm{X}\in\mathbb{N}^{w\times l}</m:annotation></m:semantics></m:math></Math>, where <Math mode="inline" xml:id="S2.SS2.p1.m2" tex="w" text="w" fragid="S2.SS2.p1.m2"><m:math alttext="w" display="inline"><m:semantics><m:mi xml:id="S2.SS2.p1.m2.1" xref="S2.SS2.p1.m2.1.cmml">w</m:mi><m:annotation-xml encoding="MathML-Content"><m:ci xml:id="S2.SS2.p1.m2.1.cmml" xref="S2.SS2.p1.m2.1">𝑤</m:ci></m:annotation-xml><m:annotation encoding="application/x-tex">w</m:annotation></m:semantics></m:math></Math> represents the Sliding Window (SW) for <Math mode="inline" xml:id="S2.SS2.p1.m3" tex="l" text="l" fragid="S2.SS2.p1.m3"><m:math alttext="l" display="inline"><m:semantics><m:mi xml:id="S2.SS2.p1.m3.1" xref="S2.SS2.p1.m3.1.cmml">l</m:mi><m:annotation-xml encoding="MathML-Content"><m:ci xml:id="S2.SS2.p1.m3.1.cmml" xref="S2.SS2.p1.m3.1">𝑙</m:ci></m:annotation-xml><m:annotation encoding="application/x-tex">l</m:annotation></m:semantics></m:math></Math> links.
+Each traffic measurement is a random vector <Math mode="inline" xml:id="S2.SS2.p1.m4" tex="\bm{x}_{t}\in\mathbb{N}^{l}" text="x _ t element-of N ^ l" fragid="S2.SS2.p1.m4"><m:math alttext="\bm{x}_{t}\in\mathbb{N}^{l}" display="inline"><m:semantics><m:mrow xml:id="S2.SS2.p1.m4.8" xref="S2.SS2.p1.m4.8.cmml"><m:msub xml:id="S2.SS2.p1.m4.3" xref="S2.SS2.p1.m4.3.cmml"><m:mi xml:id="S2.SS2.p1.m4.1" xref="S2.SS2.p1.m4.1.cmml">𝒙</m:mi><m:mi xml:id="S2.SS2.p1.m4.2" xref="S2.SS2.p1.m4.2.cmml">t</m:mi></m:msub><m:mo xml:id="S2.SS2.p1.m4.4" xref="S2.SS2.p1.m4.4.cmml">∈</m:mo><m:msup xml:id="S2.SS2.p1.m4.7" xref="S2.SS2.p1.m4.7.cmml"><m:mi xml:id="S2.SS2.p1.m4.5" xref="S2.SS2.p1.m4.5.cmml">ℕ</m:mi><m:mi xml:id="S2.SS2.p1.m4.6" xref="S2.SS2.p1.m4.6.cmml">l</m:mi></m:msup></m:mrow><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S2.SS2.p1.m4.8.cmml" xref="S2.SS2.p1.m4.8"><m:in xml:id="S2.SS2.p1.m4.4.cmml" xref="S2.SS2.p1.m4.4"/><m:apply xml:id="S2.SS2.p1.m4.3.cmml" xref="S2.SS2.p1.m4.3"><m:csymbol cd="ambiguous" xml:id="S2.SS2.p1.m4.3.1.cmml" xref="S2.SS2.p1.m4.3">subscript</m:csymbol><m:ci xml:id="S2.SS2.p1.m4.1.cmml" xref="S2.SS2.p1.m4.1">𝒙</m:ci><m:ci xml:id="S2.SS2.p1.m4.2.cmml" xref="S2.SS2.p1.m4.2">𝑡</m:ci></m:apply><m:apply xml:id="S2.SS2.p1.m4.7.cmml" xref="S2.SS2.p1.m4.7"><m:csymbol cd="ambiguous" xml:id="S2.SS2.p1.m4.7.1.cmml" xref="S2.SS2.p1.m4.7">superscript</m:csymbol><m:ci xml:id="S2.SS2.p1.m4.5.cmml" xref="S2.SS2.p1.m4.5">ℕ</m:ci><m:ci xml:id="S2.SS2.p1.m4.6.cmml" xref="S2.SS2.p1.m4.6">𝑙</m:ci></m:apply></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">\bm{x}_{t}\in\mathbb{N}^{l}</m:annotation></m:semantics></m:math></Math>.
+For the arithmetic encoder we need a one step forecast distribution <Math mode="inline" xml:id="S2.SS2.p1.m5" tex="p(\bm{x}_{t}|\bm{x}_{&lt;t})" text="p * conditional@(x _ t, x _ (absent &lt; t))" fragid="S2.SS2.p1.m5"><m:math alttext="p(\bm{x}_{t}|\bm{x}_{&lt;t})" display="inline"><m:semantics><m:mrow xml:id="S2.SS2.p1.m5.5" xref="S2.SS2.p1.m5.5.cmml"><m:mi xml:id="S2.SS2.p1.m5.2" xref="S2.SS2.p1.m5.2.cmml">p</m:mi><m:mo xml:id="S2.SS2.p1.m5.3" xref="S2.SS2.p1.m5.3.cmml">⁢</m:mo><m:mrow xml:id="S2.SS2.p1.m5.4b" xref="S2.SS2.p1.m5.1.cmml"><m:mo stretchy="false" xml:id="S2.SS2.p1.m5.4" xref="S2.SS2.p1.m5.1.cmml">(</m:mo><m:mrow xml:id="S2.SS2.p1.m5.1" xref="S2.SS2.p1.m5.1.cmml"><m:msub xml:id="S2.SS2.p1.m5.1.3" xref="S2.SS2.p1.m5.1.3.cmml"><m:mi xml:id="S2.SS2.p1.m5.1.1" xref="S2.SS2.p1.m5.1.1.cmml">𝒙</m:mi><m:mi xml:id="S2.SS2.p1.m5.1.2" xref="S2.SS2.p1.m5.1.2.cmml">t</m:mi></m:msub><m:mo fence="false" xml:id="S2.SS2.p1.m5.1.4" xref="S2.SS2.p1.m5.1.4.cmml">|</m:mo><m:msub xml:id="S2.SS2.p1.m5.1.10" xref="S2.SS2.p1.m5.1.10.cmml"><m:mi xml:id="S2.SS2.p1.m5.1.5" xref="S2.SS2.p1.m5.1.5.cmml">𝒙</m:mi><m:mrow xml:id="S2.SS2.p1.m5.1.9" xref="S2.SS2.p1.m5.1.9.cmml"><m:mi xml:id="S2.SS2.p1.m5.1.6" xref="S2.SS2.p1.m5.1.6.cmml"/><m:mo xml:id="S2.SS2.p1.m5.1.7" xref="S2.SS2.p1.m5.1.7.cmml">&lt;</m:mo><m:mi xml:id="S2.SS2.p1.m5.1.8" xref="S2.SS2.p1.m5.1.8.cmml">t</m:mi></m:mrow></m:msub></m:mrow><m:mo stretchy="false" xml:id="S2.SS2.p1.m5.4a" xref="S2.SS2.p1.m5.1.cmml">)</m:mo></m:mrow></m:mrow><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S2.SS2.p1.m5.5.cmml" xref="S2.SS2.p1.m5.5"><m:times xml:id="S2.SS2.p1.m5.3.cmml" xref="S2.SS2.p1.m5.3"/><m:ci xml:id="S2.SS2.p1.m5.2.cmml" xref="S2.SS2.p1.m5.2">𝑝</m:ci><m:apply xml:id="S2.SS2.p1.m5.1.cmml" xref="S2.SS2.p1.m5.4b"><m:csymbol cd="latexml" xml:id="S2.SS2.p1.m5.1.4.cmml" xref="S2.SS2.p1.m5.1.4">conditional</m:csymbol><m:apply xml:id="S2.SS2.p1.m5.1.3.cmml" xref="S2.SS2.p1.m5.1.3"><m:csymbol cd="ambiguous" xml:id="S2.SS2.p1.m5.1.3.1.cmml" xref="S2.SS2.p1.m5.1.3">subscript</m:csymbol><m:ci xml:id="S2.SS2.p1.m5.1.1.cmml" xref="S2.SS2.p1.m5.1.1">𝒙</m:ci><m:ci xml:id="S2.SS2.p1.m5.1.2.cmml" xref="S2.SS2.p1.m5.1.2">𝑡</m:ci></m:apply><m:apply xml:id="S2.SS2.p1.m5.1.10.cmml" xref="S2.SS2.p1.m5.1.10"><m:csymbol cd="ambiguous" xml:id="S2.SS2.p1.m5.1.10.1.cmml" xref="S2.SS2.p1.m5.1.10">subscript</m:csymbol><m:ci xml:id="S2.SS2.p1.m5.1.5.cmml" xref="S2.SS2.p1.m5.1.5">𝒙</m:ci><m:apply xml:id="S2.SS2.p1.m5.1.9.cmml" xref="S2.SS2.p1.m5.1.9"><m:lt xml:id="S2.SS2.p1.m5.1.7.cmml" xref="S2.SS2.p1.m5.1.7"/><m:csymbol cd="latexml" xml:id="S2.SS2.p1.m5.1.6.cmml" xref="S2.SS2.p1.m5.1.6">absent</m:csymbol><m:ci xml:id="S2.SS2.p1.m5.1.8.cmml" xref="S2.SS2.p1.m5.1.8">𝑡</m:ci></m:apply></m:apply></m:apply></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">p(\bm{x}_{t}|\bm{x}_{&lt;t})</m:annotation></m:semantics></m:math></Math> to capture temporal dependence.
+As the arithmetic encoder operates on streams of symbols, we further partition the distribution with a chain rule to capture spatial dependence:</p>
+        <equation xml:id="S2.E1" labels="LABEL:fig:spatial_equation" fragid="S2.E1">
+          <tags>
+            <tag>(1)</tag>
+            <tag role="autoref">Equation 1</tag>
+            <tag role="refnum">1</tag>
+          </tags>
+          <Math mode="display" xml:id="S2.E1.m1" tex="p(\bm{x}_{t}|\bm{x}_{&lt;t})=\prod_{l}p(x_{l}|\bm{x}_{t,&lt;l},\bm{x}_{&lt;t})." text="p * conditional@(x _ t, x _ (absent &lt; t)) = (product _ l)@(p * conditional@(x _ l, list@(x _ (list@(t, absent &lt; l)), x _ (absent &lt; t))))" fragid="S2.E1.m1">
+            <m:math alttext="p(\bm{x}_{t}|\bm{x}_{&lt;t})=\prod_{l}p(x_{l}|\bm{x}_{t,&lt;l},\bm{x}_{&lt;t})." display="block">
+              <m:semantics>
+                <m:mrow xml:id="S2.E1.m1.4a" xref="S2.E1.m1.3.cmml">
+                  <m:mrow xml:id="S2.E1.m1.3" xref="S2.E1.m1.3.cmml">
+                    <m:mrow xml:id="S2.E1.m1.3.6" xref="S2.E1.m1.3.6.cmml">
+                      <m:mi xml:id="S2.E1.m1.3.3" xref="S2.E1.m1.3.3.cmml">p</m:mi>
+                      <m:mo xml:id="S2.E1.m1.3.4" xref="S2.E1.m1.3.4.cmml">⁢</m:mo>
+                      <m:mrow xml:id="S2.E1.m1.3.5b" xref="S2.E1.m1.3.1.cmml">
+                        <m:mo stretchy="false" xml:id="S2.E1.m1.3.5" xref="S2.E1.m1.3.1.cmml">(</m:mo>
+                        <m:mrow xml:id="S2.E1.m1.3.1" xref="S2.E1.m1.3.1.cmml">
+                          <m:msub xml:id="S2.E1.m1.3.1.3" xref="S2.E1.m1.3.1.3.cmml">
+                            <m:mi xml:id="S2.E1.m1.3.1.1" xref="S2.E1.m1.3.1.1.cmml">𝒙</m:mi>
+                            <m:mi xml:id="S2.E1.m1.3.1.2" xref="S2.E1.m1.3.1.2.cmml">t</m:mi>
+                          </m:msub>
+                          <m:mo fence="false" xml:id="S2.E1.m1.3.1.4" xref="S2.E1.m1.3.1.4.cmml">|</m:mo>
+                          <m:msub xml:id="S2.E1.m1.3.1.10" xref="S2.E1.m1.3.1.10.cmml">
+                            <m:mi xml:id="S2.E1.m1.3.1.5" xref="S2.E1.m1.3.1.5.cmml">𝒙</m:mi>
+                            <m:mrow xml:id="S2.E1.m1.3.1.9" xref="S2.E1.m1.3.1.9.cmml">
+                              <m:mi xml:id="S2.E1.m1.3.1.6" xref="S2.E1.m1.3.1.6.cmml"/>
+                              <m:mo xml:id="S2.E1.m1.3.1.7" xref="S2.E1.m1.3.1.7.cmml">&lt;</m:mo>
+                              <m:mi xml:id="S2.E1.m1.3.1.8" xref="S2.E1.m1.3.1.8.cmml">t</m:mi>
+                            </m:mrow>
+                          </m:msub>
+                        </m:mrow>
+                        <m:mo stretchy="false" xml:id="S2.E1.m1.3.5a" xref="S2.E1.m1.3.1.cmml">)</m:mo>
+                      </m:mrow>
+                    </m:mrow>
+                    <m:mo rspace="0.111em" xml:id="S2.E1.m1.3.7" xref="S2.E1.m1.3.7.cmml">=</m:mo>
+                    <m:mrow xml:id="S2.E1.m1.3.15" xref="S2.E1.m1.3.15.cmml">
+                      <m:munder xml:id="S2.E1.m1.3.10" xref="S2.E1.m1.3.10.cmml">
+                        <m:mo movablelimits="false" xml:id="S2.E1.m1.3.8" xref="S2.E1.m1.3.8.cmml">∏</m:mo>
+                        <m:mi xml:id="S2.E1.m1.3.9" xref="S2.E1.m1.3.9.cmml">l</m:mi>
+                      </m:munder>
+                      <m:mrow xml:id="S2.E1.m1.3.14" xref="S2.E1.m1.3.14.cmml">
+                        <m:mi xml:id="S2.E1.m1.3.11" xref="S2.E1.m1.3.11.cmml">p</m:mi>
+                        <m:mo xml:id="S2.E1.m1.3.12" xref="S2.E1.m1.3.12.cmml">⁢</m:mo>
+                        <m:mrow xml:id="S2.E1.m1.3.13b" xref="S2.E1.m1.3.2.cmml">
+                          <m:mo stretchy="false" xml:id="S2.E1.m1.3.13" xref="S2.E1.m1.3.2.cmml">(</m:mo>
+                          <m:mrow xml:id="S2.E1.m1.3.2" xref="S2.E1.m1.3.2.cmml">
+                            <m:msub xml:id="S2.E1.m1.3.2.5" xref="S2.E1.m1.3.2.5.cmml">
+                              <m:mi xml:id="S2.E1.m1.3.2.3" xref="S2.E1.m1.3.2.3.cmml">x</m:mi>
+                              <m:mi xml:id="S2.E1.m1.3.2.4" xref="S2.E1.m1.3.2.4.cmml">l</m:mi>
+                            </m:msub>
+                            <m:mo fence="false" xml:id="S2.E1.m1.3.2.6" xref="S2.E1.m1.3.2.6.cmml">|</m:mo>
+                            <m:mrow xml:id="S2.E1.m1.3.2.8" xref="S2.E1.m1.3.2.8.cmml">
+                              <m:msub xml:id="S2.E1.m1.3.2.1" xref="S2.E1.m1.3.2.1.cmml">
+                                <m:mi xml:id="S2.E1.m1.3.2.1.1" xref="S2.E1.m1.3.2.1.1.cmml">𝒙</m:mi>
+                                <m:mrow xml:id="S2.E1.m1.3.2.1.3" xref="S2.E1.m1.3.2.1.3.cmml">
+                                  <m:mi xml:id="S2.E1.m1.1" xref="S2.E1.m1.1.cmml">t</m:mi>
+                                  <m:mo xml:id="S2.E1.m1.3.2.1.2" xref="S2.E1.m1.3.2.1.3.cmml">,</m:mo>
+                                  <m:mrow xml:id="S2.E1.m1.2" xref="S2.E1.m1.2.cmml">
+                                    <m:mi xml:id="S2.E1.m1.2.1" xref="S2.E1.m1.2.1.cmml"/>
+                                    <m:mo xml:id="S2.E1.m1.2.2" xref="S2.E1.m1.2.2.cmml">&lt;</m:mo>
+                                    <m:mi xml:id="S2.E1.m1.2.3" xref="S2.E1.m1.2.3.cmml">l</m:mi>
+                                  </m:mrow>
+                                </m:mrow>
+                              </m:msub>
+                              <m:mo xml:id="S2.E1.m1.3.2.7" xref="S2.E1.m1.3.2.8.cmml">,</m:mo>
+                              <m:msub xml:id="S2.E1.m1.3.2.2" xref="S2.E1.m1.3.2.2.cmml">
+                                <m:mi xml:id="S2.E1.m1.3.2.2.1" xref="S2.E1.m1.3.2.2.1.cmml">𝒙</m:mi>
+                                <m:mrow xml:id="S2.E1.m1.3.2.2.5" xref="S2.E1.m1.3.2.2.5.cmml">
+                                  <m:mi xml:id="S2.E1.m1.3.2.2.2" xref="S2.E1.m1.3.2.2.2.cmml"/>
+                                  <m:mo xml:id="S2.E1.m1.3.2.2.3" xref="S2.E1.m1.3.2.2.3.cmml">&lt;</m:mo>
+                                  <m:mi xml:id="S2.E1.m1.3.2.2.4" xref="S2.E1.m1.3.2.2.4.cmml">t</m:mi>
+                                </m:mrow>
+                              </m:msub>
+                            </m:mrow>
+                          </m:mrow>
+                          <m:mo stretchy="false" xml:id="S2.E1.m1.3.13a" xref="S2.E1.m1.3.2.cmml">)</m:mo>
+                        </m:mrow>
+                      </m:mrow>
+                    </m:mrow>
+                  </m:mrow>
+                  <m:mo lspace="0em" xml:id="S2.E1.m1.4" xref="S2.E1.m1.3.cmml">.</m:mo>
+                </m:mrow>
+                <m:annotation-xml encoding="MathML-Content">
+                  <m:apply xml:id="S2.E1.m1.3.cmml" xref="S2.E1.m1.4a">
+                    <m:eq xml:id="S2.E1.m1.3.7.cmml" xref="S2.E1.m1.3.7"/>
+                    <m:apply xml:id="S2.E1.m1.3.6.cmml" xref="S2.E1.m1.3.6">
+                      <m:times xml:id="S2.E1.m1.3.4.cmml" xref="S2.E1.m1.3.4"/>
+                      <m:ci xml:id="S2.E1.m1.3.3.cmml" xref="S2.E1.m1.3.3">𝑝</m:ci>
+                      <m:apply xml:id="S2.E1.m1.3.1.cmml" xref="S2.E1.m1.3.5b">
+                        <m:csymbol cd="latexml" xml:id="S2.E1.m1.3.1.4.cmml" xref="S2.E1.m1.3.1.4">conditional</m:csymbol>
+                        <m:apply xml:id="S2.E1.m1.3.1.3.cmml" xref="S2.E1.m1.3.1.3">
+                          <m:csymbol cd="ambiguous" xml:id="S2.E1.m1.3.1.3.1.cmml" xref="S2.E1.m1.3.1.3">subscript</m:csymbol>
+                          <m:ci xml:id="S2.E1.m1.3.1.1.cmml" xref="S2.E1.m1.3.1.1">𝒙</m:ci>
+                          <m:ci xml:id="S2.E1.m1.3.1.2.cmml" xref="S2.E1.m1.3.1.2">𝑡</m:ci>
+                        </m:apply>
+                        <m:apply xml:id="S2.E1.m1.3.1.10.cmml" xref="S2.E1.m1.3.1.10">
+                          <m:csymbol cd="ambiguous" xml:id="S2.E1.m1.3.1.10.1.cmml" xref="S2.E1.m1.3.1.10">subscript</m:csymbol>
+                          <m:ci xml:id="S2.E1.m1.3.1.5.cmml" xref="S2.E1.m1.3.1.5">𝒙</m:ci>
+                          <m:apply xml:id="S2.E1.m1.3.1.9.cmml" xref="S2.E1.m1.3.1.9">
+                            <m:lt xml:id="S2.E1.m1.3.1.7.cmml" xref="S2.E1.m1.3.1.7"/>
+                            <m:csymbol cd="latexml" xml:id="S2.E1.m1.3.1.6.cmml" xref="S2.E1.m1.3.1.6">absent</m:csymbol>
+                            <m:ci xml:id="S2.E1.m1.3.1.8.cmml" xref="S2.E1.m1.3.1.8">𝑡</m:ci>
+                          </m:apply>
+                        </m:apply>
+                      </m:apply>
+                    </m:apply>
+                    <m:apply xml:id="S2.E1.m1.3.15.cmml" xref="S2.E1.m1.3.15">
+                      <m:apply xml:id="S2.E1.m1.3.10.cmml" xref="S2.E1.m1.3.10">
+                        <m:csymbol cd="ambiguous" xml:id="S2.E1.m1.3.10.1.cmml" xref="S2.E1.m1.3.10">subscript</m:csymbol>
+                        <m:csymbol cd="latexml" xml:id="S2.E1.m1.3.8.cmml" xref="S2.E1.m1.3.8">product</m:csymbol>
+                        <m:ci xml:id="S2.E1.m1.3.9.cmml" xref="S2.E1.m1.3.9">𝑙</m:ci>
+                      </m:apply>
+                      <m:apply xml:id="S2.E1.m1.3.14.cmml" xref="S2.E1.m1.3.14">
+                        <m:times xml:id="S2.E1.m1.3.12.cmml" xref="S2.E1.m1.3.12"/>
+                        <m:ci xml:id="S2.E1.m1.3.11.cmml" xref="S2.E1.m1.3.11">𝑝</m:ci>
+                        <m:apply xml:id="S2.E1.m1.3.2.cmml" xref="S2.E1.m1.3.13b">
+                          <m:csymbol cd="latexml" xml:id="S2.E1.m1.3.2.6.cmml" xref="S2.E1.m1.3.2.6">conditional</m:csymbol>
+                          <m:apply xml:id="S2.E1.m1.3.2.5.cmml" xref="S2.E1.m1.3.2.5">
+                            <m:csymbol cd="ambiguous" xml:id="S2.E1.m1.3.2.5.1.cmml" xref="S2.E1.m1.3.2.5">subscript</m:csymbol>
+                            <m:ci xml:id="S2.E1.m1.3.2.3.cmml" xref="S2.E1.m1.3.2.3">𝑥</m:ci>
+                            <m:ci xml:id="S2.E1.m1.3.2.4.cmml" xref="S2.E1.m1.3.2.4">𝑙</m:ci>
+                          </m:apply>
+                          <m:list xml:id="S2.E1.m1.3.2.8.cmml" xref="S2.E1.m1.3.2.8">
+                            <m:apply xml:id="S2.E1.m1.3.2.1.cmml" xref="S2.E1.m1.3.2.1">
+                              <m:csymbol cd="ambiguous" xml:id="S2.E1.m1.3.2.1.4.cmml" xref="S2.E1.m1.3.2.1">subscript</m:csymbol>
+                              <m:ci xml:id="S2.E1.m1.3.2.1.1.cmml" xref="S2.E1.m1.3.2.1.1">𝒙</m:ci>
+                              <m:list xml:id="S2.E1.m1.3.2.1.3.cmml" xref="S2.E1.m1.3.2.1.3">
+                                <m:ci xml:id="S2.E1.m1.1.cmml" xref="S2.E1.m1.1">𝑡</m:ci>
+                                <m:apply xml:id="S2.E1.m1.2.cmml" xref="S2.E1.m1.2">
+                                  <m:lt xml:id="S2.E1.m1.2.2.cmml" xref="S2.E1.m1.2.2"/>
+                                  <m:csymbol cd="latexml" xml:id="S2.E1.m1.2.1.cmml" xref="S2.E1.m1.2.1">absent</m:csymbol>
+                                  <m:ci xml:id="S2.E1.m1.2.3.cmml" xref="S2.E1.m1.2.3">𝑙</m:ci>
+                                </m:apply>
+                              </m:list>
+                            </m:apply>
+                            <m:apply xml:id="S2.E1.m1.3.2.2.cmml" xref="S2.E1.m1.3.2.2">
+                              <m:csymbol cd="ambiguous" xml:id="S2.E1.m1.3.2.2.6.cmml" xref="S2.E1.m1.3.2.2">subscript</m:csymbol>
+                              <m:ci xml:id="S2.E1.m1.3.2.2.1.cmml" xref="S2.E1.m1.3.2.2.1">𝒙</m:ci>
+                              <m:apply xml:id="S2.E1.m1.3.2.2.5.cmml" xref="S2.E1.m1.3.2.2.5">
+                                <m:lt xml:id="S2.E1.m1.3.2.2.3.cmml" xref="S2.E1.m1.3.2.2.3"/>
+                                <m:csymbol cd="latexml" xml:id="S2.E1.m1.3.2.2.2.cmml" xref="S2.E1.m1.3.2.2.2">absent</m:csymbol>
+                                <m:ci xml:id="S2.E1.m1.3.2.2.4.cmml" xref="S2.E1.m1.3.2.2.4">𝑡</m:ci>
+                              </m:apply>
+                            </m:apply>
+                          </m:list>
+                        </m:apply>
+                      </m:apply>
+                    </m:apply>
+                  </m:apply>
+                </m:annotation-xml>
+                <m:annotation encoding="application/x-tex">p(\bm{x}_{t}|\bm{x}_{&lt;t})=\prod_{l}p(x_{l}|\bm{x}_{t,&lt;l},\bm{x}_{&lt;t}).</m:annotation>
+              </m:semantics>
+            </m:math>
+          </Math>
+        </equation>
+        <p>Here we assume the stationary model <Math mode="inline" xml:id="S2.SS2.p1.m6" tex="p(x_{l}|\bm{x}_{t,&lt;l},\bm{x}_{&lt;t})" text="p * conditional@(x _ l, list@(x _ (list@(t, absent &lt; l)), x _ (absent &lt; t)))" fragid="S2.SS2.p1.m6"><m:math alttext="p(x_{l}|\bm{x}_{t,&lt;l},\bm{x}_{&lt;t})" display="inline"><m:semantics><m:mrow xml:id="S2.SS2.p1.m6.7" xref="S2.SS2.p1.m6.7.cmml"><m:mi xml:id="S2.SS2.p1.m6.4" xref="S2.SS2.p1.m6.4.cmml">p</m:mi><m:mo xml:id="S2.SS2.p1.m6.5" xref="S2.SS2.p1.m6.5.cmml">⁢</m:mo><m:mrow xml:id="S2.SS2.p1.m6.6b" xref="S2.SS2.p1.m6.3.cmml"><m:mo stretchy="false" xml:id="S2.SS2.p1.m6.6" xref="S2.SS2.p1.m6.3.cmml">(</m:mo><m:mrow xml:id="S2.SS2.p1.m6.3" xref="S2.SS2.p1.m6.3.cmml"><m:msub xml:id="S2.SS2.p1.m6.3.5" xref="S2.SS2.p1.m6.3.5.cmml"><m:mi xml:id="S2.SS2.p1.m6.3.3" xref="S2.SS2.p1.m6.3.3.cmml">x</m:mi><m:mi xml:id="S2.SS2.p1.m6.3.4" xref="S2.SS2.p1.m6.3.4.cmml">l</m:mi></m:msub><m:mo fence="false" xml:id="S2.SS2.p1.m6.3.6" xref="S2.SS2.p1.m6.3.6.cmml">|</m:mo><m:mrow xml:id="S2.SS2.p1.m6.3.8" xref="S2.SS2.p1.m6.3.8.cmml"><m:msub xml:id="S2.SS2.p1.m6.3.1" xref="S2.SS2.p1.m6.3.1.cmml"><m:mi xml:id="S2.SS2.p1.m6.3.1.1" xref="S2.SS2.p1.m6.3.1.1.cmml">𝒙</m:mi><m:mrow xml:id="S2.SS2.p1.m6.3.1.3" xref="S2.SS2.p1.m6.3.1.3.cmml"><m:mi xml:id="S2.SS2.p1.m6.1" xref="S2.SS2.p1.m6.1.cmml">t</m:mi><m:mo xml:id="S2.SS2.p1.m6.3.1.2" xref="S2.SS2.p1.m6.3.1.3.cmml">,</m:mo><m:mrow xml:id="S2.SS2.p1.m6.2" xref="S2.SS2.p1.m6.2.cmml"><m:mi xml:id="S2.SS2.p1.m6.2.1" xref="S2.SS2.p1.m6.2.1.cmml"/><m:mo xml:id="S2.SS2.p1.m6.2.2" xref="S2.SS2.p1.m6.2.2.cmml">&lt;</m:mo><m:mi xml:id="S2.SS2.p1.m6.2.3" xref="S2.SS2.p1.m6.2.3.cmml">l</m:mi></m:mrow></m:mrow></m:msub><m:mo xml:id="S2.SS2.p1.m6.3.7" xref="S2.SS2.p1.m6.3.8.cmml">,</m:mo><m:msub xml:id="S2.SS2.p1.m6.3.2" xref="S2.SS2.p1.m6.3.2.cmml"><m:mi xml:id="S2.SS2.p1.m6.3.2.1" xref="S2.SS2.p1.m6.3.2.1.cmml">𝒙</m:mi><m:mrow xml:id="S2.SS2.p1.m6.3.2.5" xref="S2.SS2.p1.m6.3.2.5.cmml"><m:mi xml:id="S2.SS2.p1.m6.3.2.2" xref="S2.SS2.p1.m6.3.2.2.cmml"/><m:mo xml:id="S2.SS2.p1.m6.3.2.3" xref="S2.SS2.p1.m6.3.2.3.cmml">&lt;</m:mo><m:mi xml:id="S2.SS2.p1.m6.3.2.4" xref="S2.SS2.p1.m6.3.2.4.cmml">t</m:mi></m:mrow></m:msub></m:mrow></m:mrow><m:mo stretchy="false" xml:id="S2.SS2.p1.m6.6a" xref="S2.SS2.p1.m6.3.cmml">)</m:mo></m:mrow></m:mrow><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S2.SS2.p1.m6.7.cmml" xref="S2.SS2.p1.m6.7"><m:times xml:id="S2.SS2.p1.m6.5.cmml" xref="S2.SS2.p1.m6.5"/><m:ci xml:id="S2.SS2.p1.m6.4.cmml" xref="S2.SS2.p1.m6.4">𝑝</m:ci><m:apply xml:id="S2.SS2.p1.m6.3.cmml" xref="S2.SS2.p1.m6.6b"><m:csymbol cd="latexml" xml:id="S2.SS2.p1.m6.3.6.cmml" xref="S2.SS2.p1.m6.3.6">conditional</m:csymbol><m:apply xml:id="S2.SS2.p1.m6.3.5.cmml" xref="S2.SS2.p1.m6.3.5"><m:csymbol cd="ambiguous" xml:id="S2.SS2.p1.m6.3.5.1.cmml" xref="S2.SS2.p1.m6.3.5">subscript</m:csymbol><m:ci xml:id="S2.SS2.p1.m6.3.3.cmml" xref="S2.SS2.p1.m6.3.3">𝑥</m:ci><m:ci xml:id="S2.SS2.p1.m6.3.4.cmml" xref="S2.SS2.p1.m6.3.4">𝑙</m:ci></m:apply><m:list xml:id="S2.SS2.p1.m6.3.8.cmml" xref="S2.SS2.p1.m6.3.8"><m:apply xml:id="S2.SS2.p1.m6.3.1.cmml" xref="S2.SS2.p1.m6.3.1"><m:csymbol cd="ambiguous" xml:id="S2.SS2.p1.m6.3.1.4.cmml" xref="S2.SS2.p1.m6.3.1">subscript</m:csymbol><m:ci xml:id="S2.SS2.p1.m6.3.1.1.cmml" xref="S2.SS2.p1.m6.3.1.1">𝒙</m:ci><m:list xml:id="S2.SS2.p1.m6.3.1.3.cmml" xref="S2.SS2.p1.m6.3.1.3"><m:ci xml:id="S2.SS2.p1.m6.1.cmml" xref="S2.SS2.p1.m6.1">𝑡</m:ci><m:apply xml:id="S2.SS2.p1.m6.2.cmml" xref="S2.SS2.p1.m6.2"><m:lt xml:id="S2.SS2.p1.m6.2.2.cmml" xref="S2.SS2.p1.m6.2.2"/><m:csymbol cd="latexml" xml:id="S2.SS2.p1.m6.2.1.cmml" xref="S2.SS2.p1.m6.2.1">absent</m:csymbol><m:ci xml:id="S2.SS2.p1.m6.2.3.cmml" xref="S2.SS2.p1.m6.2.3">𝑙</m:ci></m:apply></m:list></m:apply><m:apply xml:id="S2.SS2.p1.m6.3.2.cmml" xref="S2.SS2.p1.m6.3.2"><m:csymbol cd="ambiguous" xml:id="S2.SS2.p1.m6.3.2.6.cmml" xref="S2.SS2.p1.m6.3.2">subscript</m:csymbol><m:ci xml:id="S2.SS2.p1.m6.3.2.1.cmml" xref="S2.SS2.p1.m6.3.2.1">𝒙</m:ci><m:apply xml:id="S2.SS2.p1.m6.3.2.5.cmml" xref="S2.SS2.p1.m6.3.2.5"><m:lt xml:id="S2.SS2.p1.m6.3.2.3.cmml" xref="S2.SS2.p1.m6.3.2.3"/><m:csymbol cd="latexml" xml:id="S2.SS2.p1.m6.3.2.2.cmml" xref="S2.SS2.p1.m6.3.2.2">absent</m:csymbol><m:ci xml:id="S2.SS2.p1.m6.3.2.4.cmml" xref="S2.SS2.p1.m6.3.2.4">𝑡</m:ci></m:apply></m:apply></m:list></m:apply></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">p(x_{l}|\bm{x}_{t,&lt;l},\bm{x}_{&lt;t})</m:annotation></m:semantics></m:math></Math> and mask-out the unknown traffic values.
+Note that there is no natural order for the auto-regressive model, however, the only requirement is that the order must be the same during compression and decompression.</p>
+      </para>
+    </subsection>
+  </section>
+  <section inlist="toc" xml:id="S3" labels="LABEL:sec:design" fragid="S3">
+    <tags>
+      <tag>3</tag>
+      <tag role="autoref">section 3</tag>
+      <tag role="refnum">3</tag>
+      <tag role="typerefnum">§3</tag>
+    </tags>
+    <title><tag close=". ">3</tag>Design</title>
+    <toctitle><tag close=" ">3</tag>Design</toctitle>
+    <figure inlist="lof" placement="!t" xml:id="S3.F2" labels="LABEL:fig:archi_overview" fragid="S3.F2">
+      <tags>
+        <tag>Figure 2</tag>
+        <tag role="autoref">Figure 2</tag>
+        <tag role="refnum">2</tag>
+        <tag role="typerefnum">Figure 2</tag>
+      </tags>
+      <graphics candidates="Resources/Figures/architecture_overview.pdf" graphic="Resources/Figures/architecture_overview.pdf" options="width=368.6pt,keepaspectratio=true" xml:id="S3.F2.g1" class="ltx_centering" fragid="S3.F2.g1"/>
+      <toccaption class="ltx_centering"><tag close=" ">2</tag>The predictor takes the traffic values from the SW and outputs a probability distribution per link. Then, Atom uses AC to encode the traffic value of the next time bin after the SW.
+</toccaption>
+      <caption class="ltx_centering"><tag close=". ">Figure 2</tag>The predictor takes the traffic values from the SW and outputs a probability distribution per link. Then, Atom uses AC to encode the traffic value of the next time bin after the SW.
+</caption>
+    </figure>
+    <para xml:id="S3.p1" fragid="S3.p1">
+      <p><text font="italic">Atom</text> takes as input the values from a single or multiple traffic measurement points, depending on the compression scenario, and outputs a floating point number. This value represents the entire sequence of compressed traffic values. In the network-wide scenario, <text font="italic">Atom</text> takes as input the network topology in addition to multiple traffic values. Our compression method uses a SW to iterate over all traffic measurements and uses the traffic values within the SW to output a probability distribution. This distribution is used to actually encode the traffic measurements immediately after the SW. The process is repeated until the window has iterated over all values.</p>
+    </para>
+    <para xml:id="S3.p2" fragid="S3.p2">
+      <p>Our compression method is composed of two main blocks: predictor and encoder/decoder blocks. The predictor implements a NN-based model that predicts the probability distribution for the next time bin after the SW. The encoder/decoder takes the predicted distributions and compresses the sequences of traffic values. Figure <ref labelref="LABEL:fig:archi_overview" idref="S3.F2" href="#S3.F2" title="Figure 2 ‣ 3. Design ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">2</text></ref> shows an overview of the compressor module of <text font="italic">Atom</text> with its inputs and outputs.</p>
+    </para>
+    <subsection inlist="toc" xml:id="S3.SS1" fragid="S3.SS1">
+      <tags>
+        <tag>3.1</tag>
+        <tag role="autoref">subsection 3.1</tag>
+        <tag role="refnum">3.1</tag>
+        <tag role="typerefnum">§3.1</tag>
+      </tags>
+      <title><tag close=". ">3.1</tag>Predictor</title>
+      <toctitle><tag close=" ">3.1</tag>Predictor</toctitle>
+      <para xml:id="S3.SS1.p1" fragid="S3.SS1.p1">
+        <p>The predictor was implemented using a Recurrent Neural Network (RNN) <cite class="ltx_citemacro_citep">(Jain and Medsker, <ref href="#bib.bib20" idref="bib.bib20" title="Recurrent neural networks: design and applications">1999</ref>)</cite> when compressing the traffic values of a single measurement point. Specifically, the RNN processes the sequence of traffic values, and subsequently a Multi-Layer Perceptron (MLP) takes the resulting hidden state and outputs the mean and standard deviation of a probability distribution (e.g., Normal, Laplace). The probability distribution is then used by the AC to code the real link measurement in the next time bin. Note that the RNN architecture can only exploit temporal correlations.</p>
+      </para>
+      <para xml:id="S3.SS1.p2" fragid="S3.SS1.p2">
+        <p>In the network-wide scenario, we implemented the predictor using a custom ST-GNN. This neural architecture uses a custom message passing algorithm for each time bin to exploit both spatial and temporal correlations simultaneously. The ST-GNN uses traffic measurements and network topology as inputs. Then, the ST-GNN exchanges information between links and propagates link-level information across the topology for each time bin. Finally, the model outputs a per link probability distribution.</p>
+      </para>
+      <para xml:id="S3.SS1.p3" fragid="S3.SS1.p3">
+        <p>Figure <ref labelref="LABEL:fig:space_time_mp" idref="S3.F3" href="#S3.F3" title="Figure 3 ‣ 3.1. Predictor ‣ 3. Design ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">3</text></ref> shows an overview of the proposed ST-GNN architecture when predicting the probability distribution for a single link using a SW size of two. At time bin <text font="italic">t=0</text>, the links’ feature vector is initialized with the traffic value and padded with 0. Then, the feature vector is processed by an MLP and sent to all neighboring links, aggregating them using a sum. Simultaneously, the current link receives the hidden states from neighboring links, aggregates them using a sum, and concatenates the actual link traffic value. The resulting hidden state is then processed by an RNN, which outputs the final hidden state for the present time bin. This hidden state is used in the next time bin, <text font="italic">t=1</text>, to initialize the feature vector. This process is repeated for all time bins within the SW. In the last bin, a different MLP (denoted by R in the figure) is used to process the final hidden state and outputs the parameters of the probability distribution, which is used by the AC to compress the traffic value of the current link at time bin <text font="italic">t=2</text>.</p>
+      </para>
+      <figure inlist="lof" placement="!t" xml:id="S3.F3" labels="LABEL:fig:space_time_mp" fragid="S3.F3">
+        <tags>
+          <tag>Figure 3</tag>
+          <tag role="autoref">Figure 3</tag>
+          <tag role="refnum">3</tag>
+          <tag role="typerefnum">Figure 3</tag>
+        </tags>
+        <graphics candidates="Resources/Figures/space_time_gnn_mp_new.pdf" graphic="Resources/Figures/space_time_gnn_mp_new.pdf" options="width=429.3pt,keepaspectratio=true" xml:id="S3.F3.g1" class="ltx_centering" fragid="S3.F3.g1"/>
+        <toccaption class="ltx_centering"><tag close=" ">3</tag>Overview of the ST-GNN when predicting the probability distribution for a single link at time bin <text font="italic">t=2</text>.
+</toccaption>
+        <caption class="ltx_centering"><tag close=". ">Figure 3</tag>Overview of the ST-GNN when predicting the probability distribution for a single link at time bin <text font="italic">t=2</text>.
+</caption>
+      </figure>
+    </subsection>
+    <subsection inlist="toc" xml:id="S3.SS2" labels="LABEL:subsec:encoddecod" fragid="S3.SS2">
+      <tags>
+        <tag>3.2</tag>
+        <tag role="autoref">subsection 3.2</tag>
+        <tag role="refnum">3.2</tag>
+        <tag role="typerefnum">§3.2</tag>
+      </tags>
+      <title><tag close=". ">3.2</tag>Encoder/Decoder</title>
+      <toctitle><tag close=" ">3.2</tag>Encoder/Decoder</toctitle>
+      <para xml:id="S3.SS2.p1" fragid="S3.SS2.p1">
+        <p>The encoder/decoder is responsible for compressing or decompressing actual sequences of traffic values. Specifically, it uses the probability distribution from the predictor to compress/decompress the actual traffic value. We implemented the encoder/decoder using AC <cite class="ltx_citemacro_citep">(Witten<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib15" idref="bib.bib15" title="Arithmetic coding for data compression">1987</ref>)</cite>, compressing each traffic sequence into a single floating-point number. The compression performance of AC is heavily reliant on the predictor. A well-estimated probability distribution allows for a more efficient data representation and achieves higher compression ratios. When compressing a sequence of values, having a reliable predictor becomes crucial as it enables accurate estimation of the underlying probability distribution, capturing the temporal dependencies and patterns present in the data.</p>
+      </para>
+    </subsection>
+    <subsection inlist="toc" xml:id="S3.SS3" labels="LABEL:subsec:mask" fragid="S3.SS3">
+      <tags>
+        <tag>3.3</tag>
+        <tag role="autoref">subsection 3.3</tag>
+        <tag role="refnum">3.3</tag>
+        <tag role="typerefnum">§3.3</tag>
+      </tags>
+      <title><tag close=". ">3.3</tag>Mask</title>
+      <toctitle><tag close=" ">3.3</tag>Mask</toctitle>
+      <para xml:id="S3.SS3.p1" fragid="S3.SS3.p1">
+        <p>The ST-GNN model uses a mask to exploit the spatial correlations between links, enabling the model to learn the conditional distribution <Math mode="inline" xml:id="S3.SS3.p1.m1" tex="p(x_{l}|\bm{x}_{t,&lt;l},\bm{x}_{&lt;t})" text="p * conditional@(x _ l, list@(x _ (list@(t, absent &lt; l)), x _ (absent &lt; t)))" fragid="S3.SS3.p1.m1"><m:math alttext="p(x_{l}|\bm{x}_{t,&lt;l},\bm{x}_{&lt;t})" display="inline"><m:semantics><m:mrow xml:id="S3.SS3.p1.m1.7" xref="S3.SS3.p1.m1.7.cmml"><m:mi xml:id="S3.SS3.p1.m1.4" xref="S3.SS3.p1.m1.4.cmml">p</m:mi><m:mo xml:id="S3.SS3.p1.m1.5" xref="S3.SS3.p1.m1.5.cmml">⁢</m:mo><m:mrow xml:id="S3.SS3.p1.m1.6b" xref="S3.SS3.p1.m1.3.cmml"><m:mo stretchy="false" xml:id="S3.SS3.p1.m1.6" xref="S3.SS3.p1.m1.3.cmml">(</m:mo><m:mrow xml:id="S3.SS3.p1.m1.3" xref="S3.SS3.p1.m1.3.cmml"><m:msub xml:id="S3.SS3.p1.m1.3.5" xref="S3.SS3.p1.m1.3.5.cmml"><m:mi xml:id="S3.SS3.p1.m1.3.3" xref="S3.SS3.p1.m1.3.3.cmml">x</m:mi><m:mi xml:id="S3.SS3.p1.m1.3.4" xref="S3.SS3.p1.m1.3.4.cmml">l</m:mi></m:msub><m:mo fence="false" xml:id="S3.SS3.p1.m1.3.6" xref="S3.SS3.p1.m1.3.6.cmml">|</m:mo><m:mrow xml:id="S3.SS3.p1.m1.3.8" xref="S3.SS3.p1.m1.3.8.cmml"><m:msub xml:id="S3.SS3.p1.m1.3.1" xref="S3.SS3.p1.m1.3.1.cmml"><m:mi xml:id="S3.SS3.p1.m1.3.1.1" xref="S3.SS3.p1.m1.3.1.1.cmml">𝒙</m:mi><m:mrow xml:id="S3.SS3.p1.m1.3.1.3" xref="S3.SS3.p1.m1.3.1.3.cmml"><m:mi xml:id="S3.SS3.p1.m1.1" xref="S3.SS3.p1.m1.1.cmml">t</m:mi><m:mo xml:id="S3.SS3.p1.m1.3.1.2" xref="S3.SS3.p1.m1.3.1.3.cmml">,</m:mo><m:mrow xml:id="S3.SS3.p1.m1.2" xref="S3.SS3.p1.m1.2.cmml"><m:mi xml:id="S3.SS3.p1.m1.2.1" xref="S3.SS3.p1.m1.2.1.cmml"/><m:mo xml:id="S3.SS3.p1.m1.2.2" xref="S3.SS3.p1.m1.2.2.cmml">&lt;</m:mo><m:mi xml:id="S3.SS3.p1.m1.2.3" xref="S3.SS3.p1.m1.2.3.cmml">l</m:mi></m:mrow></m:mrow></m:msub><m:mo xml:id="S3.SS3.p1.m1.3.7" xref="S3.SS3.p1.m1.3.8.cmml">,</m:mo><m:msub xml:id="S3.SS3.p1.m1.3.2" xref="S3.SS3.p1.m1.3.2.cmml"><m:mi xml:id="S3.SS3.p1.m1.3.2.1" xref="S3.SS3.p1.m1.3.2.1.cmml">𝒙</m:mi><m:mrow xml:id="S3.SS3.p1.m1.3.2.5" xref="S3.SS3.p1.m1.3.2.5.cmml"><m:mi xml:id="S3.SS3.p1.m1.3.2.2" xref="S3.SS3.p1.m1.3.2.2.cmml"/><m:mo xml:id="S3.SS3.p1.m1.3.2.3" xref="S3.SS3.p1.m1.3.2.3.cmml">&lt;</m:mo><m:mi xml:id="S3.SS3.p1.m1.3.2.4" xref="S3.SS3.p1.m1.3.2.4.cmml">t</m:mi></m:mrow></m:msub></m:mrow></m:mrow><m:mo stretchy="false" xml:id="S3.SS3.p1.m1.6a" xref="S3.SS3.p1.m1.3.cmml">)</m:mo></m:mrow></m:mrow><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S3.SS3.p1.m1.7.cmml" xref="S3.SS3.p1.m1.7"><m:times xml:id="S3.SS3.p1.m1.5.cmml" xref="S3.SS3.p1.m1.5"/><m:ci xml:id="S3.SS3.p1.m1.4.cmml" xref="S3.SS3.p1.m1.4">𝑝</m:ci><m:apply xml:id="S3.SS3.p1.m1.3.cmml" xref="S3.SS3.p1.m1.6b"><m:csymbol cd="latexml" xml:id="S3.SS3.p1.m1.3.6.cmml" xref="S3.SS3.p1.m1.3.6">conditional</m:csymbol><m:apply xml:id="S3.SS3.p1.m1.3.5.cmml" xref="S3.SS3.p1.m1.3.5"><m:csymbol cd="ambiguous" xml:id="S3.SS3.p1.m1.3.5.1.cmml" xref="S3.SS3.p1.m1.3.5">subscript</m:csymbol><m:ci xml:id="S3.SS3.p1.m1.3.3.cmml" xref="S3.SS3.p1.m1.3.3">𝑥</m:ci><m:ci xml:id="S3.SS3.p1.m1.3.4.cmml" xref="S3.SS3.p1.m1.3.4">𝑙</m:ci></m:apply><m:list xml:id="S3.SS3.p1.m1.3.8.cmml" xref="S3.SS3.p1.m1.3.8"><m:apply xml:id="S3.SS3.p1.m1.3.1.cmml" xref="S3.SS3.p1.m1.3.1"><m:csymbol cd="ambiguous" xml:id="S3.SS3.p1.m1.3.1.4.cmml" xref="S3.SS3.p1.m1.3.1">subscript</m:csymbol><m:ci xml:id="S3.SS3.p1.m1.3.1.1.cmml" xref="S3.SS3.p1.m1.3.1.1">𝒙</m:ci><m:list xml:id="S3.SS3.p1.m1.3.1.3.cmml" xref="S3.SS3.p1.m1.3.1.3"><m:ci xml:id="S3.SS3.p1.m1.1.cmml" xref="S3.SS3.p1.m1.1">𝑡</m:ci><m:apply xml:id="S3.SS3.p1.m1.2.cmml" xref="S3.SS3.p1.m1.2"><m:lt xml:id="S3.SS3.p1.m1.2.2.cmml" xref="S3.SS3.p1.m1.2.2"/><m:csymbol cd="latexml" xml:id="S3.SS3.p1.m1.2.1.cmml" xref="S3.SS3.p1.m1.2.1">absent</m:csymbol><m:ci xml:id="S3.SS3.p1.m1.2.3.cmml" xref="S3.SS3.p1.m1.2.3">𝑙</m:ci></m:apply></m:list></m:apply><m:apply xml:id="S3.SS3.p1.m1.3.2.cmml" xref="S3.SS3.p1.m1.3.2"><m:csymbol cd="ambiguous" xml:id="S3.SS3.p1.m1.3.2.6.cmml" xref="S3.SS3.p1.m1.3.2">subscript</m:csymbol><m:ci xml:id="S3.SS3.p1.m1.3.2.1.cmml" xref="S3.SS3.p1.m1.3.2.1">𝒙</m:ci><m:apply xml:id="S3.SS3.p1.m1.3.2.5.cmml" xref="S3.SS3.p1.m1.3.2.5"><m:lt xml:id="S3.SS3.p1.m1.3.2.3.cmml" xref="S3.SS3.p1.m1.3.2.3"/><m:csymbol cd="latexml" xml:id="S3.SS3.p1.m1.3.2.2.cmml" xref="S3.SS3.p1.m1.3.2.2">absent</m:csymbol><m:ci xml:id="S3.SS3.p1.m1.3.2.4.cmml" xref="S3.SS3.p1.m1.3.2.4">𝑡</m:ci></m:apply></m:apply></m:list></m:apply></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">p(x_{l}|\bm{x}_{t,&lt;l},\bm{x}_{&lt;t})</m:annotation></m:semantics></m:math></Math> from Equation <ref labelref="LABEL:fig:spatial_equation" idref="S2.E1" href="#S2.E1" title="In 2.2. Notation and problem statement ‣ 2. Methodology ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">1</text></ref>. Specifically, the mask is used to gradually incorporate the already compressed/decompressed link traffic values into the prediction. By masking the known link traffic values, our model learns to predict the conditional probability distribution to the known traffic values, thus exploiting the spatial correlations between links.</p>
+      </para>
+      <para xml:id="S3.SS3.p2" fragid="S3.SS3.p2">
+        <p>During training, the mask of unknown links is randomly created. This means that for each SW, we associate a random mask over the links to indicate the link traffic values that are known. In the compression/decompression phase, the mask starts by marking all traffic values as unknowns. Then, the predictor compresses/decompresses the traffic values, incorporating them into the prediction by changing the mask.</p>
+      </para>
+    </subsection>
+    <subsection inlist="toc" xml:id="S3.SS4" labels="LABEL:subsec:compression" fragid="S3.SS4">
+      <tags>
+        <tag>3.4</tag>
+        <tag role="autoref">subsection 3.4</tag>
+        <tag role="refnum">3.4</tag>
+        <tag role="typerefnum">§3.4</tag>
+      </tags>
+      <title><tag close=". ">3.4</tag>Compression/Decompression</title>
+      <toctitle><tag close=" ">3.4</tag>Compression/Decompression</toctitle>
+      <figure inlist="lof" placement="!t" xml:id="S3.F4" labels="LABEL:fig:encoder_framework" fragid="S3.F4">
+        <tags>
+          <tag>Figure 4</tag>
+          <tag role="autoref">Figure 4</tag>
+          <tag role="refnum">4</tag>
+          <tag role="typerefnum">Figure 4</tag>
+        </tags>
+        <graphics candidates="Resources/Figures/encoder_framework.pdf" graphic="Resources/Figures/encoder_framework.pdf" options="width=346.9pt,keepaspectratio=true" xml:id="S3.F4.g1" class="ltx_centering" fragid="S3.F4.g1"/>
+        <toccaption class="ltx_centering"><tag close=" ">4</tag>Overview of the compression process for a single link. In the network-wide scenario, the predictor outputs the conditional probability distribution <Math mode="inline" xml:id="S3.F4.m1" tex="p(x_{l}|\bm{x}_{t+1,&lt;l},\bm{x}_{&lt;t+1})" text="p * conditional@(x _ l, list@(x _ (list@(t + 1, absent &lt; l)), x _ (absent &lt; t + 1)))" fragid="S3.F4.m1"><m:math alttext="p(x_{l}|\bm{x}_{t+1,&lt;l},\bm{x}_{&lt;t+1})" display="inline"><m:semantics><m:mrow xml:id="S3.F4.m1.7" xref="S3.F4.m1.7.cmml"><m:mi xml:id="S3.F4.m1.4" xref="S3.F4.m1.4.cmml">p</m:mi><m:mo xml:id="S3.F4.m1.5" xref="S3.F4.m1.5.cmml">⁢</m:mo><m:mrow xml:id="S3.F4.m1.6b" xref="S3.F4.m1.3.cmml"><m:mo stretchy="false" xml:id="S3.F4.m1.6" xref="S3.F4.m1.3.cmml">(</m:mo><m:mrow xml:id="S3.F4.m1.3" xref="S3.F4.m1.3.cmml"><m:msub xml:id="S3.F4.m1.3.5" xref="S3.F4.m1.3.5.cmml"><m:mi xml:id="S3.F4.m1.3.3" xref="S3.F4.m1.3.3.cmml">x</m:mi><m:mi xml:id="S3.F4.m1.3.4" xref="S3.F4.m1.3.4.cmml">l</m:mi></m:msub><m:mo fence="false" xml:id="S3.F4.m1.3.6" xref="S3.F4.m1.3.6.cmml">|</m:mo><m:mrow xml:id="S3.F4.m1.3.8" xref="S3.F4.m1.3.8.cmml"><m:msub xml:id="S3.F4.m1.3.1" xref="S3.F4.m1.3.1.cmml"><m:mi xml:id="S3.F4.m1.3.1.1" xref="S3.F4.m1.3.1.1.cmml">𝒙</m:mi><m:mrow xml:id="S3.F4.m1.3.1.3" xref="S3.F4.m1.3.1.3.cmml"><m:mrow xml:id="S3.F4.m1.1" xref="S3.F4.m1.1.cmml"><m:mi xml:id="S3.F4.m1.1.1" xref="S3.F4.m1.1.1.cmml">t</m:mi><m:mo xml:id="S3.F4.m1.1.2" xref="S3.F4.m1.1.2.cmml">+</m:mo><m:mn xml:id="S3.F4.m1.1.3" xref="S3.F4.m1.1.3.cmml">1</m:mn></m:mrow><m:mo xml:id="S3.F4.m1.3.1.2" xref="S3.F4.m1.3.1.3.cmml">,</m:mo><m:mrow xml:id="S3.F4.m1.2" xref="S3.F4.m1.2.cmml"><m:mi xml:id="S3.F4.m1.2.1" xref="S3.F4.m1.2.1.cmml"/><m:mo xml:id="S3.F4.m1.2.2" xref="S3.F4.m1.2.2.cmml">&lt;</m:mo><m:mi xml:id="S3.F4.m1.2.3" xref="S3.F4.m1.2.3.cmml">l</m:mi></m:mrow></m:mrow></m:msub><m:mo xml:id="S3.F4.m1.3.7" xref="S3.F4.m1.3.8.cmml">,</m:mo><m:msub xml:id="S3.F4.m1.3.2" xref="S3.F4.m1.3.2.cmml"><m:mi xml:id="S3.F4.m1.3.2.1" xref="S3.F4.m1.3.2.1.cmml">𝒙</m:mi><m:mrow xml:id="S3.F4.m1.3.2.8" xref="S3.F4.m1.3.2.8.cmml"><m:mi xml:id="S3.F4.m1.3.2.2" xref="S3.F4.m1.3.2.2.cmml"/><m:mo xml:id="S3.F4.m1.3.2.3" xref="S3.F4.m1.3.2.3.cmml">&lt;</m:mo><m:mrow xml:id="S3.F4.m1.3.2.7" xref="S3.F4.m1.3.2.7.cmml"><m:mi xml:id="S3.F4.m1.3.2.4" xref="S3.F4.m1.3.2.4.cmml">t</m:mi><m:mo xml:id="S3.F4.m1.3.2.5" xref="S3.F4.m1.3.2.5.cmml">+</m:mo><m:mn xml:id="S3.F4.m1.3.2.6" xref="S3.F4.m1.3.2.6.cmml">1</m:mn></m:mrow></m:mrow></m:msub></m:mrow></m:mrow><m:mo stretchy="false" xml:id="S3.F4.m1.6a" xref="S3.F4.m1.3.cmml">)</m:mo></m:mrow></m:mrow><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S3.F4.m1.7.cmml" xref="S3.F4.m1.7"><m:times xml:id="S3.F4.m1.5.cmml" xref="S3.F4.m1.5"/><m:ci xml:id="S3.F4.m1.4.cmml" xref="S3.F4.m1.4">𝑝</m:ci><m:apply xml:id="S3.F4.m1.3.cmml" xref="S3.F4.m1.6b"><m:csymbol cd="latexml" xml:id="S3.F4.m1.3.6.cmml" xref="S3.F4.m1.3.6">conditional</m:csymbol><m:apply xml:id="S3.F4.m1.3.5.cmml" xref="S3.F4.m1.3.5"><m:csymbol cd="ambiguous" xml:id="S3.F4.m1.3.5.1.cmml" xref="S3.F4.m1.3.5">subscript</m:csymbol><m:ci xml:id="S3.F4.m1.3.3.cmml" xref="S3.F4.m1.3.3">𝑥</m:ci><m:ci xml:id="S3.F4.m1.3.4.cmml" xref="S3.F4.m1.3.4">𝑙</m:ci></m:apply><m:list xml:id="S3.F4.m1.3.8.cmml" xref="S3.F4.m1.3.8"><m:apply xml:id="S3.F4.m1.3.1.cmml" xref="S3.F4.m1.3.1"><m:csymbol cd="ambiguous" xml:id="S3.F4.m1.3.1.4.cmml" xref="S3.F4.m1.3.1">subscript</m:csymbol><m:ci xml:id="S3.F4.m1.3.1.1.cmml" xref="S3.F4.m1.3.1.1">𝒙</m:ci><m:list xml:id="S3.F4.m1.3.1.3.cmml" xref="S3.F4.m1.3.1.3"><m:apply xml:id="S3.F4.m1.1.cmml" xref="S3.F4.m1.1"><m:plus xml:id="S3.F4.m1.1.2.cmml" xref="S3.F4.m1.1.2"/><m:ci xml:id="S3.F4.m1.1.1.cmml" xref="S3.F4.m1.1.1">𝑡</m:ci><m:cn type="integer" xml:id="S3.F4.m1.1.3.cmml" xref="S3.F4.m1.1.3">1</m:cn></m:apply><m:apply xml:id="S3.F4.m1.2.cmml" xref="S3.F4.m1.2"><m:lt xml:id="S3.F4.m1.2.2.cmml" xref="S3.F4.m1.2.2"/><m:csymbol cd="latexml" xml:id="S3.F4.m1.2.1.cmml" xref="S3.F4.m1.2.1">absent</m:csymbol><m:ci xml:id="S3.F4.m1.2.3.cmml" xref="S3.F4.m1.2.3">𝑙</m:ci></m:apply></m:list></m:apply><m:apply xml:id="S3.F4.m1.3.2.cmml" xref="S3.F4.m1.3.2"><m:csymbol cd="ambiguous" xml:id="S3.F4.m1.3.2.9.cmml" xref="S3.F4.m1.3.2">subscript</m:csymbol><m:ci xml:id="S3.F4.m1.3.2.1.cmml" xref="S3.F4.m1.3.2.1">𝒙</m:ci><m:apply xml:id="S3.F4.m1.3.2.8.cmml" xref="S3.F4.m1.3.2.8"><m:lt xml:id="S3.F4.m1.3.2.3.cmml" xref="S3.F4.m1.3.2.3"/><m:csymbol cd="latexml" xml:id="S3.F4.m1.3.2.2.cmml" xref="S3.F4.m1.3.2.2">absent</m:csymbol><m:apply xml:id="S3.F4.m1.3.2.7.cmml" xref="S3.F4.m1.3.2.7"><m:plus xml:id="S3.F4.m1.3.2.5.cmml" xref="S3.F4.m1.3.2.5"/><m:ci xml:id="S3.F4.m1.3.2.4.cmml" xref="S3.F4.m1.3.2.4">𝑡</m:ci><m:cn type="integer" xml:id="S3.F4.m1.3.2.6.cmml" xref="S3.F4.m1.3.2.6">1</m:cn></m:apply></m:apply></m:apply></m:list></m:apply></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">p(x_{l}|\bm{x}_{t+1,&lt;l},\bm{x}_{&lt;t+1})</m:annotation></m:semantics></m:math></Math>. </toccaption>
+        <caption class="ltx_centering"><tag close=". ">Figure 4</tag>Overview of the compression process for a single link. In the network-wide scenario, the predictor outputs the conditional probability distribution <Math mode="inline" xml:id="S3.F4.m2" tex="p(x_{l}|\bm{x}_{t+1,&lt;l},\bm{x}_{&lt;t+1})" text="p * conditional@(x _ l, list@(x _ (list@(t + 1, absent &lt; l)), x _ (absent &lt; t + 1)))" fragid="S3.F4.m2"><m:math alttext="p(x_{l}|\bm{x}_{t+1,&lt;l},\bm{x}_{&lt;t+1})" display="inline"><m:semantics><m:mrow xml:id="S3.F4.m2.7" xref="S3.F4.m2.7.cmml"><m:mi xml:id="S3.F4.m2.4" xref="S3.F4.m2.4.cmml">p</m:mi><m:mo xml:id="S3.F4.m2.5" xref="S3.F4.m2.5.cmml">⁢</m:mo><m:mrow xml:id="S3.F4.m2.6b" xref="S3.F4.m2.3.cmml"><m:mo stretchy="false" xml:id="S3.F4.m2.6" xref="S3.F4.m2.3.cmml">(</m:mo><m:mrow xml:id="S3.F4.m2.3" xref="S3.F4.m2.3.cmml"><m:msub xml:id="S3.F4.m2.3.5" xref="S3.F4.m2.3.5.cmml"><m:mi xml:id="S3.F4.m2.3.3" xref="S3.F4.m2.3.3.cmml">x</m:mi><m:mi xml:id="S3.F4.m2.3.4" xref="S3.F4.m2.3.4.cmml">l</m:mi></m:msub><m:mo fence="false" xml:id="S3.F4.m2.3.6" xref="S3.F4.m2.3.6.cmml">|</m:mo><m:mrow xml:id="S3.F4.m2.3.8" xref="S3.F4.m2.3.8.cmml"><m:msub xml:id="S3.F4.m2.3.1" xref="S3.F4.m2.3.1.cmml"><m:mi xml:id="S3.F4.m2.3.1.1" xref="S3.F4.m2.3.1.1.cmml">𝒙</m:mi><m:mrow xml:id="S3.F4.m2.3.1.3" xref="S3.F4.m2.3.1.3.cmml"><m:mrow xml:id="S3.F4.m2.1" xref="S3.F4.m2.1.cmml"><m:mi xml:id="S3.F4.m2.1.1" xref="S3.F4.m2.1.1.cmml">t</m:mi><m:mo xml:id="S3.F4.m2.1.2" xref="S3.F4.m2.1.2.cmml">+</m:mo><m:mn xml:id="S3.F4.m2.1.3" xref="S3.F4.m2.1.3.cmml">1</m:mn></m:mrow><m:mo xml:id="S3.F4.m2.3.1.2" xref="S3.F4.m2.3.1.3.cmml">,</m:mo><m:mrow xml:id="S3.F4.m2.2" xref="S3.F4.m2.2.cmml"><m:mi xml:id="S3.F4.m2.2.1" xref="S3.F4.m2.2.1.cmml"/><m:mo xml:id="S3.F4.m2.2.2" xref="S3.F4.m2.2.2.cmml">&lt;</m:mo><m:mi xml:id="S3.F4.m2.2.3" xref="S3.F4.m2.2.3.cmml">l</m:mi></m:mrow></m:mrow></m:msub><m:mo xml:id="S3.F4.m2.3.7" xref="S3.F4.m2.3.8.cmml">,</m:mo><m:msub xml:id="S3.F4.m2.3.2" xref="S3.F4.m2.3.2.cmml"><m:mi xml:id="S3.F4.m2.3.2.1" xref="S3.F4.m2.3.2.1.cmml">𝒙</m:mi><m:mrow xml:id="S3.F4.m2.3.2.8" xref="S3.F4.m2.3.2.8.cmml"><m:mi xml:id="S3.F4.m2.3.2.2" xref="S3.F4.m2.3.2.2.cmml"/><m:mo xml:id="S3.F4.m2.3.2.3" xref="S3.F4.m2.3.2.3.cmml">&lt;</m:mo><m:mrow xml:id="S3.F4.m2.3.2.7" xref="S3.F4.m2.3.2.7.cmml"><m:mi xml:id="S3.F4.m2.3.2.4" xref="S3.F4.m2.3.2.4.cmml">t</m:mi><m:mo xml:id="S3.F4.m2.3.2.5" xref="S3.F4.m2.3.2.5.cmml">+</m:mo><m:mn xml:id="S3.F4.m2.3.2.6" xref="S3.F4.m2.3.2.6.cmml">1</m:mn></m:mrow></m:mrow></m:msub></m:mrow></m:mrow><m:mo stretchy="false" xml:id="S3.F4.m2.6a" xref="S3.F4.m2.3.cmml">)</m:mo></m:mrow></m:mrow><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S3.F4.m2.7.cmml" xref="S3.F4.m2.7"><m:times xml:id="S3.F4.m2.5.cmml" xref="S3.F4.m2.5"/><m:ci xml:id="S3.F4.m2.4.cmml" xref="S3.F4.m2.4">𝑝</m:ci><m:apply xml:id="S3.F4.m2.3.cmml" xref="S3.F4.m2.6b"><m:csymbol cd="latexml" xml:id="S3.F4.m2.3.6.cmml" xref="S3.F4.m2.3.6">conditional</m:csymbol><m:apply xml:id="S3.F4.m2.3.5.cmml" xref="S3.F4.m2.3.5"><m:csymbol cd="ambiguous" xml:id="S3.F4.m2.3.5.1.cmml" xref="S3.F4.m2.3.5">subscript</m:csymbol><m:ci xml:id="S3.F4.m2.3.3.cmml" xref="S3.F4.m2.3.3">𝑥</m:ci><m:ci xml:id="S3.F4.m2.3.4.cmml" xref="S3.F4.m2.3.4">𝑙</m:ci></m:apply><m:list xml:id="S3.F4.m2.3.8.cmml" xref="S3.F4.m2.3.8"><m:apply xml:id="S3.F4.m2.3.1.cmml" xref="S3.F4.m2.3.1"><m:csymbol cd="ambiguous" xml:id="S3.F4.m2.3.1.4.cmml" xref="S3.F4.m2.3.1">subscript</m:csymbol><m:ci xml:id="S3.F4.m2.3.1.1.cmml" xref="S3.F4.m2.3.1.1">𝒙</m:ci><m:list xml:id="S3.F4.m2.3.1.3.cmml" xref="S3.F4.m2.3.1.3"><m:apply xml:id="S3.F4.m2.1.cmml" xref="S3.F4.m2.1"><m:plus xml:id="S3.F4.m2.1.2.cmml" xref="S3.F4.m2.1.2"/><m:ci xml:id="S3.F4.m2.1.1.cmml" xref="S3.F4.m2.1.1">𝑡</m:ci><m:cn type="integer" xml:id="S3.F4.m2.1.3.cmml" xref="S3.F4.m2.1.3">1</m:cn></m:apply><m:apply xml:id="S3.F4.m2.2.cmml" xref="S3.F4.m2.2"><m:lt xml:id="S3.F4.m2.2.2.cmml" xref="S3.F4.m2.2.2"/><m:csymbol cd="latexml" xml:id="S3.F4.m2.2.1.cmml" xref="S3.F4.m2.2.1">absent</m:csymbol><m:ci xml:id="S3.F4.m2.2.3.cmml" xref="S3.F4.m2.2.3">𝑙</m:ci></m:apply></m:list></m:apply><m:apply xml:id="S3.F4.m2.3.2.cmml" xref="S3.F4.m2.3.2"><m:csymbol cd="ambiguous" xml:id="S3.F4.m2.3.2.9.cmml" xref="S3.F4.m2.3.2">subscript</m:csymbol><m:ci xml:id="S3.F4.m2.3.2.1.cmml" xref="S3.F4.m2.3.2.1">𝒙</m:ci><m:apply xml:id="S3.F4.m2.3.2.8.cmml" xref="S3.F4.m2.3.2.8"><m:lt xml:id="S3.F4.m2.3.2.3.cmml" xref="S3.F4.m2.3.2.3"/><m:csymbol cd="latexml" xml:id="S3.F4.m2.3.2.2.cmml" xref="S3.F4.m2.3.2.2">absent</m:csymbol><m:apply xml:id="S3.F4.m2.3.2.7.cmml" xref="S3.F4.m2.3.2.7"><m:plus xml:id="S3.F4.m2.3.2.5.cmml" xref="S3.F4.m2.3.2.5"/><m:ci xml:id="S3.F4.m2.3.2.4.cmml" xref="S3.F4.m2.3.2.4">𝑡</m:ci><m:cn type="integer" xml:id="S3.F4.m2.3.2.6.cmml" xref="S3.F4.m2.3.2.6">1</m:cn></m:apply></m:apply></m:apply></m:list></m:apply></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">p(x_{l}|\bm{x}_{t+1,&lt;l},\bm{x}_{&lt;t+1})</m:annotation></m:semantics></m:math></Math>. </caption>
+      </figure>
+      <para xml:id="S3.SS4.p1" fragid="S3.SS4.p1">
+        <p>Figure <ref labelref="LABEL:fig:encoder_framework" idref="S3.F4" href="#S3.F4" title="Figure 4 ‣ 3.4. Compression/Decompression ‣ 3. Design ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">4</text></ref> presents an overview of the compression process for a single link/measurement point. Recall that the predictor is implemented using an RNN for single-link compression. In the network-wide scenario, the predictor is implemented with an ST-GNN that takes the traffic values of the neighboring link as additional input features. Note that <text font="italic">Atom</text> uses uniform probability distributions to encode the traffic values within the first SW.</p>
+      </para>
+      <para xml:id="S3.SS4.p2" fragid="S3.SS4.p2">
+        <p>For decompression, the model reads the compressed file and uses the same NN-based model to recover the original sequence bin by bin. Similarly to the compression phase, the first time bins are decompressed using uniform probability distributions. Then, the predictor uses the recovered values to compute the probability distributions of the links. Note that, for each time bin, the predictor receives the same input information as in the compression phase. The decoder also receives the same information; however, in this case, its operations are inverted for decoding.</p>
+      </para>
+    </subsection>
+  </section>
+  <section inlist="toc" xml:id="S4" fragid="S4">
+    <tags>
+      <tag>4</tag>
+      <tag role="autoref">section 4</tag>
+      <tag role="refnum">4</tag>
+      <tag role="typerefnum">§4</tag>
+    </tags>
+    <title><tag close=". ">4</tag>Experimental Results</title>
+    <toctitle><tag close=" ">4</tag>Experimental Results</toctitle>
+    <figure inlist="lof" placement="!t" xml:id="S4.F5" labels="LABEL:fig:heatmap" fragid="S4.F5">
+      <tags>
+        <tag>Figure 5</tag>
+        <tag role="autoref">Figure 5</tag>
+        <tag role="refnum">5</tag>
+        <tag role="typerefnum">Figure 5</tag>
+      </tags>
+      <graphics candidates="Resources/Figures/heatmaps_together.pdf" graphic="Resources/Figures/heatmaps_together.pdf" options="width=429.3pt,keepaspectratio=true" xml:id="S4.F5.g1" class="ltx_centering" fragid="S4.F5.g1"/>
+      <toccaption class="ltx_centering"><tag close=" ">5</tag>ST-GNN’s compression ratio improvement (in %) with respect to GZIP (left) and RNN (right).
+</toccaption>
+      <caption class="ltx_centering"><tag close=". ">Figure 5</tag>ST-GNN’s compression ratio improvement (in %) with respect to GZIP (left) and RNN (right).
+</caption>
+    </figure>
+    <para xml:id="S4.p1" fragid="S4.p1">
+      <p>In the first experiment, we generated synthetic datasets with different intensities of spatial and temporal correlations in the NSFNet topology <cite class="ltx_citemacro_citep">(Hei<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib21" idref="bib.bib21" title="Wavelength converter placement in least-load-routing-based optical networks usinggenetic algorithms">2004</ref>)</cite> which has 42 directional links. In addition, we evaluated the compression capabilities of <text font="italic">Atom</text> on three real-world datasets. The first two datasets were the Abilene and Geant datasets with 30 and 72 directional links and with six and four months of traffic measurements respectively <cite class="ltx_citemacro_citep">(Orlowski<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib2" idref="bib.bib2" title="SNDlib 1.0–Survivable Network Design Library">2007</ref>)</cite>. The third dataset was obtained from an in-house monitoring platform on a campus network. The dataset contained 12 months of traffic measurements (from December 2020 to December 2021), and the topology contained 16 directional links.</p>
+    </para>
+    <para xml:id="S4.p2" fragid="S4.p2">
+      <p>The experiments were performed on a single machine with an AMD Ryzen 9 5950X 16-Core Processor with a GeForce GTX 1080 Ti GPU to train the models. We trained all the NN-based models using 70% of the samples for training and 30% for evaluation. We used the negative log likelihood loss function of the Laplace distribution. For more implementation details, the source code and datasets used in this study are publicly available<note mark="2" role="footnote" xml:id="footnote2" fragid="footnote2"><tags><tag>2</tag><tag role="autoref">footnote 2</tag><tag role="refnum">2</tag><tag role="typerefnum">footnote 2</tag></tags><ref class="ltx_url" href="https://github.com/BNN-UPC/Atom_Neural_Traffic_Compression" font="typewriter">https://github.com/BNN-UPC/Atom_Neural_Traffic_Compression</ref></note>.</p>
+    </para>
+    <subsection inlist="toc" xml:id="S4.SS1" labels="LABEL:subsec:synth_data_gen" fragid="S4.SS1">
+      <tags>
+        <tag>4.1</tag>
+        <tag role="autoref">subsection 4.1</tag>
+        <tag role="refnum">4.1</tag>
+        <tag role="typerefnum">§4.1</tag>
+      </tags>
+      <title><tag close=". ">4.1</tag>Evaluation on synthetic data</title>
+      <toctitle><tag close=" ">4.1</tag>Evaluation on synthetic data</toctitle>
+      <para xml:id="S4.SS1.p1" fragid="S4.SS1.p1">
+        <p>In the first set of experiments, we evaluated the compression performance on synthetic data originating from <text font="italic">sine</text> signals. If all flows originate from the same signal, the links are highly correlated in space because their values increase or decrease proportionally for each time bin. The degree of spatial correlation in our datasets was controlled by adding random noise to the signal, shifting its phase, and changing its periodicity. In addition, to control the intensity of the temporal correlation in the experiment, we controlled the percentage of flows with added noise. We established four degrees of spatial/temporal correlations from low to high: 0%, 30%, 60%, and 100%, indicating the percentage of flows that conserved the original signal (i.e., they did not have added noise). As a result, a total of 16 experiments corresponded to all possible combinations of spatial and temporal correlation intensities, resulting in 16 ST-GNN and 16 RNN-based trained models.</p>
+      </para>
+      <para xml:id="S4.SS1.p2" fragid="S4.SS1.p2">
+        <p>Figure <ref labelref="LABEL:fig:heatmap" idref="S4.F5" href="#S4.F5" title="Figure 5 ‣ 4. Experimental Results ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">5</text></ref> (left) shows the percentage of compression ratio improvement for the ST-GNN with respect to the GZIP baseline in the network-wide scenario. The results indicate that ST-GNN outperformed GZIP by a large margin in all experiments. Note that the scenario with the maximum spatial and temporal correlations contains a small number of traffic values that are repeated frequently. GZIP uses Huffman coding <cite class="ltx_citemacro_citep">(Huffman, <ref href="#bib.bib3" idref="bib.bib3" title="A method for the construction of minimum-redundancy codes">1952</ref>)</cite> as the underlying algorithm, which can effectively exploit highly repeated traffic values, thus explaining why the compression ratio improvement is the lowest. The results also indicate the expected performance of ST-GNN when evaluated in real-world scenarios. In particular, the intensity of the temporal and spatial correlations of a real-world dataset points to the expected performance with respect to GZIP. Figure <ref labelref="LABEL:fig:heatmap" idref="S4.F5" href="#S4.F5" title="Figure 5 ‣ 4. Experimental Results ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">5</text></ref> (right) shows the performance improvement of ST-GNN models with respect to RNN-based models. The ST-GNN model exhibits remarkable performance in scenarios with high spatial correlation, indicating that it has the flexibility to exploit both spatial and temporal correlations.</p>
+      </para>
+      <figure inlist="lof" placement="!t" xml:id="S4.F6" labels="LABEL:fig:bar_plot_comp_ratios LABEL:fig:link_level_compression LABEL:fig:temp_spati_corr_evol" fragid="S4.F6">
+        <tags>
+          <tag>Figure 6</tag>
+          <tag role="autoref">Figure 6</tag>
+          <tag role="refnum">6</tag>
+          <tag role="typerefnum">Figure 6</tag>
+        </tags>
+        <figure xml:id="S4.F6.fig1" align="center" class="ltx_figure_panel" fragid="S4.F6.fig1">
+          <graphics candidates="Resources/Figures/boxplot_comp_ratio_per_link.pdf" graphic="Resources/Figures/boxplot_comp_ratio_per_link.pdf" options="width=208.1pt,keepaspectratio=true" xml:id="S4.F6.g1" fragid="S4.F6.g1"/>
+        </figure>
+        <break class="ltx_break"/>
+        <figure xml:id="S4.F6.fig2" align="center" class="ltx_figure_panel" fragid="S4.F6.fig2">
+          <graphics candidates="Resources/Figures/barplot_comp_ratio.pdf" graphic="Resources/Figures/barplot_comp_ratio.pdf" options="width=208.1pt,keepaspectratio=true" xml:id="S4.F6.g2" fragid="S4.F6.g2"/>
+        </figure>
+        <toccaption class="ltx_centering"><tag close=" ">6</tag>Compression ratios for the single-link (a) and for the network-wide (b) scenarios.</toccaption>
+        <caption class="ltx_centering"><tag close=". ">Figure 6</tag>Compression ratios for the single-link (a) and for the network-wide (b) scenarios.</caption>
+      </figure>
+    </subsection>
+    <subsection inlist="toc" xml:id="S4.SS2" labels="LABEL:subsec:comp_real_world" fragid="S4.SS2">
+      <tags>
+        <tag>4.2</tag>
+        <tag role="autoref">subsection 4.2</tag>
+        <tag role="refnum">4.2</tag>
+        <tag role="typerefnum">§4.2</tag>
+      </tags>
+      <title><tag close=". ">4.2</tag>Compressing real-world data</title>
+      <toctitle><tag close=" ">4.2</tag>Compressing real-world data</toctitle>
+      <para xml:id="S4.SS2.p1" fragid="S4.SS2.p1">
+        <p>In this set of experiments we compressed three real-world datasets and compared the compression performance against three baselines: Static AC, Adaptive AC and GZIP. Static AC iterates over the entire sequence and computes the probability distribution for all traffic values. It then compresses or decompresses the entire sequence using the same static distribution for each AC coding step. The Adaptive AC baseline computes a new distribution using the values within the SW. These baselines were intended to demonstrate the benefits of using NNs to implement the predictor module. In other words, we wanted to show that compression performance highly depends on the accuracy of the predictor. Finally, GZIP was applied to compress the entire sequence.</p>
+      </para>
+      <para xml:id="S4.SS2.p2" fragid="S4.SS2.p2">
+        <p>Figure <ref labelref="LABEL:fig:link_level_compression" idref="S4.F6" href="#S4.F6" title="Figure 6 ‣ 4.1. Evaluation on synthetic data ‣ 4. Experimental Results ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">6</text></ref> shows the compression ratios for three real-world datasets in the first scenario. Recall that the goal is to compress the traffic values independently from multiple measurement points. Each baseline was applied to compress each sequence individually. The results indicate remarkable performance of <text font="italic">Atom</text> for all datasets, outperforming GZIP by a large margin. Figure <ref labelref="LABEL:fig:bar_plot_comp_ratios" idref="S4.F6" href="#S4.F6" title="Figure 6 ‣ 4.1. Evaluation on synthetic data ‣ 4. Experimental Results ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">6</text></ref> shows the experimental results of compressing the same datasets in a network-wide scenario. In this scenario, Static AC computes the probability distribution using the entire dataset (i.e., including all links), and Adaptive AC updates the distribution by including the values from all links within the SW. The results indicate that <text font="italic">Atom</text> achieved the highest compression ratios for all three datasets. In particular, it outperformed Static AC by <Math mode="inline" xml:id="S4.SS2.p2.m1" tex="\approx" text="approximately-equals" fragid="S4.SS2.p2.m1"><m:math alttext="\approx" display="inline"><m:semantics><m:mo xml:id="S4.SS2.p2.m1.1" xref="S4.SS2.p2.m1.1.cmml">≈</m:mo><m:annotation-xml encoding="MathML-Content"><m:approx xml:id="S4.SS2.p2.m1.1.cmml" xref="S4.SS2.p2.m1.1"/></m:annotation-xml><m:annotation encoding="application/x-tex">\approx</m:annotation></m:semantics></m:math></Math>47%, <Math mode="inline" xml:id="S4.SS2.p2.m2" tex="\approx" text="approximately-equals" fragid="S4.SS2.p2.m2"><m:math alttext="\approx" display="inline"><m:semantics><m:mo xml:id="S4.SS2.p2.m2.1" xref="S4.SS2.p2.m2.1.cmml">≈</m:mo><m:annotation-xml encoding="MathML-Content"><m:approx xml:id="S4.SS2.p2.m2.1.cmml" xref="S4.SS2.p2.m2.1"/></m:annotation-xml><m:annotation encoding="application/x-tex">\approx</m:annotation></m:semantics></m:math></Math>41%, and <Math mode="inline" xml:id="S4.SS2.p2.m3" tex="\approx" text="approximately-equals" fragid="S4.SS2.p2.m3"><m:math alttext="\approx" display="inline"><m:semantics><m:mo xml:id="S4.SS2.p2.m3.1" xref="S4.SS2.p2.m3.1.cmml">≈</m:mo><m:annotation-xml encoding="MathML-Content"><m:approx xml:id="S4.SS2.p2.m3.1.cmml" xref="S4.SS2.p2.m3.1"/></m:annotation-xml><m:annotation encoding="application/x-tex">\approx</m:annotation></m:semantics></m:math></Math>29% for the Geant, campus network, and Abilene datasets, respectively. In addition, the performance improvements with respect to GZIP are <Math mode="inline" xml:id="S4.SS2.p2.m4" tex="\approx" text="approximately-equals" fragid="S4.SS2.p2.m4"><m:math alttext="\approx" display="inline"><m:semantics><m:mo xml:id="S4.SS2.p2.m4.1" xref="S4.SS2.p2.m4.1.cmml">≈</m:mo><m:annotation-xml encoding="MathML-Content"><m:approx xml:id="S4.SS2.p2.m4.1.cmml" xref="S4.SS2.p2.m4.1"/></m:annotation-xml><m:annotation encoding="application/x-tex">\approx</m:annotation></m:semantics></m:math></Math>62%, <Math mode="inline" xml:id="S4.SS2.p2.m5" tex="\approx" text="approximately-equals" fragid="S4.SS2.p2.m5"><m:math alttext="\approx" display="inline"><m:semantics><m:mo xml:id="S4.SS2.p2.m5.1" xref="S4.SS2.p2.m5.1.cmml">≈</m:mo><m:annotation-xml encoding="MathML-Content"><m:approx xml:id="S4.SS2.p2.m5.1.cmml" xref="S4.SS2.p2.m5.1"/></m:annotation-xml><m:annotation encoding="application/x-tex">\approx</m:annotation></m:semantics></m:math></Math>53%, and <Math mode="inline" xml:id="S4.SS2.p2.m6" tex="\approx" text="approximately-equals" fragid="S4.SS2.p2.m6"><m:math alttext="\approx" display="inline"><m:semantics><m:mo xml:id="S4.SS2.p2.m6.1" xref="S4.SS2.p2.m6.1.cmml">≈</m:mo><m:annotation-xml encoding="MathML-Content"><m:approx xml:id="S4.SS2.p2.m6.1.cmml" xref="S4.SS2.p2.m6.1"/></m:annotation-xml><m:annotation encoding="application/x-tex">\approx</m:annotation></m:semantics></m:math></Math>50% for the same datasets. These results demonstrate the benefits of leveraging NNs to exploit spatial and temporal correlations for traffic compression.</p>
+      </para>
+    </subsection>
+    <subsection inlist="toc" xml:id="S4.SS3" fragid="S4.SS3">
+      <tags>
+        <tag>4.3</tag>
+        <tag role="autoref">subsection 4.3</tag>
+        <tag role="refnum">4.3</tag>
+        <tag role="typerefnum">§4.3</tag>
+      </tags>
+      <title><tag close=". ">4.3</tag>Cost</title>
+      <toctitle><tag close=" ">4.3</tag>Cost</toctitle>
+      <para xml:id="S4.SS3.p1" fragid="S4.SS3.p1">
+        <p><text font="italic">Atom</text> compresses traffic measurements in a streaming manner as they originate from the network-monitoring platform. Conversely, GZIP must wait for the entire dataset to apply the compression algorithm. Alternatively, GZIP can compress all links simultaneously in each time bin independently. We performed this experiment, and the results indicated that GZIP achieves compression ratios of <Math mode="inline" xml:id="S4.SS3.p1.m1" tex="\approx" text="approximately-equals" fragid="S4.SS3.p1.m1"><m:math alttext="\approx" display="inline"><m:semantics><m:mo xml:id="S4.SS3.p1.m1.1" xref="S4.SS3.p1.m1.1.cmml">≈</m:mo><m:annotation-xml encoding="MathML-Content"><m:approx xml:id="S4.SS3.p1.m1.1.cmml" xref="S4.SS3.p1.m1.1"/></m:annotation-xml><m:annotation encoding="application/x-tex">\approx</m:annotation></m:semantics></m:math></Math>0.94, <Math mode="inline" xml:id="S4.SS3.p1.m2" tex="\approx" text="approximately-equals" fragid="S4.SS3.p1.m2"><m:math alttext="\approx" display="inline"><m:semantics><m:mo xml:id="S4.SS3.p1.m2.1" xref="S4.SS3.p1.m2.1.cmml">≈</m:mo><m:annotation-xml encoding="MathML-Content"><m:approx xml:id="S4.SS3.p1.m2.1.cmml" xref="S4.SS3.p1.m2.1"/></m:annotation-xml><m:annotation encoding="application/x-tex">\approx</m:annotation></m:semantics></m:math></Math>0.4, and <Math mode="inline" xml:id="S4.SS3.p1.m3" tex="\approx" text="approximately-equals" fragid="S4.SS3.p1.m3"><m:math alttext="\approx" display="inline"><m:semantics><m:mo xml:id="S4.SS3.p1.m3.1" xref="S4.SS3.p1.m3.1.cmml">≈</m:mo><m:annotation-xml encoding="MathML-Content"><m:approx xml:id="S4.SS3.p1.m3.1.cmml" xref="S4.SS3.p1.m3.1"/></m:annotation-xml><m:annotation encoding="application/x-tex">\approx</m:annotation></m:semantics></m:math></Math>0.54 for the Geant, campus network, and Abilene datasets, respectively. In other words, the compressed data occupies more space than the original data.</p>
+      </para>
+      <para xml:id="S4.SS3.p2" fragid="S4.SS3.p2">
+        <p>We also computed the average cost of compressing a time bin using <text font="italic">Atom</text> to evaluate its deployment in real-world online traffic compression. The results can be seen in Table <ref labelref="LABEL:table:cost" idref="S4.T1" href="#S4.T1" title="Table 1 ‣ 4.3. Cost ‣ 4. Experimental Results ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">1</text></ref>, which indicates that <text font="italic">Atom</text> is capable of effectively compressing 5-minute bins in the order of seconds, thereby enabling online compression. Additionally, we computed the size of the weights of the model stored in a file. This indicates that the <text font="italic">Atom</text> is a lightweight method that achieves high compression ratios with an expendable model size.</p>
+      </para>
+      <table inlist="lot" placement="!t" xml:id="S4.T1" labels="LABEL:table:cost" fragid="S4.T1">
+        <tags>
+          <tag>Table 1</tag>
+          <tag role="autoref">Table 1</tag>
+          <tag role="refnum">1</tag>
+          <tag role="typerefnum">Table 1</tag>
+        </tags>
+        <tabular vattach="middle" class="ltx_centering ltx_guessed_headers">
+          <tbody>
+            <tr>
+              <td align="center" border="t" thead="column">[2pt]
+Dataset</td>
+              <td align="left" border="t" thead="column">Mean Cost (s)</td>
+              <td border="t" vattach="top" thead="column"/>
+              <td align="center" border="t" thead="column">Model size (KB)</td>
+              <td border="t"/>
+            </tr>
+            <tr>
+              <td align="center" border="t" thead="column">[1pt]</td>
+              <td align="left" border="t" thead="column">ST-GNN</td>
+              <td align="justify" border="t" vattach="top" thead="column">
+                <inline-block vattach="top">
+                  <p width="0.0pt">RNN</p>
+                </inline-block>
+              </td>
+              <td align="center" border="t" thead="column">ST-GNN</td>
+              <td align="center" border="t" thead="column">RNN</td>
+            </tr>
+            <tr>
+              <td align="center">Geant</td>
+              <td align="left" border="t">3.20</td>
+              <td align="justify" border="t" vattach="top">
+                <inline-block vattach="top">
+                  <p width="0.0pt">0.47</p>
+                </inline-block>
+              </td>
+              <td align="center" border="t">575</td>
+              <td align="center" border="t">489</td>
+            </tr>
+            <tr>
+              <td align="center">Campus network</td>
+              <td align="left">0.22</td>
+              <td align="justify" vattach="top">
+                <inline-block vattach="top">
+                  <p width="0.0pt">0.07</p>
+                </inline-block>
+              </td>
+              <td align="center">236</td>
+              <td align="center">202</td>
+            </tr>
+            <tr>
+              <td align="center">Abilene</td>
+              <td align="left">1.22</td>
+              <td align="justify" vattach="top">
+                <inline-block vattach="top">
+                  <p width="0.0pt">0.29</p>
+                </inline-block>
+              </td>
+              <td align="center">332</td>
+              <td align="center">285</td>
+            </tr>
+            <tr>
+              <td align="center" border="t">[2pt]</td>
+              <td border="t"/>
+              <td align="justify" border="t" vattach="top"/>
+              <td border="t"/>
+              <td border="t"/>
+            </tr>
+          </tbody>
+        </tabular>
+        <toccaption class="ltx_centering"><tag close=" ">1</tag>Atom’s mean cost to compress a time bin (in seconds) and model size (in Kilobytes).</toccaption>
+        <caption class="ltx_centering"><tag close=". ">Table 1</tag>Atom’s mean cost to compress a time bin (in seconds) and model size (in Kilobytes).</caption>
+      </table>
+    </subsection>
+  </section>
+  <section inlist="toc" xml:id="S5" fragid="S5">
+    <tags>
+      <tag>5</tag>
+      <tag role="autoref">section 5</tag>
+      <tag role="refnum">5</tag>
+      <tag role="typerefnum">§5</tag>
+    </tags>
+    <title><tag close=". ">5</tag>Related Work</title>
+    <toctitle><tag close=" ">5</tag>Related Work</toctitle>
+    <para xml:id="S5.p1" fragid="S5.p1">
+      <p>In the last years, NNs have started to be used for compressing images, videos and voice<cite class="ltx_citemacro_citep">(Ma<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib22" idref="bib.bib22" title="Image and video compression with neural networks: a review">2020</ref>)</cite>. However, in the networking field, existing compression methods follow traditional approaches, with GZIP being the most popular method for network traffic compression. The work in <cite class="ltx_citemacro_citep">(Aiello<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib4" idref="bib.bib4" title="Sparse approximations for high fidelity compression of network traffic data">2005</ref>)</cite> proposed a lossy method to approximate real network traffic by capturing the most relevant traffic features. In <cite class="ltx_citemacro_citep">(Beirami<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib14" idref="bib.bib14" title="Packet-level network compression: realization and scaling of the network-wide benefits">2015</ref>)</cite> the authors proposed exploiting the traffic redundancies at the packet level to reduce the transmitted traffic. In <cite class="ltx_citemacro_citep">(Mehboob<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib13" idref="bib.bib13" title="High speed lossless data compression architecture">2006</ref>)</cite> they proposed an architecture for implementing the LZ77 compression algorithm <cite class="ltx_citemacro_citep">(Ziv and Lempel, <ref href="#bib.bib12" idref="bib.bib12" title="A universal algorithm for sequential data compression">1977</ref>)</cite> on an FPGA. The work of <cite class="ltx_citemacro_citep">(Fusco<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib11" idref="bib.bib11" title="Net-fli: on-the-fly compression, archiving and indexing of streaming network traffic">2010</ref>)</cite> describes a solution for on-the-fly storage, indexing, and querying of network flow data. A more recent work leverages the P4 language <cite class="ltx_citemacro_citep">(Bosshart<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib10" idref="bib.bib10" title="P4: programming protocol-independent packet processors">2014</ref>)</cite> and generalized deduplication to implement a solution that operates at line-speed. To the best of our knowledge, no previous work has explored the use of NNs for the purpose of compressing network traffic data.</p>
+    </para>
+  </section>
+  <section inlist="toc" xml:id="S6" fragid="S6">
+    <tags>
+      <tag>6</tag>
+      <tag role="autoref">section 6</tag>
+      <tag role="refnum">6</tag>
+      <tag role="typerefnum">§6</tag>
+    </tags>
+    <title><tag close=". ">6</tag>Conclusion</title>
+    <toctitle><tag close=" ">6</tag>Conclusion</toctitle>
+    <para xml:id="S6.p1" fragid="S6.p1">
+      <p>Existing methods for network traffic compression are generic, resulting in low compression ratios. This limitation becomes even more critical when traffic is compressed in an online scenario. In our work, we explored the use of NNs and arithmetic coding to compress traffic measurements. Specifically, we presented <text font="italic">Atom</text>, a model that exploits the spatial and temporal correlations intrinsic to traffic measurements. In addition, we designed a custom ST-GNN to simultaneously exploit spatio-temporal correlations. The experimental results show that <text font="italic">Atom</text> can effectively compress real-world traffic, with an improvement of <Math mode="inline" xml:id="S6.p1.m1" tex="\geq" text="&gt;=" fragid="S6.p1.m1"><m:math alttext="\geq" display="inline"><m:semantics><m:mo xml:id="S6.p1.m1.1" xref="S6.p1.m1.1.cmml">≥</m:mo><m:annotation-xml encoding="MathML-Content"><m:geq xml:id="S6.p1.m1.1.cmml" xref="S6.p1.m1.1"/></m:annotation-xml><m:annotation encoding="application/x-tex">\geq</m:annotation></m:semantics></m:math></Math>50% in the compression ratio for real-world datasets with respect to GZIP.</p>
+    </para>
+  </section>
+  <section xml:id="Sx1" fragid="Sx1">
+    <title>Acknowledgments</title>
+    <para xml:id="Sx1.p1" fragid="Sx1.p1">
+      <p>This work was supported by the Spanish Ministry of Economic Affairs and Digital Transformation and the European Union – NextGeneration EU, in the framework of the Recovery Plan, Transformation and Resilience (PRTR) (Call UNICO I+D 5G 2021, refs. number TSI-063000-2021-3, TSI-063000-2021-38, and TSI-063000-2021-52). It has also received funding from the European Union’s Horizon 2020 research and innovation program under grant agreement no. 101017109 “DAEMON”. This publication is part of the Spanish I+D+i project TRAINER-A (ref. PID2020-118011GB-C21), funded by MCIN/AEI/10.13039/501100011033. It was also partially funded by the Catalan Institution for Research and Advanced Studies (ICREA) and the Secretariat for Universities and Research of the Ministry of Business and Knowledge of the Government of Catalonia and the European Social Fund.
+Krzysztof Rusek was supported by the Polish Ministry of Science and Higher Education with the subvention funds of the Faculty of Computer Science, Electronics and Telecommunications of AGH University of Science and Technology.</p>
+    </para>
+  </section>
+  <bibliography citestyle="authoryear" files="sample-base" xml:id="bib" fragid="bib">
+    <title>References</title>
+    <biblist xml:id="bib.L1" fragid="bib.L1">
+      <bibitem class="ltx_bib_inproceedings" key="aiello2005sparse" type="inproceedings" xml:id="bib.bib4" fragid="bib.bib4">
+        <tags>
+          <tag class="ltx_bib_number" role="number">1</tag>
+          <tag class="ltx_bib_author" role="authors">Aiello<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Aiello, Gilbert, Rexroad,  and Sekar</tag>
+          <tag class="ltx_bib_year" role="year">2005</tag>
+          <tag class="ltx_bib_title" role="title">Sparse approximations for high fidelity compression of network traffic data</tag>
+          <tag class="ltx_bib_author-year" role="refnum">W. Aiello, A. Gilbert, B. Rexroad, and V. Sekar (2005)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Sparse approximations for high fidelity compression of network traffic data</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Proceedings of the 5th ACM SIGCOMM conference on Internet measurement</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_pages"> pp. <bib-part role="pages">22–22</bib-part></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S5.p1" show="typerefnum" href="#S5.p1" title="5. Related Work ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">§5</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="alam2018reliable" type="article" xml:id="bib.bib7" fragid="bib.bib7">
+        <tags>
+          <tag class="ltx_bib_number" role="number">2</tag>
+          <tag class="ltx_bib_author" role="authors">Alam</tag>
+          <tag class="ltx_bib_year" role="year">2018</tag>
+          <tag class="ltx_bib_title" role="title">A reliable communication framework and its use in internet of things (iot)</tag>
+          <tag class="ltx_bib_author-year" role="refnum">T. Alam (2018)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>A reliable communication framework and its use in internet of things (iot)</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>CSEIT1835111— Received</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">10</bib-part></text>, <text class="ltx_bib_pages"> pp. <bib-part role="pages">450–456</bib-part></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p1" show="typerefnum" href="#S1.p1" title="1. Introduction ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S1.p2" show="typerefnum" href="#S1.p2" title="1. Introduction ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="9795043" type="article" xml:id="bib.bib16" fragid="bib.bib16">
+        <tags>
+          <tag class="ltx_bib_number" role="number">3</tag>
+          <tag class="ltx_bib_author" role="authors">Almasan<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Almasan, Ferriol-Galmes, Paillisse, Suarez-Varela, Perino, Lopez, Perales, Harvey, Ciavaglia, Wong, Ram, Xiao, Shi, Cheng, Cabellos-Aparicio,  and Barlet-Ros</tag>
+          <tag class="ltx_bib_year" role="year">2022</tag>
+          <tag class="ltx_bib_title" role="title">Network digital twin: context, enabling technologies and opportunities</tag>
+          <tag class="ltx_bib_author-year" role="refnum">P. Almasan, M. Ferriol-Galmes, J. Paillisse, J. Suarez-Varela, D. Perino, D. Lopez, A. A. P. Perales, P. Harvey, L. Ciavaglia, L. Wong, V. Ram, S. Xiao, X. Shi, X. Cheng, A. Cabellos-Aparicio, and P. Barlet-Ros (2022)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Network digital twin: context, enabling technologies and opportunities</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>IEEE Communications Magazine</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume"/></text> (<text class="ltx_bib_number"><bib-part role="number"/></text>), <text class="ltx_bib_pages"> pp. <bib-part role="pages">1–13</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="doi ltx_bib_external" href="https://dx.doi.org/10.1109/MCOM.001.2200012">Document</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p1" show="typerefnum" href="#S1.p1" title="1. Introduction ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="beirami2015packet" type="article" xml:id="bib.bib14" fragid="bib.bib14">
+        <tags>
+          <tag class="ltx_bib_number" role="number">4</tag>
+          <tag class="ltx_bib_author" role="authors">Beirami<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Beirami, Sardari,  and Fekri</tag>
+          <tag class="ltx_bib_year" role="year">2015</tag>
+          <tag class="ltx_bib_title" role="title">Packet-level network compression: realization and scaling of the network-wide benefits</tag>
+          <tag class="ltx_bib_author-year" role="refnum">A. Beirami, M. Sardari, and F. Fekri (2015)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Packet-level network compression: realization and scaling of the network-wide benefits</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>IEEE/ACM Transactions on Networking</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">24</bib-part></text> (<text class="ltx_bib_number"><bib-part role="number">3</bib-part></text>), <text class="ltx_bib_pages"> pp. <bib-part role="pages">1588–1604</bib-part></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S5.p1" show="typerefnum" href="#S5.p1" title="5. Related Work ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">§5</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="10.1145/1879141.1879175" type="inproceedings" xml:id="bib.bib19" fragid="bib.bib19">
+        <tags>
+          <tag class="ltx_bib_number" role="number">5</tag>
+          <tag class="ltx_bib_author" role="authors">Benson<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Benson, Akella,  and Maltz</tag>
+          <tag class="ltx_bib_year" role="year">2010</tag>
+          <tag class="ltx_bib_title" role="title">Network traffic characteristics of data centers in the wild</tag>
+          <tag class="ltx_bib_author-year" role="refnum">T. Benson, A. Akella, and D. A. Maltz (2010)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Network traffic characteristics of data centers in the wild</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Proceedings of the 10th ACM SIGCOMM Conference on Internet Measurement</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_series"><bib-part role="series">IMC ’10</bib-part></text>, <text class="ltx_bib_place"><bib-place>New York, NY, USA</bib-place></text>, <text class="ltx_bib_pages"> pp. <bib-part role="pages">267–280</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><text class="isbn ltx_bib_external">ISBN 9781450304832</text>,
+<ref class="ltx_bib_external" href="https://doi.org/10.1145/1879141.1879175">Link</ref>,
+<ref class="doi ltx_bib_external" href="https://dx.doi.org/10.1145/1879141.1879175">Document</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p3" show="typerefnum" href="#S1.p3" title="1. Introduction ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="bosshart2014p4" type="article" xml:id="bib.bib10" fragid="bib.bib10">
+        <tags>
+          <tag class="ltx_bib_number" role="number">6</tag>
+          <tag class="ltx_bib_author" role="authors">Bosshart<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Bosshart, Daly, Gibb, Izzard, McKeown, Rexford, Schlesinger, Talayco, Vahdat, Varghese,  and others</tag>
+          <tag class="ltx_bib_year" role="year">2014</tag>
+          <tag class="ltx_bib_title" role="title">P4: programming protocol-independent packet processors</tag>
+          <tag class="ltx_bib_author-year" role="refnum">P. Bosshart, D. Daly, G. Gibb, M. Izzard, N. McKeown, J. Rexford, C. Schlesinger, D. Talayco, A. Vahdat, G. Varghese, <text class="ltx_bib_etal">et al.</text> (2014)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>P4: programming protocol-independent packet processors</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>ACM SIGCOMM Computer Communication Review</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">44</bib-part></text> (<text class="ltx_bib_number"><bib-part role="number">3</bib-part></text>), <text class="ltx_bib_pages"> pp. <bib-part role="pages">87–95</bib-part></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S5.p1" show="typerefnum" href="#S5.p1" title="5. Related Work ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">§5</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="fusco2010net" type="article" xml:id="bib.bib11" fragid="bib.bib11">
+        <tags>
+          <tag class="ltx_bib_number" role="number">7</tag>
+          <tag class="ltx_bib_author" role="authors">Fusco<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Fusco, Stoecklin,  and Vlachos</tag>
+          <tag class="ltx_bib_year" role="year">2010</tag>
+          <tag class="ltx_bib_title" role="title">Net-fli: on-the-fly compression, archiving and indexing of streaming network traffic</tag>
+          <tag class="ltx_bib_author-year" role="refnum">F. Fusco, M. P. Stoecklin, and M. Vlachos (2010)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Net-fli: on-the-fly compression, archiving and indexing of streaming network traffic</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>Proceedings of the VLDB Endowment</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">3</bib-part></text> (<text class="ltx_bib_number"><bib-part role="number">1-2</bib-part></text>), <text class="ltx_bib_pages"> pp. <bib-part role="pages">1382–1393</bib-part></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S5.p1" show="typerefnum" href="#S5.p1" title="5. Related Work ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">§5</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="gao2020predicting" type="inproceedings" xml:id="bib.bib5" fragid="bib.bib5">
+        <tags>
+          <tag class="ltx_bib_number" role="number">8</tag>
+          <tag class="ltx_bib_author" role="authors">Gao<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Gao, Li, Chen, Geng, Gui, Cheng,  and Gu</tag>
+          <tag class="ltx_bib_year" role="year">2020</tag>
+          <tag class="ltx_bib_title" role="title">Predicting traffic demand matrix by considering inter-flow correlations</tag>
+          <tag class="ltx_bib_author-year" role="refnum">K. Gao, D. Li, L. Chen, J. Geng, F. Gui, Y. Cheng, and Y. Gu (2020)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Predicting traffic demand matrix by considering inter-flow correlations</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>IEEE INFOCOM 2020-IEEE Conference on Computer Communications Workshops (INFOCOM WKSHPS)</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_pages"> pp. <bib-part role="pages">165–170</bib-part></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p3" show="typerefnum" href="#S1.p3" title="1. Introduction ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="Hei:04" type="article" xml:id="bib.bib21" fragid="bib.bib21">
+        <tags>
+          <tag class="ltx_bib_number" role="number">9</tag>
+          <tag class="ltx_bib_author" role="authors">Hei<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Hei, Zhang, Bensaou,  and Cheung</tag>
+          <tag class="ltx_bib_year" role="year">2004</tag>
+          <tag class="ltx_bib_title" role="title">Wavelength converter placement in least-load-routing-based optical networks usinggenetic algorithms</tag>
+          <tag class="ltx_bib_author-year" role="refnum">X. Hei, J. Zhang, B. Bensaou, and C. Cheung (2004)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Wavelength converter placement in least-load-routing-based optical networks usinggenetic algorithms</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>J. Opt. Netw.</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">3</bib-part></text> (<text class="ltx_bib_number"><bib-part role="number">5</bib-part></text>), <text class="ltx_bib_pages"> pp. <bib-part role="pages">363–378</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="http://opg.optica.org/jon/abstract.cfm?URI=jon-3-5-363">Link</ref>,
+<ref class="doi ltx_bib_external" href="https://dx.doi.org/10.1364/JON.3.000363">Document</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S4.p1" show="typerefnum" href="#S4.p1" title="4. Experimental Results ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">§4</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="4051119" type="article" xml:id="bib.bib3" fragid="bib.bib3">
+        <tags>
+          <tag class="ltx_bib_number" role="number">10</tag>
+          <tag class="ltx_bib_author" role="authors">Huffman</tag>
+          <tag class="ltx_bib_year" role="year">1952</tag>
+          <tag class="ltx_bib_title" role="title">A method for the construction of minimum-redundancy codes</tag>
+          <tag class="ltx_bib_author-year" role="refnum">D. A. Huffman (1952)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>A method for the construction of minimum-redundancy codes</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>Proceedings of the IRE</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">40</bib-part></text> (<text class="ltx_bib_number"><bib-part role="number">9</bib-part></text>), <text class="ltx_bib_pages"> pp. <bib-part role="pages">1098–1101</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="doi ltx_bib_external" href="https://dx.doi.org/10.1109/JRPROC.1952.273898">Document</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S2.SS1.p1" show="typerefnum" href="#S2.SS1.p1" title="2.1. Arithmetic Coding ‣ 2. Methodology ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">§2.1</text></ref>,
+<ref idref="S4.SS1.p2" show="typerefnum" href="#S4.SS1.p2" title="4.1. Evaluation on synthetic data ‣ 4. Experimental Results ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">§4.1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_book" key="10.5555/553011" type="book" xml:id="bib.bib20" fragid="bib.bib20">
+        <tags>
+          <tag class="ltx_bib_number" role="number">11</tag>
+          <tag class="ltx_bib_author" role="authors">Jain and Medsker</tag>
+          <tag class="ltx_bib_year" role="year">1999</tag>
+          <tag class="ltx_bib_title" role="title">Recurrent neural networks: design and applications</tag>
+          <tag class="ltx_bib_author-year" role="refnum">L. C. Jain and L. R. Medsker (1999)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Recurrent neural networks: design and applications</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_edition"><bib-edition>1st</bib-edition> edition</text>,  <text class="ltx_bib_publisher"><bib-publisher>CRC Press, Inc.</bib-publisher></text>, <text class="ltx_bib_place"><bib-place>USA</bib-place></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><text class="isbn ltx_bib_external">ISBN 0849371813</text></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S3.SS1.p1" show="typerefnum" href="#S3.SS1.p1" title="3.1. Predictor ‣ 3. Design ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">§3.1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="knight2011internet" type="article" xml:id="bib.bib17" fragid="bib.bib17">
+        <tags>
+          <tag class="ltx_bib_number" role="number">12</tag>
+          <tag class="ltx_bib_author" role="authors">Knight<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Knight, Nguyen, Falkner, Bowden,  and Roughan</tag>
+          <tag class="ltx_bib_year" role="year">2011</tag>
+          <tag class="ltx_bib_title" role="title">The internet topology zoo</tag>
+          <tag class="ltx_bib_author-year" role="refnum">S. Knight, H. X. Nguyen, N. Falkner, R. Bowden, and M. Roughan (2011)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>The internet topology zoo</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>IEEE Journal on Selected Areas in Communications</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">29</bib-part></text> (<text class="ltx_bib_number"><bib-part role="number">9</bib-part></text>), <text class="ltx_bib_pages"> pp. <bib-part role="pages">1765–1775</bib-part></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p2" show="typerefnum" href="#S1.p2" title="1. Introduction ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="lan2006measurement" type="article" xml:id="bib.bib8" fragid="bib.bib8">
+        <tags>
+          <tag class="ltx_bib_number" role="number">13</tag>
+          <tag class="ltx_bib_author" role="authors">Lan and Heidemann</tag>
+          <tag class="ltx_bib_year" role="year">2006</tag>
+          <tag class="ltx_bib_title" role="title">A measurement study of correlations of internet flow characteristics</tag>
+          <tag class="ltx_bib_author-year" role="refnum">K. Lan and J. Heidemann (2006)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>A measurement study of correlations of internet flow characteristics</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>Computer Networks</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">50</bib-part></text> (<text class="ltx_bib_number"><bib-part role="number">1</bib-part></text>), <text class="ltx_bib_pages"> pp. <bib-part role="pages">46–62</bib-part></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p3" show="typerefnum" href="#S1.p3" title="1. Introduction ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="8693636" type="article" xml:id="bib.bib22" fragid="bib.bib22">
+        <tags>
+          <tag class="ltx_bib_number" role="number">14</tag>
+          <tag class="ltx_bib_author" role="authors">Ma<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Ma, Zhang, Jia, Zhao, Wang,  and Wang</tag>
+          <tag class="ltx_bib_year" role="year">2020</tag>
+          <tag class="ltx_bib_title" role="title">Image and video compression with neural networks: a review</tag>
+          <tag class="ltx_bib_author-year" role="refnum">S. Ma, X. Zhang, C. Jia, Z. Zhao, S. Wang, and S. Wang (2020)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Image and video compression with neural networks: a review</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>IEEE Transactions on Circuits and Systems for Video Technology</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">30</bib-part></text> (<text class="ltx_bib_number"><bib-part role="number">6</bib-part></text>), <text class="ltx_bib_pages"> pp. <bib-part role="pages">1683–1698</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="doi ltx_bib_external" href="https://dx.doi.org/10.1109/TCSVT.2019.2910119">Document</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S5.p1" show="typerefnum" href="#S5.p1" title="5. Related Work ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">§5</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="mehboob2006high" type="inproceedings" xml:id="bib.bib13" fragid="bib.bib13">
+        <tags>
+          <tag class="ltx_bib_number" role="number">15</tag>
+          <tag class="ltx_bib_author" role="authors">Mehboob<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Mehboob, Khan,  and Ahmed</tag>
+          <tag class="ltx_bib_year" role="year">2006</tag>
+          <tag class="ltx_bib_title" role="title">High speed lossless data compression architecture</tag>
+          <tag class="ltx_bib_author-year" role="refnum">R. Mehboob, S. A. Khan, and Z. Ahmed (2006)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>High speed lossless data compression architecture</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>2006 IEEE International Multitopic Conference</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_pages"> pp. <bib-part role="pages">84–88</bib-part></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S5.p1" show="typerefnum" href="#S5.p1" title="5. Related Work ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">§5</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="9374645" type="article" xml:id="bib.bib1" fragid="bib.bib1">
+        <tags>
+          <tag class="ltx_bib_number" role="number">16</tag>
+          <tag class="ltx_bib_author" role="authors">Nguyen<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Nguyen, Trestian, To,  and Tatipamula</tag>
+          <tag class="ltx_bib_year" role="year">2021</tag>
+          <tag class="ltx_bib_title" role="title">Digital twin for 5g and beyond</tag>
+          <tag class="ltx_bib_author-year" role="refnum">H. X. Nguyen, R. Trestian, D. To, and M. Tatipamula (2021)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Digital twin for 5g and beyond</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>IEEE Communications Magazine</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">59</bib-part></text> (<text class="ltx_bib_number"><bib-part role="number">2</bib-part></text>), <text class="ltx_bib_pages"> pp. <bib-part role="pages">10–15</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="doi ltx_bib_external" href="https://dx.doi.org/10.1109/MCOM.001.2000343">Document</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p1" show="typerefnum" href="#S1.p1" title="1. Introduction ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="SNDlib10" type="inproceedings" xml:id="bib.bib2" fragid="bib.bib2">
+        <tags>
+          <tag class="ltx_bib_number" role="number">17</tag>
+          <tag class="ltx_bib_author" role="authors">Orlowski<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Orlowski, Pióro, Tomaszewski,  and Wessäly</tag>
+          <tag class="ltx_bib_year" role="year">2007</tag>
+          <tag class="ltx_bib_title" role="title">SNDlib 1.0–Survivable Network Design Library</tag>
+          <tag class="ltx_bib_author-year" role="refnum">S. Orlowski, M. Pióro, A. Tomaszewski, and R. Wessäly (2007)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>SNDlib 1.0–Survivable Network Design Library</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Proceedings of the 3rd International Network Optimization Conference (INOC 2007), Spa, Belgium</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve">(<text class="ltx_bib_language"><bib-language>English</bib-language></text>).</bibblock>
+        <bibblock xml:space="preserve">Note: <text class="ltx_bib_note"><bib-note role="annotation">http://sndlib.zib.de, extended version accepted in Networks, 2009.</bib-note></text></bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="http://www.zib.de/orlowski/Paper/OrlowskiPioroTomaszewskiWessaely2007-SNDlib-INOC.pdf.gz">Link</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S4.p1" show="typerefnum" href="#S4.p1" title="4. Experimental Results ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">§4</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="10.1145/2829988.2787472" type="article" xml:id="bib.bib6" fragid="bib.bib6">
+        <tags>
+          <tag class="ltx_bib_number" role="number">18</tag>
+          <tag class="ltx_bib_author" role="authors">Roy<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Roy, Zeng, Bagga, Porter,  and Snoeren</tag>
+          <tag class="ltx_bib_year" role="year">2015</tag>
+          <tag class="ltx_bib_title" role="title">Inside the social network’s (datacenter) network</tag>
+          <tag class="ltx_bib_author-year" role="refnum">A. Roy, H. Zeng, J. Bagga, G. Porter, and A. C. Snoeren (2015)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Inside the social network’s (datacenter) network</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>SIGCOMM Comput. Commun. Rev.</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">45</bib-part></text> (<text class="ltx_bib_number"><bib-part role="number">4</bib-part></text>), <text class="ltx_bib_pages"> pp. <bib-part role="pages">123–137</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><text class="issn ltx_bib_external">ISSN 0146-4833</text>,
+<ref class="ltx_bib_external" href="https://doi.org/10.1145/2829988.2787472">Link</ref>,
+<ref class="doi ltx_bib_external" href="https://dx.doi.org/10.1145/2829988.2787472">Document</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p2" show="typerefnum" href="#S1.p2" title="1. Introduction ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_misc" key="gzip_reference" type="misc" xml:id="bib.bib18" fragid="bib.bib18">
+        <tags>
+          <tag class="ltx_bib_number" role="number">19</tag>
+          <tag class="ltx_bib_title" role="title">The gzip home page. https://www.gzip.org/</tag>
+          <tag class="ltx_bib_key" close="]" open="[" role="refnum">19</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>The gzip home page. https://www.gzip.org/</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">Note: <text class="ltx_bib_note"><bib-note role="annotation">Accessed on: 2023-10-23</bib-note></text></bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://www.gzip.org/">Link</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p3" show="typerefnum" href="#S1.p3" title="1. Introduction ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="tune2013internet" type="article" xml:id="bib.bib9" fragid="bib.bib9">
+        <tags>
+          <tag class="ltx_bib_number" role="number">20</tag>
+          <tag class="ltx_bib_author" role="authors">Tune<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Tune, Roughan, Haddadi,  and Bonaventure</tag>
+          <tag class="ltx_bib_year" role="year">2013</tag>
+          <tag class="ltx_bib_title" role="title">Internet traffic matrices: a primer</tag>
+          <tag class="ltx_bib_author-year" role="refnum">P. Tune, M. Roughan, H. Haddadi, and O. Bonaventure (2013)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Internet traffic matrices: a primer</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>Recent Advances in Networking</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">1</bib-part></text>, <text class="ltx_bib_pages"> pp. <bib-part role="pages">1–56</bib-part></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p1" show="typerefnum" href="#S1.p1" title="1. Introduction ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S1.p3" show="typerefnum" href="#S1.p3" title="1. Introduction ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="10.1145/214762.214771" type="article" xml:id="bib.bib15" fragid="bib.bib15">
+        <tags>
+          <tag class="ltx_bib_number" role="number">21</tag>
+          <tag class="ltx_bib_author" role="authors">Witten<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Witten, Neal,  and Cleary</tag>
+          <tag class="ltx_bib_year" role="year">1987</tag>
+          <tag class="ltx_bib_title" role="title">Arithmetic coding for data compression</tag>
+          <tag class="ltx_bib_author-year" role="refnum">I. H. Witten, R. M. Neal, and J. G. Cleary (1987)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Arithmetic coding for data compression</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>Commun. ACM</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">30</bib-part></text> (<text class="ltx_bib_number"><bib-part role="number">6</bib-part></text>), <text class="ltx_bib_pages"> pp. <bib-part role="pages">520–540</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><text class="issn ltx_bib_external">ISSN 0001-0782</text>,
+<ref class="ltx_bib_external" href="https://doi.org/10.1145/214762.214771">Link</ref>,
+<ref class="doi ltx_bib_external" href="https://dx.doi.org/10.1145/214762.214771">Document</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p5" show="typerefnum" href="#S1.p5" title="1. Introduction ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S2.SS1.p1" show="typerefnum" href="#S2.SS1.p1" title="2.1. Arithmetic Coding ‣ 2. Methodology ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">§2.1</text></ref>,
+<ref idref="S3.SS2.p1" show="typerefnum" href="#S3.SS2.p1" title="3.2. Encoder/Decoder ‣ 3. Design ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">§3.2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="ziv1977universal" type="article" xml:id="bib.bib12" fragid="bib.bib12">
+        <tags>
+          <tag class="ltx_bib_number" role="number">22</tag>
+          <tag class="ltx_bib_author" role="authors">Ziv and Lempel</tag>
+          <tag class="ltx_bib_year" role="year">1977</tag>
+          <tag class="ltx_bib_title" role="title">A universal algorithm for sequential data compression</tag>
+          <tag class="ltx_bib_author-year" role="refnum">J. Ziv and A. Lempel (1977)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>A universal algorithm for sequential data compression</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>IEEE Transactions on information theory</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">23</bib-part></text> (<text class="ltx_bib_number"><bib-part role="number">3</bib-part></text>), <text class="ltx_bib_pages"> pp. <bib-part role="pages">337–343</bib-part></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S5.p1" show="typerefnum" href="#S5.p1" title="5. Related Work ‣ Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks"><text class="ltx_ref_tag">§5</text></ref>.</bibblock>
+      </bibitem>
+    </biblist>
+  </bibliography>
+  <navigation>
+    <title>Atom: Neural Traffic Compression with Spatio-Temporal Graph Neural Networks</title>
+  </navigation>
+</document>

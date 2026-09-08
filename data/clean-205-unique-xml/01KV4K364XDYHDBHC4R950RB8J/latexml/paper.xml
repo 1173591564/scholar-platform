@@ -1,0 +1,868 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?latexml searchpaths="/opt/ar5iv-bindings/supported_originals,/opt/ar5iv-bindings/bindings,/custom-bindings,/work"?>
+<?latexml class="llncs" options="runningheads"?>
+<?latexml package="placeins"?>
+<?latexml package="graphicx"?>
+<?latexml package="caption"?>
+<?latexml RelaxNGSchema="LaTeXML"?>
+<document xmlns="http://dlmf.nist.gov/LaTeXML" xmlns:svg="http://www.w3.org/2000/svg" class="ltx_authors_1line" xml:id="Document">
+  <resource src="LaTeXML.css" type="text/css"/>
+  <resource src="ltx-article.css" type="text/css"/>
+  <note mark="1" role="institutetext">Valencian International University, Calle Pintor Sorolla 21, 46002 Valencia, Spain <break/>Dimai S.L., Camí de la Font Calda 10, 08270 Navarcles, Spain <break/><note mark="1" role="email">a.marti@dimaisl.com</note> </note>
+  <note mark="2" role="institutetext">School of Computer Systems Engineering, Universidad Politécnica de Madrid, Calle de Alan Turing, 28038 Madrid, Spain<break/><note mark="2" role="email">victor.rfernandez@upm.es</note></note>
+  <title>An implementation of the “Guess who?” game using CLIP</title>
+  <creator role="author">
+    <personname>Arnau Martí Sarri</personname>
+  </creator>
+  <creator role="author" before="  ">
+    <personname><break/>Victor Rodriguez-Fernandez</personname>
+  </creator>
+  <abstract name="Abstract">
+    <p>CLIP (Contrastive Language-Image Pretraining) is an efficient method for learning computer vision tasks from natural language supervision that has powered a recent breakthrough in deep learning due to its zero-shot transfer capabilities. By training from image-text pairs available on the internet, the CLIP model transfers non-trivially to most tasks without the need for any data set specific training. In this work, we use CLIP to implement the engine of the popular game “Guess who?”, so that the player interacts with the game using natural language prompts and CLIP automatically decides whether an image in the game board fulfills that prompt or not. We study the performance of this approach by benchmarking on different ways of prompting the questions to CLIP, and show the limitations of its zero-shot capabilites.</p>
+  </abstract>
+  <section inlist="toc" xml:id="S1" fragid="S1">
+    <tags>
+      <tag>1</tag>
+      <tag role="refnum">1</tag>
+      <tag role="typerefnum">§1</tag>
+    </tags>
+    <title><tag close=" ">1</tag>Introduction</title>
+    <para xml:id="S1.p1" fragid="S1.p1">
+      <p>The ability to learn at the same time from different data modalities (image, audio, text, tabular data…) is a trending topic in the field of machine learning in general, and deep learning in particular, with many domains of application such as self-driving cars, healthcare and the Internet of Things <cite class="ltx_citemacro_cite">[<ref href="#bib.bib2" idref="bib.bib2" title="A survey on deep learning for multimodal data fusion">5</ref>]</cite>. Among all the possibilities that multimodal deep learning provides, one of the most interesting ones is the connection of text and images in the same model.</p>
+    </para>
+    <para xml:id="S1.p2" fragid="S1.p2">
+      <p>This concept brings into play challenging tasks in the areas of computer vision and natural language processing, such as multimodal image and text classification <cite class="ltx_citemacro_cite">[<ref href="#bib.bib3" idref="bib.bib3" title="Are these birds similar: learning branched networks for fine-grained representations">7</ref>]</cite>, image captioning <cite class="ltx_citemacro_cite">[<ref href="#bib.bib4" idref="bib.bib4" title="Meshed-memory transformer for image captioning">2</ref>]</cite>, and visual-language robot navigation <cite class="ltx_citemacro_cite">[<ref href="#bib.bib5" idref="bib.bib5" title="Learning to navigate unseen environments: back translation with environmental dropout">10</ref>]</cite>. All of these tasks have the core idea of learning visual perception from supervision contained in text, or vice-versa.</p>
+    </para>
+    <para xml:id="S1.p3" fragid="S1.p3">
+      <p>In January 2021, the company OpenAI made a great milestone in the field of language-image models with the presentation of CLIP (Contrastive Language–Image Pre-training) <cite class="ltx_citemacro_cite">[<ref href="#bib.bib1" idref="bib.bib1" title="Learning transferable visual models from natural language supervision">8</ref>]</cite> <note mark="1" role="footnote" xml:id="footnote1" fragid="footnote1"><tags><tag>1</tag><tag role="refnum">1</tag><tag role="typerefnum">footnote 1</tag></tags>The paper was accompanied with a blog post publication: <ref href="https://openai.com/blog/clip/">https://openai.com/blog/clip/</ref></note>. CLIP is a deep neural network designed to perform zero-shot image classification, i.e., to generalize flawlessly to unseen image classification tasks in which the data and the labels can be different each time. The way CLIP does so is by training on a wide variety of (image, text) pairs that are abundantly available on the internet, instructing the model to predict the most relevant text snippet, given an image. Since the code and weights of CLIP were publicly released on GitHub <note mark="2" role="footnote" xml:id="footnote2" fragid="footnote2"><tags><tag>2</tag><tag role="refnum">2</tag><tag role="typerefnum">footnote 2</tag></tags><ref href="https://github.com/openai/CLIP">https://github.com/openai/CLIP</ref></note>, many researchers have explored its zero-shot capabilities in different areas such as art classification <cite class="ltx_citemacro_cite">[<ref href="#bib.bib6" idref="bib.bib6" title="CLIP-art: contrastive pre-training for fine-grained art classification">1</ref>]</cite>, video-text retrieval <cite class="ltx_citemacro_cite">[<ref href="#bib.bib7" idref="bib.bib7" title="CLIP2Video: mastering video-text retrieval via image clip">4</ref>]</cite> or text-to-image generation <cite class="ltx_citemacro_cite">[<ref href="#bib.bib8" idref="bib.bib8" title="Zero-shot text-to-image generation">9</ref>]</cite>.</p>
+    </para>
+    <para xml:id="S1.p4" fragid="S1.p4">
+      <p>In this work, we present an application of the zero-shot classification capabilities of CLIP in the popular game “Guess who?”, in which the player asks yes/no questions to describe people in a game board and try to guess who the selected person is. Each time the player makes a new question, CLIP will analyse the images in the game board and decide automatically which images fulfill it. Although this could be also tackled with a multi-label image binary classification model with a fixed set of labels, the power behind using CLIP relies on the use of natural language to interact with the model, which gives freedom to the player to ask any question and tests CLIP’s zero-shot generalization capabilities. We release our code in a public Github repository <note mark="3" role="footnote" xml:id="footnote3" fragid="footnote3"><tags><tag>3</tag><tag role="refnum">3</tag><tag role="typerefnum">footnote 3</tag></tags><ref href="https://github.com/ArnauDIMAI/CLIP-GuessWho">https://github.com/ArnauDIMAI/CLIP-GuessWho</ref></note>.</p>
+    </para>
+    <para xml:id="S1.p5" fragid="S1.p5">
+      <p>In summary, the contributions of this paper are:</p>
+      <itemize xml:id="S1.I1" fragid="S1.I1">
+        <item xml:id="S1.I1.i1" fragid="S1.I1.i1">
+          <tags>
+            <tag>•</tag>
+            <tag role="typerefnum">1st item</tag>
+          </tags>
+          <para xml:id="S1.I1.i1.p1" fragid="S1.I1.i1.p1">
+            <p>The implementation of the game engine based on AI, which allows for the use of any set of images instead of having a fixed board. To the best of our knowledge, there is no other version of the game “Guess who?”, that uses an AI in a similar way.</p>
+          </para>
+        </item>
+        <item xml:id="S1.I1.i2" fragid="S1.I1.i2">
+          <tags>
+            <tag>•</tag>
+            <tag role="typerefnum">2nd item</tag>
+          </tags>
+          <para xml:id="S1.I1.i2.p1" fragid="S1.I1.i2.p1">
+            <p>The use of CLIP as a zero-shot classifier based on textual prompts, which allows the player to interact with the game through natural language.</p>
+          </para>
+        </item>
+      </itemize>
+    </para>
+    <para xml:id="S1.p6" fragid="S1.p6">
+      <p>The rest of the paper is structured as follows: in Section <ref labelref="LABEL:sec:backgrounds" idref="S2" href="#S2" title="2 Backgrounds on CLIP ‣ An implementation of the “Guess who?” game using CLIP"><text class="ltx_ref_tag">2</text></ref> we give some background on CLIP, in Section <ref labelref="LABEL:sec:game_description" idref="S3" href="#S3" title="3 Game description ‣ An implementation of the “Guess who?” game using CLIP"><text class="ltx_ref_tag">3</text></ref> we present a description of the game and how CLIP is integrated in it, not as a player but as the engine of the game. Then, in Section <ref labelref="LABEL:sec:experiments" idref="S4" href="#S4" title="4 Experiments and prompt analysis ‣ An implementation of the “Guess who?” game using CLIP"><text class="ltx_ref_tag">4</text></ref> we show some experiments on how changing the way the game prompts CLIP about the characteristic of a person affects its classification performance, and finally, in Section <ref labelref="LABEL:sec:conclusions" idref="S5" href="#S5" title="5 Conclusions and Future work ‣ An implementation of the “Guess who?” game using CLIP"><text class="ltx_ref_tag">5</text></ref> we outline the conclusions and provide future lines of research in this topic.</p>
+    </para>
+  </section>
+  <section inlist="toc" xml:id="S2" labels="LABEL:sec:backgrounds" fragid="S2">
+    <tags>
+      <tag>2</tag>
+      <tag role="refnum">2</tag>
+      <tag role="typerefnum">§2</tag>
+    </tags>
+    <title><tag close=" ">2</tag>Backgrounds on CLIP</title>
+    <para xml:id="S2.p1" fragid="S2.p1">
+      <p>CLIP (Contrastive Language-Image Pre-training), by OpenAI, is based on a large amount of work in zero-shot transfer, natural language supervision and multi-modal learning, and shows that scaling a simple pre-training task is sufficient to achieve competitive zero-sample performance on various image classification data sets. CLIP uses a large number of available supervision sources: the text paired with images found on the Internet. This data is used to create the following agent training task for CLIP: Given an image, predict which of a set of 32,768 randomly sampled text fragments is actually paired with it in the data set. This is achieved by combining a text encoder, built as a Transformer <cite class="ltx_citemacro_cite">[<ref href="#bib.bib10" idref="bib.bib10" title="Attention is all you need">11</ref>]</cite>, and an image encoder, built as a Vision Transformer <cite class="ltx_citemacro_cite">[<ref href="#bib.bib11" idref="bib.bib11" title="An image is worth 16x16 words: transformers for image recognition at scale">3</ref>]</cite>, under a contrastive objective that connects them <cite class="ltx_citemacro_cite">[<ref href="#bib.bib12" idref="bib.bib12" title="Contrastive learning of medical visual representations from paired images and text">12</ref>]</cite>. To the best of our knowledge, there is no other publicly available pretrained model with the scale of CLIP that connects text and image data.</p>
+    </para>
+    <para xml:id="S2.p2" fragid="S2.p2">
+      <p>Once pre-trained, CLIP can then be applied to nearly arbitrary visual classification tasks. For instance, if the task of a data set is classifying photos of dogs vs cats, we will check, for each image, whether CLIP predicts that the caption “a picture of a dog” is more likely to be paired with it than “a picture of a cat”. In case the task does not have a fixed set of labels, one can still use CLIP for classification by specifying a text description of a target attribute and a corresponding neutral class. For example, when manipulating images of faces, the target attribute might be specified as “a picture of a blonde person”, in which case the corresponding neutral prompt might be “a picture of a person”. CLIP’s zero-shot classifiers can be sensitive to wording or phrasing, and sometimes require trial and error “prompt engineering” to perform well <cite class="ltx_citemacro_cite">[<ref href="#bib.bib1" idref="bib.bib1" title="Learning transferable visual models from natural language supervision">8</ref>]</cite>.</p>
+    </para>
+  </section>
+  <section inlist="toc" xml:id="S3" labels="LABEL:sec:game_description" fragid="S3">
+    <tags>
+      <tag>3</tag>
+      <tag role="refnum">3</tag>
+      <tag role="typerefnum">§3</tag>
+    </tags>
+    <title><tag close=" ">3</tag>Game description</title>
+    <para xml:id="S3.p1" fragid="S3.p1">
+      <p>The aim of the game, as in the original one, is to find a specific image from a group of different images of a person’s face. To discover the image, the player must ask questions that can be answered with a binary response, such as “Yes and No”. After every question made by the player, the images that don’t share the same answer that the winning one are discarded automatically. The answer to the player’s questions, and thus, the process of discarding the images will be established by CLIP (See Fig. <ref labelref="LABEL:fig:CLIPdiagram" idref="S3.F1" href="#S3.F1" title="Figure 1 ‣ 3 Game description ‣ An implementation of the “Guess who?” game using CLIP"><text class="ltx_ref_tag">1</text></ref>). When all the images but one have been discarded, the game is over.</p>
+    </para>
+    <figure inlist="lof" placement="ht!" xml:id="S3.F1" labels="LABEL:fig:CLIPdiagram" fragid="S3.F1">
+      <tags>
+        <tag>Figure 1</tag>
+        <tag role="refnum">1</tag>
+        <tag role="typerefnum">Figure 1</tag>
+      </tags>
+      <p><text width="345.0pt"><svg:svg version="1.1" width="546" height="127" overflow="visible"><svg:g transform="translate(0,127) scale(1,-1)"><svg:rect fill="none" height="91.8pt" stroke="#000000" stroke-width="0.4" width="394.6pt" x="0" y="0"/><svg:g class="makebox" transform="translate(0,0)"><svg:g transform="translate(0,127.023661270237) scale(1, -1)"><svg:foreignObject width="546.00802546008" height="127.023661270237" overflow="visible"><graphics candidates="img/esquema_CLIP_GuessWho.png" graphic="img/esquema_CLIP_GuessWho.png" options="scale=0.17" xml:id="S3.F1.pic1.g1" fragid="S3.F1.pic1.g1"/></svg:foreignObject></svg:g></svg:g></svg:g></svg:svg></text></p>
+      <toccaption><tag close=" ">1</tag>Diagram of how CLIP is integrated in the game.
+</toccaption>
+      <caption><tag close=": ">Figure 1</tag>Diagram of how CLIP is integrated in the game.
+</caption>
+    </figure>
+    <figure inlist="lof" placement="ht!" xml:id="S3.F2" labels="LABEL:fig:select_images" fragid="S3.F2">
+      <tags>
+        <tag>Figure 2</tag>
+        <tag role="refnum">2</tag>
+        <tag role="typerefnum">Figure 2</tag>
+      </tags>
+      <p><text width="345.0pt"><svg:svg version="1.1" width="542" height="379" overflow="visible"><svg:g transform="translate(0,379) scale(1,-1)"><svg:rect fill="none" height="273.9pt" stroke="#000000" stroke-width="0.4" width="391.7pt" x="0" y="0"/><svg:g class="makebox" transform="translate(0,0)"><svg:g transform="translate(0,378.995433789954) scale(1, -1)"><svg:foreignObject width="541.995295419953" height="378.995433789954" overflow="visible"><graphics candidates="img/paper_images_b.png" graphic="img/paper_images_b.png" options="scale=0.7" xml:id="S3.F2.pic1.g1" fragid="S3.F2.pic1.g1"/></svg:foreignObject></svg:g></svg:g></svg:g></svg:svg></text></p>
+      <toccaption><tag close=" ">2</tag>Screen of the game which allows the user selecting the images to play.
+</toccaption>
+      <caption><tag close=": ">Figure 2</tag>Screen of the game which allows the user selecting the images to play.
+</caption>
+    </figure>
+    <para xml:id="S3.p2" fragid="S3.p2">
+      <p>The first step of the game is to select the images to play (See Fig. <ref labelref="LABEL:fig:select_images" idref="S3.F2" href="#S3.F2" title="Figure 2 ‣ 3 Game description ‣ An implementation of the “Guess who?” game using CLIP"><text class="ltx_ref_tag">2</text></ref>). The player can press a button to randomly change the used images, which are taken from the <text font="italic">CelebA</text> (CelebFaces Attributes) data set <cite class="ltx_citemacro_cite">[<ref href="#bib.bib9" idref="bib.bib9" title="Deep learning face attributes in the wild">6</ref>]</cite>. This data set contains 202,599 face images of the size 178×218 from 10,177 celebrities, each annotated with 40 binary labels indicating facial attributes like hair color, gender and age.</p>
+    </para>
+    <subsection inlist="toc" xml:id="S3.SS1" fragid="S3.SS1">
+      <tags>
+        <tag>3.1</tag>
+        <tag role="refnum">3.1</tag>
+        <tag role="typerefnum">§3.1</tag>
+      </tags>
+      <title><tag close=" ">3.1</tag>Questions</title>
+      <para xml:id="S3.SS1.p1" fragid="S3.SS1.p1">
+        <p>The game will allow the player to ask the questions in 4 different ways:</p>
+      </para>
+      <para xml:id="S3.SS1.p2" fragid="S3.SS1.p2">
+        <enumerate xml:id="S3.I1" fragid="S3.I1">
+          <item>
+            <figure inlist="lof" placement="ht!" xml:id="S3.F3" labels="LABEL:fig:ask_question" fragid="S3.F3">
+              <tags>
+                <tag>Figure 3</tag>
+                <tag role="refnum">3</tag>
+                <tag role="typerefnum">Figure 3</tag>
+              </tags>
+              <p><text width="345.0pt"><svg:svg version="1.1" width="542" height="189" overflow="visible"><svg:g transform="translate(0,189) scale(1,-1)"><svg:rect fill="none" height="136.6pt" stroke="#000000" stroke-width="0.4" width="391.7pt" x="0" y="0"/><svg:g class="makebox" transform="translate(0,0)"><svg:g transform="translate(0,189.013421890134) scale(1, -1)"><svg:foreignObject width="541.995295419953" height="189.013421890134" overflow="visible"><graphics candidates="img/paper_question.png" graphic="img/paper_question.png" options="scale=0.7" xml:id="S3.F3.pic1.g1" fragid="S3.F3.pic1.g1"/></svg:foreignObject></svg:g></svg:g></svg:g></svg:svg></text></p>
+              <toccaption><tag close=" ">3</tag>Game screen that allows the user to ask a default question.
+</toccaption>
+              <caption><tag close=": ">Figure 3</tag>Game screen that allows the user to ask a default question.
+</caption>
+            </figure>
+          </item>
+          <item xml:id="S3.I1.i1" fragid="S3.I1.i1">
+            <tags>
+              <tag>1.</tag>
+              <tag role="refnum">1</tag>
+              <tag role="typerefnum">item 1</tag>
+            </tags>
+            <para xml:id="S3.I1.i1.p1" fragid="S3.I1.i1.p1">
+              <p>Asking a question from a list (See Fig. <ref labelref="LABEL:fig:ask_question" idref="S3.F3" href="#S3.F3" title="Figure 3 ‣ 3.1 Questions ‣ 3 Game description ‣ An implementation of the “Guess who?” game using CLIP"><text class="ltx_ref_tag">3</text></ref>). A drop-down list allows the player to select the question to be asked from a group of pre-set questions, taken from the set of binary labels of the Celeba data set. Under the hood, each question is translated into textual prompts for the CLIP model to allow for the binary classification based on that question. When they are passed to CLIP along with an image, the model responds by giving a greater value to the prompt that is most related to the image.</p>
+            </para>
+            <figure inlist="lof" placement="ht!" xml:id="S3.F4" labels="LABEL:fig:1_query" fragid="S3.F4">
+              <tags>
+                <tag>Figure 4</tag>
+                <tag role="refnum">4</tag>
+                <tag role="typerefnum">Figure 4</tag>
+              </tags>
+              <p><text width="345.0pt"><svg:svg version="1.1" width="541" height="164" overflow="visible"><svg:g transform="translate(0,164) scale(1,-1)"><svg:rect fill="none" height="118.5pt" stroke="#000000" stroke-width="0.4" width="391.0pt" x="0" y="0"/><svg:g class="makebox" transform="translate(0,0)"><svg:g transform="translate(0,163.968451639685) scale(1, -1)"><svg:foreignObject width="541.026705410267" height="163.968451639685" overflow="visible"><graphics candidates="img/paper_1query.png" graphic="img/paper_1query.png" options="scale=0.7" xml:id="S3.F4.pic1.g1" fragid="S3.F4.pic1.g1"/></svg:foreignObject></svg:g></svg:g></svg:g></svg:svg></text></p>
+              <toccaption><tag close=" ">4</tag>Game screen that allows the user to create his own prompt using 1 text input.
+</toccaption>
+              <caption><tag close=": ">Figure 4</tag>Game screen that allows the user to create his own prompt using 1 text input.
+</caption>
+            </figure>
+          </item>
+          <item xml:id="S3.I1.i2" fragid="S3.I1.i2">
+            <tags>
+              <tag>2.</tag>
+              <tag role="refnum">2</tag>
+              <tag role="typerefnum">item 2</tag>
+            </tags>
+            <para xml:id="S3.I1.i2.p1" fragid="S3.I1.i2.p1">
+              <p>Use one prompt (See Fig. <ref labelref="LABEL:fig:1_query" idref="S3.F4" href="#S3.F4" title="Figure 4 ‣ item 1 ‣ 3.1 Questions ‣ 3 Game description ‣ An implementation of the “Guess who?” game using CLIP"><text class="ltx_ref_tag">4</text></ref>). This option is used to allow the player introducing a textual prompt for CLIP with his/her own words. The player text will be then confronted with the neutral prompt, “A picture of a person”, and the pair of prompts will be passed to CLIP as in the previous case.</p>
+            </para>
+            <figure inlist="lof" placement="ht!" xml:id="S3.F5" labels="LABEL:fig:2_querys" fragid="S3.F5">
+              <tags>
+                <tag>Figure 5</tag>
+                <tag role="refnum">5</tag>
+                <tag role="typerefnum">Figure 5</tag>
+              </tags>
+              <p><text width="345.0pt"><svg:svg version="1.1" width="542" height="226" overflow="visible"><svg:g transform="translate(0,226) scale(1,-1)"><svg:rect fill="none" height="163.3pt" stroke="#000000" stroke-width="0.4" width="391.7pt" x="0" y="0"/><svg:g class="makebox" transform="translate(0,0)"><svg:g transform="translate(0,225.958212259582) scale(1, -1)"><svg:foreignObject width="541.995295419953" height="225.958212259582" overflow="visible"><graphics candidates="img/paper_2query.png" graphic="img/paper_2query.png" options="scale=0.7" xml:id="S3.F5.pic1.g1" fragid="S3.F5.pic1.g1"/></svg:foreignObject></svg:g></svg:g></svg:g></svg:svg></text></p>
+              <toccaption><tag close=" ">5</tag>Game screen that allows the user to create his own prompt using 2 text inputs.
+</toccaption>
+              <caption><tag close=": ">Figure 5</tag>Game screen that allows the user to create his own prompt using 2 text inputs.
+</caption>
+            </figure>
+          </item>
+          <item xml:id="S3.I1.i3" fragid="S3.I1.i3">
+            <tags>
+              <tag>3.</tag>
+              <tag role="refnum">3</tag>
+              <tag role="typerefnum">item 3</tag>
+            </tags>
+            <para xml:id="S3.I1.i3.p1" fragid="S3.I1.i3.p1">
+              <p>Use two prompts (See Fig. <ref labelref="LABEL:fig:2_querys" idref="S3.F5" href="#S3.F5" title="Figure 5 ‣ item 2 ‣ 3.1 Questions ‣ 3 Game description ‣ An implementation of the “Guess who?” game using CLIP"><text class="ltx_ref_tag">5</text></ref>). In this case two text input are used to allow the player write two sentences. The player must use two opposite sentences, that is, with an opposite meaning.</p>
+            </para>
+            <figure inlist="lof" placement="ht!" xml:id="S3.F6" labels="LABEL:fig:select_winner" fragid="S3.F6">
+              <tags>
+                <tag>Figure 6</tag>
+                <tag role="refnum">6</tag>
+                <tag role="typerefnum">Figure 6</tag>
+              </tags>
+              <p><text width="345.0pt"><svg:svg version="1.1" width="542" height="152" overflow="visible"><svg:g transform="translate(0,152) scale(1,-1)"><svg:rect fill="none" height="109.9pt" stroke="#000000" stroke-width="0.4" width="391.7pt" x="0" y="0"/><svg:g class="makebox" transform="translate(0,0)"><svg:g transform="translate(0,152.068631520686) scale(1, -1)"><svg:foreignObject width="541.995295419953" height="152.068631520686" overflow="visible"><graphics candidates="img/paper_winner.png" graphic="img/paper_winner.png" options="scale=0.7" xml:id="S3.F6.pic1.g1" fragid="S3.F6.pic1.g1"/></svg:foreignObject></svg:g></svg:g></svg:g></svg:svg></text></p>
+              <toccaption><tag close=" ">6</tag>Game screen that allows the user to select the winner image directly.
+</toccaption>
+              <caption><tag close=": ">Figure 6</tag>Game screen that allows the user to select the winner image directly.
+</caption>
+            </figure>
+          </item>
+          <item xml:id="S3.I1.i4" fragid="S3.I1.i4">
+            <tags>
+              <tag>4.</tag>
+              <tag role="refnum">4</tag>
+              <tag role="typerefnum">item 4</tag>
+            </tags>
+            <para xml:id="S3.I1.i4.p1" fragid="S3.I1.i4.p1">
+              <p>Select a winner (See Fig. <ref labelref="LABEL:fig:select_winner" idref="S3.F6" href="#S3.F6" title="Figure 6 ‣ item 3 ‣ 3.1 Questions ‣ 3 Game description ‣ An implementation of the “Guess who?” game using CLIP"><text class="ltx_ref_tag">6</text></ref>). This option does not use the CLIP model to make decisions, the player can simply choose one of the images as the winner and if the player hits the winning image, the game is over.</p>
+            </para>
+          </item>
+        </enumerate>
+      </para>
+    </subsection>
+    <subsection inlist="toc" xml:id="S3.SS2" fragid="S3.SS2">
+      <tags>
+        <tag>3.2</tag>
+        <tag role="refnum">3.2</tag>
+        <tag role="typerefnum">§3.2</tag>
+      </tags>
+      <title><tag close=" ">3.2</tag>Punctuation</title>
+      <para xml:id="S3.SS2.p1" fragid="S3.SS2.p1">
+        <p>To motivate the players in finding the winning image with the minimum number of questions, a scoring system is established so that it begins with a certain number of points (100 in the example), and decreases with each asked question. The score is decreased by subtracting the number of remaining images after each question. Furthermore, there are two extra penalties. The first is applied when the player uses the option “Select a winner”. This penalty depends on the number of remaining images, so that the fewer images are left, the bigger will be the penalty. Finally, the score is also decreased by two extra points if, after the player makes a question, no image can be discarded.</p>
+      </para>
+      <figure inlist="lof" placement="ht!" xml:id="S3.F7" labels="LABEL:fig:show_CLIP_results" fragid="S3.F7">
+        <tags>
+          <tag>Figure 7</tag>
+          <tag role="refnum">7</tag>
+          <tag role="typerefnum">Figure 7</tag>
+        </tags>
+        <p><text width="345.0pt"><svg:svg version="1.1" width="542" height="444" overflow="visible"><svg:g transform="translate(0,444) scale(1,-1)"><svg:rect fill="none" height="320.9pt" stroke="#000000" stroke-width="0.4" width="391.7pt" x="0" y="0"/><svg:g class="makebox" transform="translate(0,0)"><svg:g transform="translate(0,444.029334440293) scale(1, -1)"><svg:foreignObject width="541.995295419953" height="444.029334440293" overflow="visible"><graphics candidates="img/paper_result_man.png" graphic="img/paper_result_man.png" options="scale=0.7" xml:id="S3.F7.pic1.g1" fragid="S3.F7.pic1.g1"/></svg:foreignObject></svg:g></svg:g></svg:g></svg:svg></text></p>
+        <toccaption><tag close=" ">7</tag>Game screen showing CLIP answer after a question.
+</toccaption>
+        <caption><tag close=": ">Figure 7</tag>Game screen showing CLIP answer after a question.
+</caption>
+      </figure>
+      <para xml:id="S3.SS2.p2" fragid="S3.SS2.p2">
+        <p>The “Guess Who?” game has a handicap when it uses real images, because it is necessary to always ensure that the same criteria are applied when the images are discarded. The original game uses images with characters that present simple and limited features like a short set of different types of hair colors, what makes it very easy to answer true or false when a user asks for a specific hair color. However, with real images it is possible to doubt about if a person is blond haired or brown haired, for example, and it is necessary to apply a method which ensures that the winning image is not discarded by mistake. To solve this problem, CLIP is used to discard the images that do not coincide with the winner image after each prompt. In this way, when the user asks a question, CLIP is used to classify the images in two groups: the set of images that continue because they have the same prediction than the winning image, and the discarded set that has the opposite prediction. Fig. <ref labelref="LABEL:fig:show_CLIP_results" idref="S3.F7" href="#S3.F7" title="Figure 7 ‣ 3.2 Punctuation ‣ 3 Game description ‣ An implementation of the “Guess who?” game using CLIP"><text class="ltx_ref_tag">7</text></ref> shows the screen that is prompted after calling CLIP on each image in the game board, where the discarded images are highlighted in red and the others in green.</p>
+      </para>
+    </subsection>
+  </section>
+  <section inlist="toc" xml:id="S4" labels="LABEL:sec:experiments" fragid="S4">
+    <tags>
+      <tag>4</tag>
+      <tag role="refnum">4</tag>
+      <tag role="typerefnum">§4</tag>
+    </tags>
+    <title><tag close=" ">4</tag>Experiments and prompt analysis</title>
+    <para xml:id="S4.p1" fragid="S4.p1">
+      <p>To use CLIP as a zero-shot image classifier in the game, we create a pair of textual prompts for each class to address each player question as its own binary classification problem. Two basic prompting methods are proposed to create the textual descriptions:</p>
+    </para>
+    <para xml:id="S4.p2" fragid="S4.p2">
+      <enumerate xml:id="S4.I1" fragid="S4.I1">
+        <item xml:id="S4.I1.i1" fragid="S4.I1.i1">
+          <tags>
+            <tag>1.</tag>
+            <tag role="refnum">1</tag>
+            <tag role="typerefnum">item 1</tag>
+          </tags>
+          <para xml:id="S4.I1.i1.p1" fragid="S4.I1.i1.p1">
+            <p>Target vs neutral. This method consists in using a standard neutral prompt that fulfills all images, like “A picture of a person”, and another sentence, very similar, which changes only some words and is more specific for the target class, like “A picture of a person with eyeglasses”. In this way, when the additional information is added to the prompt, CLIP should return a bigger value for the second sentence than for the first for an image of a person with eyeglasses. And vice versa, i.e., when the extra information is not related to the image, CLIP should return a smaller likelihood value for this sentence. This is the method used to allow the user to introduce his own prompt.</p>
+          </para>
+        </item>
+        <item xml:id="S4.I1.i2" fragid="S4.I1.i2">
+          <tags>
+            <tag>2.</tag>
+            <tag role="refnum">2</tag>
+            <tag role="typerefnum">item 2</tag>
+          </tags>
+          <para xml:id="S4.I1.i2.p1" fragid="S4.I1.i2.p1">
+            <p>Target vs contrary. This method consists in using two opposite sentences that represent opposite concepts, like “A picture of a man” and “A picture of a woman”. This method is only implemented in the game for the attributes included in the set of labels of the Celeba data set.</p>
+          </para>
+        </item>
+      </enumerate>
+    </para>
+    <para xml:id="S4.p3" fragid="S4.p3">
+      <p>We take advantage of the labeled images from the Celeba data set to validate the performance of the textual prompts introduced to CLIP. The True Positive Rate (TPR), True Negative Rate (TNR), and the accuracy (average of TPR and TNR) are calculated to analyze the results. We used the first 4.000 true images and the first 4.000 false images for each of the 40 binary labels of the data set to calculate these rates.</p>
+    </para>
+    <subsection inlist="toc" xml:id="S4.SS1" fragid="S4.SS1">
+      <tags>
+        <tag>4.1</tag>
+        <tag role="refnum">4.1</tag>
+        <tag role="typerefnum">§4.1</tag>
+      </tags>
+      <title><tag close=" ">4.1</tag>Results table for the “Target vs neutral” method</title>
+      <table inlist="lot" xml:id="S4.T1" labels="LABEL:table:celeba_results" fragid="S4.T1">
+        <tags>
+          <tag>Table 1</tag>
+          <tag role="refnum">1</tag>
+          <tag role="typerefnum">Table 1</tag>
+        </tags>
+        <tabular vattach="middle" class="ltx_guessed_headers">
+          <thead>
+            <tr>
+              <td align="center" thead="column">
+                <text font="bold">Celeba label</text>
+              </td>
+              <td align="center" thead="column">
+                <text font="bold">Target prompt</text>
+              </td>
+              <td align="center" thead="column">
+                <text font="bold">TPR</text>
+              </td>
+              <td align="center" thead="column">
+                <text font="bold">TNR</text>
+              </td>
+              <td align="center" thead="column">
+                <text font="bold">Acc</text>
+              </td>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td align="left" border="t">male</td>
+              <td align="left" border="t">A picture of a male person</td>
+              <td align="center" border="t">98.14</td>
+              <td align="center" border="t">96.13</td>
+              <td align="center" border="t">97.11</td>
+            </tr>
+            <tr>
+              <td align="left">wearing hat</td>
+              <td align="left">A picture of a person with hat</td>
+              <td align="center">97.29</td>
+              <td align="center">83.67</td>
+              <td align="center">89.34</td>
+            </tr>
+            <tr>
+              <td align="left">goatee</td>
+              <td align="left">A picture of a person with goatee</td>
+              <td align="center">91.6</td>
+              <td align="center">77.05</td>
+              <td align="center">82.78</td>
+            </tr>
+            <tr>
+              <td align="left">blond hair</td>
+              <td align="left">A picture of a person with blond hair</td>
+              <td align="center">74.14</td>
+              <td align="center">97.84</td>
+              <td align="center">82.09</td>
+            </tr>
+            <tr>
+              <td align="left">bangs</td>
+              <td align="left">A picture of a person with bangs</td>
+              <td align="center">88</td>
+              <td align="center">77.71</td>
+              <td align="center">82.05</td>
+            </tr>
+            <tr>
+              <td align="left">eyeglasses</td>
+              <td align="left">A picture of a person with eyeglasses</td>
+              <td align="center">87.45</td>
+              <td align="center">77.59</td>
+              <td align="center">81.78</td>
+            </tr>
+            <tr>
+              <td align="left">smiling</td>
+              <td align="left">A picture of a person who is smiling</td>
+              <td align="center">89.07</td>
+              <td align="center">76.75</td>
+              <td align="center">81.76</td>
+            </tr>
+            <tr>
+              <td align="left">bald</td>
+              <td align="left">A picture of a bald person</td>
+              <td align="center">96.63</td>
+              <td align="center">73.86</td>
+              <td align="center">81.58</td>
+            </tr>
+            <tr>
+              <td align="left">wearing necktie</td>
+              <td align="left">A picture of a person with necktie</td>
+              <td align="center">77.91</td>
+              <td align="center">81.36</td>
+              <td align="center">79.54</td>
+            </tr>
+            <tr>
+              <td align="left">gray hair</td>
+              <td align="left">A picture of a person with gray hair</td>
+              <td align="center">83.66</td>
+              <td align="center">74.04</td>
+              <td align="center">78.05</td>
+            </tr>
+            <tr>
+              <td align="left">…</td>
+              <td align="left">…</td>
+              <td align="center">…</td>
+              <td align="center">…</td>
+              <td align="center">…</td>
+            </tr>
+            <tr>
+              <td align="left">big lips</td>
+              <td align="left">A picture of a person with big lips</td>
+              <td align="center">64.64</td>
+              <td align="center">51.75</td>
+              <td align="center">53.12</td>
+            </tr>
+            <tr>
+              <td align="left">wearing lipstick</td>
+              <td align="left">A picture of a person with lipstick</td>
+              <td align="center">85.34</td>
+              <td align="center">51.53</td>
+              <td align="center">52.94</td>
+            </tr>
+            <tr>
+              <td align="left">pointy nose</td>
+              <td align="left">A picture of a person with pointy nose</td>
+              <td align="center">52.74</td>
+              <td align="center">52.16</td>
+              <td align="center">52.41</td>
+            </tr>
+            <tr>
+              <td align="left">big nose</td>
+              <td align="left">A picture of a person with big nose</td>
+              <td align="center">57.63</td>
+              <td align="center">51.09</td>
+              <td align="center">51.91</td>
+            </tr>
+            <tr>
+              <td align="left">attractive</td>
+              <td align="left">A picture of an attractive person</td>
+              <td align="center">54.34</td>
+              <td align="center">50.88</td>
+              <td align="center">51.46</td>
+            </tr>
+            <tr>
+              <td align="left">rosy cheeks</td>
+              <td align="left">A picture of a person with rosy cheeks</td>
+              <td align="center">49.36</td>
+              <td align="center">49.76</td>
+              <td align="center">49.65</td>
+            </tr>
+            <tr>
+              <td align="left">high cheekbones</td>
+              <td align="left">A picture of a person with high cheekbones</td>
+              <td align="center">47.33</td>
+              <td align="center">49.23</td>
+              <td align="center">48.8</td>
+            </tr>
+            <tr>
+              <td align="left">bags under eyes</td>
+              <td align="left">A picture of a person with bags under eyes</td>
+              <td align="center">47.7</td>
+              <td align="center">49.05</td>
+              <td align="center">48.66</td>
+            </tr>
+            <tr>
+              <td align="left">narrow eyes</td>
+              <td align="left">A picture of a person with narrow eyes</td>
+              <td align="center">40.67</td>
+              <td align="center">45.36</td>
+              <td align="center">43.8</td>
+            </tr>
+            <tr>
+              <td align="left" border="b">no beard</td>
+              <td align="left" border="b">A picture of a person with no beard</td>
+              <td align="center" border="b">16.93</td>
+              <td align="center" border="b">30.02</td>
+              <td align="center" border="b">25.09</td>
+            </tr>
+          </tbody>
+        </tabular>
+        <toccaption><tag close=" ">1</tag>“Target vs neutral” prompting method applied on Celeba data set. True Positive Rate, True Negative Rate and Accuracy are shown in percentage.
+</toccaption>
+        <caption><tag close=": ">Table 1</tag>“Target vs neutral” prompting method applied on Celeba data set. True Positive Rate, True Negative Rate and Accuracy are shown in percentage.
+</caption>
+      </table>
+      <para xml:id="S4.SS1.p1" fragid="S4.SS1.p1">
+        <p>Table <ref labelref="LABEL:table:celeba_results" idref="S4.T1" href="#S4.T1" title="Table 1 ‣ 4.1 Results table for the “Target vs neutral” method ‣ 4 Experiments and prompt analysis ‣ An implementation of the “Guess who?” game using CLIP"><text class="ltx_ref_tag">1</text></ref> shows the top ten and bottom ten results sorted by accuracy, as well as the labels of the Celeba data set and the CLIP textual inputs used. In this experiment, we simply use the literal Celeba labels to create the target prompt, and the neutral prompt is kept as “A picture of a person”. With all this, approximately 25% of the target prompts obtained an accuracy above 70%. The ’male’ and the ’wearing hat’ features obtained remarkable accuracy results, 97% and 89% respectively.</p>
+      </para>
+      <para xml:id="S4.SS1.p2" fragid="S4.SS1.p2">
+        <p>In general, CLIP works sufficiently well when the label represents a physical object (e.g., hat or eyeglasses) or a common expression (e.g., smile), which will arguably be common in the data set in which CLIP has been trained on. The CLIP data set has millions of images and natural text from the Internet, so we must think about how the image descriptions in Internet often look like, in order to engineer good prompts. For example, when talking about a specific person appearing in an image that contains several people, it is common to talk about “the one who wears a hat” or “the one who has a goatee”, but is unlikely to use a description like “the one who has narrow eyes” or “the one who has rosy cheeks”.</p>
+      </para>
+      <para xml:id="S4.SS1.p3" fragid="S4.SS1.p3">
+        <p>Another key for CLIP performance lies in the ambiguity of elements or concepts. Some labels present no doubt about whether they are true or false, but some others are susceptible to observer interpretation. For instance, asking if a person wears a hat is a very objective concept that raises no doubt, so practically everyone would respond the same. However, asking if a person has big lips, has a pointy nose, or is attractive, are relative or subjective questions whose answer will depend on the observer. In these cases, it seems that CLIP does not work so well.</p>
+      </para>
+      <para xml:id="S4.SS1.p4" fragid="S4.SS1.p4">
+        <p>Finally, a remarkable result in this experiment is the accuracy obtained with the feature “no beard”, which is related to a negation. In this case, the accuracy is 25%, but in a binary classification such as this, what CLIP really has reached is the 75 % of accuracy, if we invert its response. That means that CLIP ignored the “no” word in the prompt and classified the images of a person with beard with a 75% of accuracy. That indicates that CLIP probably is not able to deal with the concept of negation.</p>
+      </para>
+    </subsection>
+    <subsection inlist="toc" xml:id="S4.SS2" fragid="S4.SS2">
+      <tags>
+        <tag>4.2</tag>
+        <tag role="refnum">4.2</tag>
+        <tag role="typerefnum">§4.2</tag>
+      </tags>
+      <title><tag close=" ">4.2</tag>Results for the “Target vs contrary” method</title>
+      <table inlist="lot" xml:id="S4.T2" labels="LABEL:table:celeba_results2" fragid="S4.T2">
+        <tags>
+          <tag>Table 2</tag>
+          <tag role="refnum">2</tag>
+          <tag role="typerefnum">Table 2</tag>
+        </tags>
+        <tabular vattach="middle" class="ltx_guessed_headers">
+          <thead>
+            <tr>
+              <td align="center" thead="column">
+                <text font="bold">Target prompt</text>
+              </td>
+              <td align="center" thead="column">
+                <text font="bold">Contrary prompt</text>
+              </td>
+              <td align="center" thead="column">
+                <text font="bold">TPR</text>
+              </td>
+              <td align="center" thead="column">
+                <text font="bold">TNR</text>
+              </td>
+              <td align="center" thead="column">
+                <text font="bold">Acc</text>
+              </td>
+              <td align="center" thead="column">
+                <text font="bold">Gain</text>
+              </td>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td align="left" border="t">A picture of a man</td>
+              <td align="left" border="t">A picture of a woman</td>
+              <td align="center" border="t">99.39</td>
+              <td align="center" border="t">97.72</td>
+              <td align="center" border="t">98.54</td>
+              <td align="center" border="t">+1.43</td>
+            </tr>
+            <tr>
+              <td align="left">A picture of a bald person</td>
+              <td align="left">A picture of a haired person</td>
+              <td align="center">96.08</td>
+              <td align="center">80.43</td>
+              <td align="center">86.65</td>
+              <td align="center">+5.07</td>
+            </tr>
+            <tr>
+              <td align="left">A picture of a person who</td>
+              <td align="left">A picture of a person who</td>
+              <td align="center">80.05</td>
+              <td align="center">89.88</td>
+              <td align="center">84.28</td>
+              <td align="center">+2.52</td>
+            </tr>
+            <tr>
+              <td align="left">is smiling</td>
+              <td align="left">is serious</td>
+              <td/>
+              <td/>
+              <td/>
+              <td/>
+            </tr>
+            <tr>
+              <td align="left">A picture of a person with</td>
+              <td align="left">A picture of a person with</td>
+              <td align="center">68.12</td>
+              <td align="center">75.8</td>
+              <td align="center">71.29</td>
+              <td align="center">+3.35</td>
+            </tr>
+            <tr>
+              <td align="left">pale skin</td>
+              <td align="left">tanned skin</td>
+              <td/>
+              <td/>
+              <td/>
+              <td/>
+            </tr>
+            <tr>
+              <td align="left">A picture of a young person</td>
+              <td align="left">A picture of an aged person</td>
+              <td align="center">65.17</td>
+              <td align="center">78.2</td>
+              <td align="center">69.72</td>
+              <td align="center">+5.59</td>
+            </tr>
+            <tr>
+              <td align="left">A picture of a person with</td>
+              <td align="left">A picture of a person with</td>
+              <td align="center">60.38</td>
+              <td align="center">67.04</td>
+              <td align="center">62.9</td>
+              <td align="center">+6.96</td>
+            </tr>
+            <tr>
+              <td align="left">straight hair</td>
+              <td align="left">wavy hair</td>
+              <td/>
+              <td/>
+              <td/>
+              <td/>
+            </tr>
+            <tr>
+              <td align="left">A picture of an attractive</td>
+              <td align="left">A picture of an unattractive</td>
+              <td align="center">50.44</td>
+              <td align="center">50.13</td>
+              <td align="center">50.2</td>
+              <td align="center">-1.26</td>
+            </tr>
+            <tr>
+              <td align="left" border="b">person</td>
+              <td align="left" border="b">person</td>
+              <td border="b"/>
+              <td border="b"/>
+              <td border="b"/>
+              <td border="b"/>
+            </tr>
+          </tbody>
+        </tabular>
+        <toccaption><tag close=" ">2</tag>“Target vs contrary” prompting method applied on Celeba data set. True Positive Rate, True Negative Rate, Accuracy and Gain are shown in percentage.
+</toccaption>
+        <caption><tag close=": ">Table 2</tag>“Target vs contrary” prompting method applied on Celeba data set. True Positive Rate, True Negative Rate, Accuracy and Gain are shown in percentage.
+</caption>
+      </table>
+      <para xml:id="S4.SS2.p1" fragid="S4.SS2.p1">
+        <p>Table <ref labelref="LABEL:table:celeba_results2" idref="S4.T2" href="#S4.T2" title="Table 2 ‣ 4.2 Results for the “Target vs contrary” method ‣ 4 Experiments and prompt analysis ‣ An implementation of the “Guess who?” game using CLIP"><text class="ltx_ref_tag">2</text></ref> shows some examples of the performance of the second proposed prompting method. The results of the first method, “target vs neutral” are also shown for easy comparison. This experiment shows how, in general, this method allows to improve the classification results by prompting “contrary words” to the target attribute, since. Even the “male” attribute, which obtained a 97 % of accuracy in the first experiment, can be improved with this method, reaching almost the 1,5% of accuracy improvement.</p>
+      </para>
+      <para xml:id="S4.SS2.p2" fragid="S4.SS2.p2">
+        <p>However, it must be remarked that it is difficult to find useful “contrary words”. As an example, the label “wearing a necktie”, “wearing lipstick” or “having rosy cheeks” only can be inverted using a negation, what does not work properly with CLIP. In cases where the antonym is very similar to the original word as “attractive” and “unattractive”, CLIP does not seem to work properly either, but more tests must be done to ensure it.</p>
+      </para>
+    </subsection>
+  </section>
+  <section inlist="toc" xml:id="S5" labels="LABEL:sec:conclusions" fragid="S5">
+    <tags>
+      <tag>5</tag>
+      <tag role="refnum">5</tag>
+      <tag role="typerefnum">§5</tag>
+    </tags>
+    <title><tag close=" ">5</tag>Conclusions and Future work</title>
+    <para xml:id="S5.p1" fragid="S5.p1">
+      <p>In this work, we present an implementation of the popular game “Guess Who?”, in which the part of the game engine that decides whether an image fulfills the player question or not is made by CLIP, a language-image model that estimates how good a text caption pairs with a given image. To do that, we take each player prompt describing a person attribute and confront it with another prompt that does not represent it. In this way, we can create a binary classifier for each attribute of interest just by getting the maximum likelihood of CLIP’s output to those two prompts. We have tried different prompting methods, such as confronting the target prompt with a neutral one (e.g., “A picture of a person”) or using a prompt that describes the contrary of the target attribute. Experiments have been made with the labelled images of the Celeba data set to analyse the performance of these two prompting methods, showing that, as long as there is a clear contrary word to the target attribute, using the contrary prompt method normally leads to a better zero-shot classification performance.</p>
+    </para>
+    <para xml:id="S5.p2" fragid="S5.p2">
+      <p>As future work, we will continue working on “prompt engineering” due to CLIP-based zero-shot classifiers can be sensitive to wording or phrasing. Moreover, we will deploy the game as a public web application where interested users can play with their own images and give feedback about its performance.</p>
+    </para>
+  </section>
+  <section xml:id="Sx1" fragid="Sx1">
+    <title>Acknowledgements</title>
+    <para xml:id="Sx1.p1" fragid="Sx1.p1">
+      <p>This work has been partially supported by the company Dimai S.L, the “Convenio Plurianual” with the Universidad Politécnica de Madrid in the actuation line of “Programa de Excelencia para el Profesorado Universitario” and by next research projects: FightDIS (PID2020-117263GB-100), IBERIFIER (2020-EU-IA-0252:29374659), and the CIVIC project (BBVA Foundation Grants For Scientific Research Teams SARS-CoV-2 and COVID-19).</p>
+    </para>
+  </section>
+  <bibliography bibstyle="splncs04" citestyle="numbers" files="mybibliography" xml:id="bib" fragid="bib">
+    <title>References</title>
+    <biblist xml:id="bib.L1" fragid="bib.L1">
+      <bibitem class="ltx_bib_inproceedings" key="Conde2021CLIPArtCP" type="inproceedings" xml:id="bib.bib6" fragid="bib.bib6">
+        <tags>
+          <tag class="ltx_bib_number" role="number">1</tag>
+          <tag class="ltx_bib_author" role="authors">Conde and Turgutlu</tag>
+          <tag class="ltx_bib_year" role="year">2021</tag>
+          <tag class="ltx_bib_title" role="title">CLIP-art: contrastive pre-training for fine-grained art classification</tag>
+          <tag class="ltx_bib_key" close="]" open="[" role="refnum">1</tag>
+        </tags>
+        <bibblock xml:space="preserve">
+          <text class="ltx_bib_author">M. V. Conde and K. Turgutlu</text>
+          <text class="ltx_bib_year"> (<bib-date role="publication">2021-06</bib-date>)</text>
+        </bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>CLIP-art: contrastive pre-training for fine-grained art classification</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) Workshops</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_pages"> pp. <bib-part role="pages">3956–3960</bib-part></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p3" show="typerefnum" href="#S1.p3" title="1 Introduction ‣ An implementation of the “Guess who?” game using CLIP"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="cornia2019eshedmemory" type="inproceedings" xml:id="bib.bib4" fragid="bib.bib4">
+        <tags>
+          <tag class="ltx_bib_number" role="number">2</tag>
+          <tag class="ltx_bib_author" role="authors">Cornia<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Cornia, Stefanini, Baraldi,  and Cucchiara</tag>
+          <tag class="ltx_bib_year" role="year">2020</tag>
+          <tag class="ltx_bib_title" role="title">Meshed-memory transformer for image captioning</tag>
+          <tag class="ltx_bib_key" close="]" open="[" role="refnum">2</tag>
+        </tags>
+        <bibblock xml:space="preserve">
+          <text class="ltx_bib_author">M. Cornia, M. Stefanini, L. Baraldi, and R. Cucchiara</text>
+          <text class="ltx_bib_year"> (<bib-date role="publication">2020</bib-date>)</text>
+        </bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Meshed-memory transformer for image captioning</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_pages"> pp. <bib-part role="pages">10578–10587</bib-part></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p2" show="typerefnum" href="#S1.p2" title="1 Introduction ‣ An implementation of the “Guess who?” game using CLIP"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="dosovitskiy2020n" type="article" xml:id="bib.bib11" fragid="bib.bib11">
+        <tags>
+          <tag class="ltx_bib_number" role="number">3</tag>
+          <tag class="ltx_bib_author" role="authors">Dosovitskiy<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Dosovitskiy, Beyer, Kolesnikov, Weissenborn, Zhai, Unterthiner, Dehghani, Minderer, Heigold, Gelly, Uszkoreit,  and Houlsby</tag>
+          <tag class="ltx_bib_year" role="year">2020</tag>
+          <tag class="ltx_bib_title" role="title">An image is worth 16x16 words: transformers for image recognition at scale</tag>
+          <tag class="ltx_bib_key" close="]" open="[" role="refnum">3</tag>
+        </tags>
+        <bibblock xml:space="preserve">
+          <text class="ltx_bib_author">A. Dosovitskiy, L. Beyer, A. Kolesnikov, D. Weissenborn, X. Zhai, T. Unterthiner, M. Dehghani, M. Minderer, G. Heigold, S. Gelly, J. Uszkoreit, and N. Houlsby</text>
+          <text class="ltx_bib_year"> (<bib-date role="publication">2020</bib-date>)</text>
+        </bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>An image is worth 16x16 words: transformers for image recognition at scale</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>arXiv preprint arXiv:2010.11929</bib-title></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S2.p1" show="typerefnum" href="#S2.p1" title="2 Backgrounds on CLIP ‣ An implementation of the “Guess who?” game using CLIP"><text class="ltx_ref_tag">§2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="Fang2021CLIP2VideoMV" type="article" xml:id="bib.bib7" fragid="bib.bib7">
+        <tags>
+          <tag class="ltx_bib_number" role="number">4</tag>
+          <tag class="ltx_bib_author" role="authors">Fang<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Fang, Xiong, Xu,  and Chen</tag>
+          <tag class="ltx_bib_year" role="year">2021</tag>
+          <tag class="ltx_bib_title" role="title">CLIP2Video: mastering video-text retrieval via image clip</tag>
+          <tag class="ltx_bib_key" close="]" open="[" role="refnum">4</tag>
+        </tags>
+        <bibblock xml:space="preserve">
+          <text class="ltx_bib_author">H. Fang, P. Xiong, L. Xu, and Y. Chen</text>
+          <text class="ltx_bib_year"> (<bib-date role="publication">2021</bib-date>)</text>
+        </bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>CLIP2Video: mastering video-text retrieval via image clip</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>ArXiv</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">abs/2106.11097</bib-part></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p3" show="typerefnum" href="#S1.p3" title="1 Introduction ‣ An implementation of the “Guess who?” game using CLIP"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="Gao2020ASO" type="article" xml:id="bib.bib2" fragid="bib.bib2">
+        <tags>
+          <tag class="ltx_bib_number" role="number">5</tag>
+          <tag class="ltx_bib_author" role="authors">Gao<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Gao, Li, Chen,  and Zhang</tag>
+          <tag class="ltx_bib_year" role="year">2020</tag>
+          <tag class="ltx_bib_title" role="title">A survey on deep learning for multimodal data fusion</tag>
+          <tag class="ltx_bib_key" close="]" open="[" role="refnum">5</tag>
+        </tags>
+        <bibblock xml:space="preserve">
+          <text class="ltx_bib_author">J. Gao, P. Li, Z. Chen, and J. Zhang</text>
+          <text class="ltx_bib_year"> (<bib-date role="publication">2020</bib-date>)</text>
+        </bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>A survey on deep learning for multimodal data fusion</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>Neural Computation</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">32</bib-part></text>, <text class="ltx_bib_pages"> pp. <bib-part role="pages">829–864</bib-part></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p1" show="typerefnum" href="#S1.p1" title="1 Introduction ‣ An implementation of the “Guess who?” game using CLIP"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="liu2015deep" type="inproceedings" xml:id="bib.bib9" fragid="bib.bib9">
+        <tags>
+          <tag class="ltx_bib_number" role="number">6</tag>
+          <tag class="ltx_bib_author" role="authors">Liu<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Liu, Luo, Wang,  and Tang</tag>
+          <tag class="ltx_bib_year" role="year">2015</tag>
+          <tag class="ltx_bib_title" role="title">Deep learning face attributes in the wild</tag>
+          <tag class="ltx_bib_key" close="]" open="[" role="refnum">6</tag>
+        </tags>
+        <bibblock xml:space="preserve">
+          <text class="ltx_bib_author">Z. Liu, P. Luo, X. Wang, and X. Tang</text>
+          <text class="ltx_bib_year"> (<bib-date role="publication">2015</bib-date>)</text>
+        </bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Deep learning face attributes in the wild</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Proceedings of the IEEE international conference on computer vision</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_pages"> pp. <bib-part role="pages">3730–3738</bib-part></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S3.p2" show="typerefnum" href="#S3.p2" title="3 Game description ‣ An implementation of the “Guess who?” game using CLIP"><text class="ltx_ref_tag">§3</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="8960960" type="inproceedings" xml:id="bib.bib3" fragid="bib.bib3">
+        <tags>
+          <tag class="ltx_bib_number" role="number">7</tag>
+          <tag class="ltx_bib_author" role="authors">Nawaz<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Nawaz, Calefati, Caraffini, Landro,  and Gallo</tag>
+          <tag class="ltx_bib_year" role="year">2019</tag>
+          <tag class="ltx_bib_title" role="title">Are these birds similar: learning branched networks for fine-grained representations</tag>
+          <tag class="ltx_bib_key" close="]" open="[" role="refnum">7</tag>
+        </tags>
+        <bibblock xml:space="preserve">
+          <text class="ltx_bib_author">S. Nawaz, A. Calefati, M. Caraffini, N. Landro, and I. Gallo</text>
+          <text class="ltx_bib_year"> (<bib-date role="publication">2019</bib-date>)</text>
+        </bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Are these birds similar: learning branched networks for fine-grained representations</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>2019 International Conference on Image and Vision Computing New Zealand (IVCNZ)</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve">Vol. <text class="ltx_bib_volume"><bib-part role="volume"/></text>, <text class="ltx_bib_pages"> pp. <bib-part role="pages">1–5</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="doi ltx_bib_external" href="https://dx.doi.org/10.1109/IVCNZ48456.2019.8960960">Document</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p2" show="typerefnum" href="#S1.p2" title="1 Introduction ‣ An implementation of the “Guess who?” game using CLIP"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="radford2021earning" type="article" xml:id="bib.bib1" fragid="bib.bib1">
+        <tags>
+          <tag class="ltx_bib_number" role="number">8</tag>
+          <tag class="ltx_bib_author" role="authors">Radford<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Radford, Kim, Hallacy, Ramesh, Goh, Agarwal, Sastry, Askell, Mishkin, Clark, Krueger,  and Sutskever</tag>
+          <tag class="ltx_bib_year" role="year">2021</tag>
+          <tag class="ltx_bib_title" role="title">Learning transferable visual models from natural language supervision</tag>
+          <tag class="ltx_bib_key" close="]" open="[" role="refnum">8</tag>
+        </tags>
+        <bibblock xml:space="preserve">
+          <text class="ltx_bib_author">A. Radford, J. W. Kim, C. Hallacy, A. Ramesh, G. Goh, S. Agarwal, G. Sastry, A. Askell, P. Mishkin, J. Clark, G. Krueger, and I. Sutskever</text>
+          <text class="ltx_bib_year"> (<bib-date role="publication">2021</bib-date>)</text>
+        </bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Learning transferable visual models from natural language supervision</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>arXiv preprint arXiv:2103.00020</bib-title></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p3" show="typerefnum" href="#S1.p3" title="1 Introduction ‣ An implementation of the “Guess who?” game using CLIP"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S2.p2" show="typerefnum" href="#S2.p2" title="2 Backgrounds on CLIP ‣ An implementation of the “Guess who?” game using CLIP"><text class="ltx_ref_tag">§2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="ramesh2021eroshot" type="article" xml:id="bib.bib8" fragid="bib.bib8">
+        <tags>
+          <tag class="ltx_bib_number" role="number">9</tag>
+          <tag class="ltx_bib_author" role="authors">Ramesh<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Ramesh, Pavlov, Goh, Gray, Voss, Radford, Chen,  and Sutskever</tag>
+          <tag class="ltx_bib_year" role="year">2021</tag>
+          <tag class="ltx_bib_title" role="title">Zero-shot text-to-image generation</tag>
+          <tag class="ltx_bib_key" close="]" open="[" role="refnum">9</tag>
+        </tags>
+        <bibblock xml:space="preserve">
+          <text class="ltx_bib_author">A. Ramesh, M. Pavlov, G. Goh, S. Gray, C. Voss, A. Radford, M. Chen, and I. Sutskever</text>
+          <text class="ltx_bib_year"> (<bib-date role="publication">2021</bib-date>)</text>
+        </bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Zero-shot text-to-image generation</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>arXiv preprint arXiv:2102.12092</bib-title></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p3" show="typerefnum" href="#S1.p3" title="1 Introduction ‣ An implementation of the “Guess who?” game using CLIP"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="tan2019earning" type="inproceedings" xml:id="bib.bib5" fragid="bib.bib5">
+        <tags>
+          <tag class="ltx_bib_number" role="number">10</tag>
+          <tag class="ltx_bib_author" role="authors">Tan<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Tan, Yu,  and Bansal</tag>
+          <tag class="ltx_bib_year" role="year">2019</tag>
+          <tag class="ltx_bib_title" role="title">Learning to navigate unseen environments: back translation with environmental dropout</tag>
+          <tag class="ltx_bib_key" close="]" open="[" role="refnum">10</tag>
+        </tags>
+        <bibblock xml:space="preserve">
+          <text class="ltx_bib_author">H. Tan, L. Yu, and M. Bansal</text>
+          <text class="ltx_bib_year"> (<bib-date role="publication">2019</bib-date>)</text>
+        </bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Learning to navigate unseen environments: back translation with environmental dropout</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Proceedings of the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies, Volume 1 (Long and Short Papers)</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_pages"> pp. <bib-part role="pages">2610–2621</bib-part></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p2" show="typerefnum" href="#S1.p2" title="1 Introduction ‣ An implementation of the “Guess who?” game using CLIP"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="vaswani2017ttention" type="article" xml:id="bib.bib10" fragid="bib.bib10">
+        <tags>
+          <tag class="ltx_bib_number" role="number">11</tag>
+          <tag class="ltx_bib_author" role="authors">Vaswani<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Vaswani, Shazeer, Parmar, Uszkoreit, Jones, Gomez, Kaiser,  and Polosukhin</tag>
+          <tag class="ltx_bib_year" role="year">2017</tag>
+          <tag class="ltx_bib_title" role="title">Attention is all you need</tag>
+          <tag class="ltx_bib_key" close="]" open="[" role="refnum">11</tag>
+        </tags>
+        <bibblock xml:space="preserve">
+          <text class="ltx_bib_author">A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, L. Kaiser, and I. Polosukhin</text>
+          <text class="ltx_bib_year"> (<bib-date role="publication">2017</bib-date>)</text>
+        </bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Attention is all you need</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>arXiv preprint arXiv:1706.03762</bib-title></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S2.p1" show="typerefnum" href="#S2.p1" title="2 Backgrounds on CLIP ‣ An implementation of the “Guess who?” game using CLIP"><text class="ltx_ref_tag">§2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="zhang2020contrastive" type="article" xml:id="bib.bib12" fragid="bib.bib12">
+        <tags>
+          <tag class="ltx_bib_number" role="number">12</tag>
+          <tag class="ltx_bib_author" role="authors">Zhang<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Zhang, Jiang, Miura, Manning,  and Langlotz</tag>
+          <tag class="ltx_bib_year" role="year">2020</tag>
+          <tag class="ltx_bib_title" role="title">Contrastive learning of medical visual representations from paired images and text</tag>
+          <tag class="ltx_bib_key" close="]" open="[" role="refnum">12</tag>
+        </tags>
+        <bibblock xml:space="preserve">
+          <text class="ltx_bib_author">Y. Zhang, H. Jiang, Y. Miura, C. D. Manning, and C. P. Langlotz</text>
+          <text class="ltx_bib_year"> (<bib-date role="publication">2020</bib-date>)</text>
+        </bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Contrastive learning of medical visual representations from paired images and text</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>arXiv preprint arXiv:2010.00747</bib-title></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S2.p1" show="typerefnum" href="#S2.p1" title="2 Backgrounds on CLIP ‣ An implementation of the “Guess who?” game using CLIP"><text class="ltx_ref_tag">§2</text></ref>.</bibblock>
+      </bibitem>
+    </biblist>
+  </bibliography>
+  <navigation>
+    <title>An implementation of the “Guess who?” game using CLIP</title>
+  </navigation>
+</document>

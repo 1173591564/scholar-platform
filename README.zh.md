@@ -2,7 +2,7 @@
 
 [English](README.md) | 中文
 
-Scholar Studio 是 Python 学术研究引擎，提供 48-command CLI、16-tool MCP server、15 个本地 research skill、lexical 与 semantic retrieval、内存 citation/concept graph、论文解析、学术写作支持、实验辅助与可选 Lean4 synchronization。
+Scholar Studio 是 Python 学术研究引擎，提供 48-command CLI、16-tool MCP server、lexical 与 semantic retrieval、论文解析、学术写作支持、实验辅助与可选 Lean4 synchronization。
 
 ## 架构
 
@@ -14,15 +14,11 @@ DeepSeek Harness 是独立分发给用户的客户端，其学术模式负责用
 
 | 路径 | 职责 |
 | --- | --- |
-| `scholar/` | 学术领域逻辑、CLI 与打包模板 |
+| `scholar/` | 学术领域逻辑与 CLI |
 | `scholar_mcp/` | 固定 MCP 工具面与 transport |
 | `services/proxy-hub/` | 独立的 Proxy Hub backend 与 operator console |
 | `infra/` | 按服务划分的部署资源 |
 | `tests/` | Scholar 与 MCP 回归测试 |
-| `.scholar/` | 共享 IDE 模板的唯一源 |
-| `.qoder/`、`.claude/` | 生成的 IDE 投影 |
-
-`scholar/templates/` 是 `.scholar/` 的 package-distribution 镜像，并额外包含 package-only DSH assets。修改源模板后运行 `make sync-templates`；CI 通过 `make check-templates` 防止漂移。
 
 ## 安装
 
@@ -34,7 +30,7 @@ scholar init
 scholar doctor
 ```
 
-`scholar init` 会在配置的 Scholar home 下安装固定本地 rule 与 15 个 skill，不覆盖用户修改的文件。Wheel 包含代码与 template，不包含论文 corpus。
+`scholar init` 会在配置的 Scholar home 下创建目录结构与 `.env.example`，不覆盖用户修改的文件。Wheel 包含代码，不包含论文 corpus。
 
 ## Corpus 所有权
 
@@ -131,7 +127,7 @@ make check
 python -m pip wheel . --no-deps -w dist
 ```
 
-根目录 `Makefile` 也提供 Scholar、Proxy Hub backend、Proxy Hub frontend 与生成模板的独立检查入口。
+根目录 `Makefile` 也提供 Scholar、Proxy Hub backend、Proxy Hub frontend 的独立检查入口。
 
 Tests 覆盖 path containment、malformed paper data、parser golden artifact、graph/index invalidation、authentication、MCP initialization、16-tool catalog、lexical 与 semantic search、pgvector PostgreSQL scoped passage SQL、DSH clean-home installation、credential storage、permission、existing-file preservation 与 rollback。
 

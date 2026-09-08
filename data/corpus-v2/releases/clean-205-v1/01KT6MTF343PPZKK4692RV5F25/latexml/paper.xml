@@ -1,0 +1,1035 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?latexml searchpaths="/opt/ar5iv-bindings/supported_originals,/opt/ar5iv-bindings/bindings,/work"?>
+<?latexml class="article" options="11pt"?>
+<?latexml package="EMNLP2023"?>
+<?latexml package="times"?>
+<?latexml package="latexsym"?>
+<?latexml package="fontenc" options="T1"?>
+<?latexml package="inputenc" options="utf8"?>
+<?latexml package="microtype"?>
+<?latexml package="inconsolata"?>
+<?latexml package="adjustbox"?>
+<?latexml package="booktabs"?>
+<?latexml RelaxNGSchema="LaTeXML"?>
+<document xmlns="http://dlmf.nist.gov/LaTeXML" xmlns:m="http://www.w3.org/1998/Math/MathML" class="ltx_authors_1line" xml:id="Document">
+  <resource src="LaTeXML.css" type="text/css"/>
+  <resource src="ltx-article.css" type="text/css"/>
+  <title>Humanoid Agents: Platform for Simulating Human-like Generative Agents</title>
+  <creator role="author">
+    <personname>
+Zhilin Wang* <break/>University of Washington <break/>and NVIDIA <break/><text font="typewriter">zhilinw@uw.edu</text> <break/></personname>
+  </creator>
+  <creator role="author" before="  ">
+    <personname>Yu Ying Chiu* <break/>University of Washington <break/><text font="typewriter">kellycyy@uw.edu</text> <break/></personname>
+  </creator>
+  <creator role="author" before="  ">
+    <personname>Yu Cheung Chiu <break/>The University of Hong Kong <break/><text font="typewriter">jackycyc@connect.hku.hk</text> <break/></personname>
+  </creator>
+  <abstract name="Abstract">
+    <p>Just as computational simulations of atoms, molecules and cells have shaped the way we study the sciences, true-to-life simulations of human-like agents can be valuable tools for studying human behavior. We propose Humanoid Agents, a system that guides Generative Agents to behave more like humans by introducing three elements of System 1 processing: Basic needs (e.g. hunger, health and energy), Emotion and Closeness in Relationships. Humanoid Agents are able to use these dynamic elements to adapt their daily activities and conversations with other agents, as supported with empirical experiments. Our system is designed to be extensible to various settings, three of which we demonstrate, as well as to other elements influencing human behavior (e.g. empathy, moral values and cultural background). Our platform also includes a Unity WebGL game interface for visualization and an interactive analytics dashboard to show agent statuses over time. Our platform is available on <ref class="ltx_url" href="https://www.humanoidagents.com/" font="typewriter">https://www.humanoidagents.com/</ref> and code is on <ref class="ltx_url" href="https://github.com/HumanoidAgents/HumanoidAgents" font="typewriter">https://github.com/HumanoidAgents/HumanoidAgents</ref>.</p>
+  </abstract>
+  <section inlist="toc" xml:id="S1" fragid="S1">
+    <tags>
+      <tag>1</tag>
+      <tag role="autoref">section 1</tag>
+      <tag role="refnum">1</tag>
+      <tag role="typerefnum">§1</tag>
+    </tags>
+    <title><tag close=" ">1</tag>Introduction</title>
+    <note mark="*" role="footnotetext" xml:id="footnotex1" fragid="footnotex1">Equal Contribution</note>
+    <para xml:id="S1.p1" fragid="S1.p1">
+      <p>Ushered in by the landmark paper on Generative Agents <cite class="ltx_citemacro_citep">(Park<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib36" idref="bib.bib36" title="Generative agents: interactive simulacra of human behavior">2023</ref>)</cite>, the promise of modelling conceivable human behavior using advanced NLP systems has sparked the imagination of many. Generative Agents plan activities over a day, execute them at each time-step and adapt their plans based on observations of their environment. While this approach can generate seemingly believe-able activities to external observers, this process does not fully resemble how humans think. Most of us do not create plans well in advance, and then meticulously and precisely carry out those plans in day-to-day life. Instead, we constantly adapt our plans to how we feel on the inside, in addition to changes in our physical environment.</p>
+    </para>
+    <figure inlist="lof" xml:id="S1.F1" labels="LABEL:fig:front_page" fragid="S1.F1">
+      <tags>
+        <tag>Figure 1</tag>
+        <tag role="autoref">Figure 1</tag>
+        <tag role="refnum">1</tag>
+        <tag role="typerefnum">Figure 1</tag>
+      </tags>
+      <graphics candidates="img/front_page.png" graphic="img/front_page.png" options="width=433.6pt,keepaspectratio=true" xml:id="S1.F1.g1" fragid="S1.F1.g1"/>
+      <toccaption><tag close=" ">1</tag>Humanoid Agents are guided by both System 1 thinking to respond to their embodied conditions such as their basic needs and System 2 thinking involving explicit planning.</toccaption>
+      <caption><tag close=": ">Figure 1</tag>Humanoid Agents are guided by both System 1 thinking to respond to their embodied conditions such as their basic needs and System 2 thinking involving explicit planning.</caption>
+    </figure>
+    <para xml:id="S1.p2" fragid="S1.p2">
+      <p>To mitigate this shortcoming, we draw inspiration from psychology to propose Humanoid Agents. <cite class="ltx_citemacro_citet">Kahneman (<ref href="#bib.bib25" idref="bib.bib25" title="Thinking, fast and slow">2011</ref>)</cite> suggests that humans have two complementary processes for thinking: System 1 is intuitive, effortless and instantaneous while System 2 is logical, intentional and slow. Generative Agents focus on System 2 thinking at the cost of System 1. To better guide the behavior of Humanoid Agents using System 1, we introduce three aspects of System 1 that can influence their behavior: Basic needs, Emotion and the Closeness of their social relationship with other agents.</p>
+    </para>
+    <para xml:id="S1.p3" fragid="S1.p3">
+      <p>Basic needs refer to intrinsic needs that humans have for survival <cite class="ltx_citemacro_citep">(Maslow, <ref href="#bib.bib3" idref="bib.bib3" title="A theory of human motivation">1943</ref>)</cite>. To appropriately model human behavior, agents need to interact with others, maintain their health and rest. Failing to do so adequately, agents will receive negative feedback comprising loneliness, sickness and tiredness, as illustrated in Fig. <ref labelref="LABEL:fig:front_page" idref="S1.F1" href="#S1.F1" title="Figure 1 ‣ 1 Introduction ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">1</text></ref>. System 2 planning alone can implicitly account for activities to meet these needs (e.g. planning time for rest) but without feedback from System 1, agents cannot adapt by having a nap at 3pm if tired but bedtime is planned for midnight. Similarly, a realistic model of human behavior needs to consider the agents’ emotions <cite class="ltx_citemacro_citep">(Ekman, <ref href="#bib.bib6" idref="bib.bib6" title="An argument for basic emotions">1992</ref>)</cite>. If an agent is feeling angry, it should be able to respond by doing something that helps it to vent its emotion, such as going for a run or doing meditation.</p>
+    </para>
+    <para xml:id="S1.p4" fragid="S1.p4">
+      <p>The relationship closeness of an agent to other agents should also influence how they engage with other agents. The social brain hypothesis proposes that a large part of our cognitive ability evolved to track the quality of social relationships
+<cite class="ltx_citemacro_citep">(Dunbar, <ref href="#bib.bib26" idref="bib.bib26" title="The social brain hypothesis and its implications for social evolution">2009</ref>)</cite>, which means that people often adapt their interactions with others based on how close they feel to them <cite class="ltx_citemacro_citep">(Zhou<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib27" idref="bib.bib27" title="Discrete hierarchical organization of social group sizes">2005</ref>; Miller, <ref href="#bib.bib30" idref="bib.bib30" title="Intimate relationships">2012</ref>)</cite>. To better imitate humans, we empower humanoid agents to adapt their conversations with one another based on how close they are to one another.</p>
+    </para>
+    <para xml:id="S1.p5" fragid="S1.p5">
+      <p>We present a platform that can simulate the behavior of Humanoid Agents in various settings (three of which we demonstrate), visualize them using an Unity WebGL game interface and present the statuses of simulated agents over time using an interactive analytics dashboard. We then show experiments that validate how Humanoid Agents effectively respond to and infer changes in each aspect of System 1.
+While our paper demonstrates how three different aspects of System 1 influence agent behavior, our system is also extensible to many more aspects, such as personality <cite class="ltx_citemacro_citep">(Wu<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib13" idref="bib.bib13" title="Author2Vec: a framework for generating user embedding">2020</ref>)</cite>, moral values <cite class="ltx_citemacro_citep">(Jiang<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib23" idref="bib.bib23" title="Can machines learn morality? the delphi experiment">2022</ref>)</cite>, empathy <cite class="ltx_citemacro_citep">(Sharma<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib8" idref="bib.bib8" title="A computational approach to understanding empathy expressed in text-based mental health support">2020</ref>)</cite>, helpfulness <cite class="ltx_citemacro_citep">(Wang and Torres, <ref href="#bib.bib15" idref="bib.bib15" title="How to be helpful on online support forums?">2022</ref>)</cite>, cultural background <cite class="ltx_citemacro_citep">(Liu<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib21" idref="bib.bib21" title="Visually grounded reasoning across languages and cultures">2021</ref>)</cite> and other personal attributes <cite class="ltx_citemacro_citep">(Wang<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib14" idref="bib.bib14" title="Extracting and inferring personal attributes from dialogue">2022</ref>)</cite>.</p>
+    </para>
+  </section>
+  <section inlist="toc" xml:id="S2" fragid="S2">
+    <tags>
+      <tag>2</tag>
+      <tag role="autoref">section 2</tag>
+      <tag role="refnum">2</tag>
+      <tag role="typerefnum">§2</tag>
+    </tags>
+    <title><tag close=" ">2</tag>Related Work</title>
+    <paragraph inlist="toc" xml:id="S2.SS0.SSS0.Px1" fragid="S2.SS0.SSS0.Px1">
+      <title>Building Agents using LLMs</title>
+      <para xml:id="S2.SS0.SSS0.Px1.p1" fragid="S2.SS0.SSS0.Px1.p1">
+        <p>Humanoid Agents directly build upon Generative Agents, which aim to model believe-able human behavior <cite class="ltx_citemacro_citep">(Park<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib36" idref="bib.bib36" title="Generative agents: interactive simulacra of human behavior">2023</ref>)</cite>. To the best of our knowledge, this is the only work that seek to model day-to-day activities of human-like agents, rather than activities targeted towards achieving an externally defined goal.
+<cite class="ltx_citemacro_citet">Liu<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib5" idref="bib.bib5" title="Training socially aligned language models in simulated human society">2023</ref>)</cite> proposed simulated agents with long-term memory to align agent responses (to assistant-type prompts) with those of other agents, aiming to cooperatively improve the overall model’s ability to follow instructions.
+Langchain Agents <cite class="ltx_citemacro_citep">(Chase, <ref href="#bib.bib20" idref="bib.bib20" title="LangChain">2022</ref>)</cite>, BabyAGI <cite class="ltx_citemacro_citep">(Yohei, <ref href="#bib.bib11" idref="bib.bib11" title="BabyAGI">2022</ref>)</cite>, AutoGPT <cite class="ltx_citemacro_citep">(Significant, <ref href="#bib.bib12" idref="bib.bib12" title="Auto GPT">2023</ref>)</cite>, AgentVerse <cite class="ltx_citemacro_citep">(OpenBMB, <ref href="#bib.bib17" idref="bib.bib17" title="AgentVerse">2023</ref>)</cite>, Voyager <cite class="ltx_citemacro_citep">(Wang<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib19" idref="bib.bib19" title="Voyager: an open-ended embodied agent with large language models">2023</ref>)</cite> and CAMEL <cite class="ltx_citemacro_citep">(Li<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib9" idref="bib.bib9" title="CAMEL: communicative agents for &quot;mind&quot; exploration of large scale language model society">2023</ref>)</cite> seek to create task-oriented agents that can recursively decompose user-defined tasks into simpler sub-tasks and then solve them.</p>
+      </para>
+    </paragraph>
+    <paragraph inlist="toc" xml:id="S2.SS0.SSS0.Px2" fragid="S2.SS0.SSS0.Px2">
+      <title>Persona-Grounded Dialogue</title>
+      <para xml:id="S2.SS0.SSS0.Px2.p1" fragid="S2.SS0.SSS0.Px2.p1">
+        <p>Prior works have been done to ground multi-turn dialogue response generation on emotions <cite class="ltx_citemacro_citep">(Rashkin<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib37" idref="bib.bib37" title="Towards empathetic open-domain conversation models: a new benchmark and dataset">2019</ref>)</cite>, game character descriptions <cite class="ltx_citemacro_citep">(Urbanek<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib35" idref="bib.bib35" title="Learning to speak and act in a fantasy text adventure game">2019</ref>)</cite> and personal facts <cite class="ltx_citemacro_citep">(Zhang<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib4" idref="bib.bib4" title="Personalizing dialogue agents: i have a dog, do you have pets too?">2018</ref>)</cite>. However, these dialogues are not situated in a dynamic simulation of agents (which also perform activities at each time-step), and instead based on a static set of persona-related text information. Therefore, these prior works cannot model the effect of dynamic attributes, such as the changing relationship closeness between a pair of agents. Furthermore, Humanoid Agents can simultaneously consider multiple aspects (e.g. basic needs fulfillment, emotion and relationship closeness) in determining appropriate dialogue responses, as humans do while prior works only consider one relevant aspect at a time.</p>
+      </para>
+    </paragraph>
+  </section>
+  <section inlist="toc" xml:id="S3" fragid="S3">
+    <tags>
+      <tag>3</tag>
+      <tag role="autoref">section 3</tag>
+      <tag role="refnum">3</tag>
+      <tag role="typerefnum">§3</tag>
+    </tags>
+    <title><tag close=" ">3</tag>Humanoid Agents</title>
+    <figure inlist="lof" placement="h" xml:id="S3.F2" labels="LABEL:fig:system" fragid="S3.F2">
+      <tags>
+        <tag>Figure 2</tag>
+        <tag role="autoref">Figure 2</tag>
+        <tag role="refnum">2</tag>
+        <tag role="typerefnum">Figure 2</tag>
+      </tags>
+      <graphics candidates="img/system_architecture.png" graphic="img/system_architecture.png" options="height=216.8pt,width=433.6pt" xml:id="S3.F2.g1" class="ltx_centering" fragid="S3.F2.g1"/>
+      <toccaption class="ltx_centering"><tag close=" ">2</tag>Architecture of Humanoid Agents. <text font="bold">Step 1</text>: Agent is initialized based on user-provided seed information. (Details in Section <ref labelref="LABEL:sec:agent_initialization" idref="S3.SS1" href="#S3.SS1" title="3.1 Agent Initialization ‣ 3 Humanoid Agents ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">3.1</text></ref>)
+ <text font="bold">Step 2</text>: Agent plans their day. <text font="bold">Step 3</text>: Agent takes an action based on their plan. <text font="bold">Step 4</text>: Agent evaluates if action taken changes their basic needs status and emotion. <text font="bold">Step 5</text>: Agent can update their future plan based on the satisfaction of their basic needs and emotion. (Section <ref labelref="LABEL:sec:activity_planning" idref="S3.SS2" href="#S3.SS2" title="3.2 Activity Planning ‣ 3 Humanoid Agents ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">3.2</text></ref>) <text font="bold">Step 3a</text>: Agent can converse with another agent if in the same location, which can affect the closeness of their relationship. (Section <ref labelref="LABEL:sec:dialogue_generation" idref="S3.SS3" href="#S3.SS3" title="3.3 Dialogue Generation ‣ 3 Humanoid Agents ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">3.3</text></ref>)
+</toccaption>
+      <caption class="ltx_centering"><tag close=": ">Figure 2</tag>Architecture of Humanoid Agents. <text font="bold">Step 1</text>: Agent is initialized based on user-provided seed information. (Details in Section <ref labelref="LABEL:sec:agent_initialization" idref="S3.SS1" href="#S3.SS1" title="3.1 Agent Initialization ‣ 3 Humanoid Agents ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">3.1</text></ref>)
+ <text font="bold">Step 2</text>: Agent plans their day. <text font="bold">Step 3</text>: Agent takes an action based on their plan. <text font="bold">Step 4</text>: Agent evaluates if action taken changes their basic needs status and emotion. <text font="bold">Step 5</text>: Agent can update their future plan based on the satisfaction of their basic needs and emotion. (Section <ref labelref="LABEL:sec:activity_planning" idref="S3.SS2" href="#S3.SS2" title="3.2 Activity Planning ‣ 3 Humanoid Agents ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">3.2</text></ref>) <text font="bold">Step 3a</text>: Agent can converse with another agent if in the same location, which can affect the closeness of their relationship. (Section <ref labelref="LABEL:sec:dialogue_generation" idref="S3.SS3" href="#S3.SS3" title="3.3 Dialogue Generation ‣ 3 Humanoid Agents ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">3.3</text></ref>)
+</caption>
+    </figure>
+    <para xml:id="S3.p1" fragid="S3.p1">
+      <p>Illustrated in Fig. <ref labelref="LABEL:fig:system" idref="S3.F2" href="#S3.F2" title="Figure 2 ‣ 3 Humanoid Agents ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">2</text></ref>, the architecture of Humanoid Agents is based on Generative Agents with improvement to Agent Initialization, Activity Planning and Dialogue Generation in order to account for System 1 thinking processes. Akin to Generative Agents, ChatGPT 3.5 is used for all generations, but support for other language models is planned for future development.</p>
+    </para>
+    <subsection inlist="toc" xml:id="S3.SS1" labels="LABEL:sec:agent_initialization" fragid="S3.SS1">
+      <tags>
+        <tag>3.1</tag>
+        <tag role="autoref">subsection 3.1</tag>
+        <tag role="refnum">3.1</tag>
+        <tag role="typerefnum">§3.1</tag>
+      </tags>
+      <title><tag close=" ">3.1</tag>Agent Initialization</title>
+      <para xml:id="S3.SS1.p1" fragid="S3.SS1.p1">
+        <p>Similar to <cite class="ltx_citemacro_citet">Park<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib36" idref="bib.bib36" title="Generative agents: interactive simulacra of human behavior">2023</ref>)</cite>, we initialize each agent with a name, age, an example day plan, a list of sentences describing the agent (<text font="italic">e.g.</text> John Lin is a pharmacy shopkeeper at the Willow Market and Pharmacy who loves to help people) and a few of their personality traits (<text font="italic">e.g.</text> friendly, kind).</p>
+      </para>
+      <para xml:id="S3.SS1.p2" fragid="S3.SS1.p2">
+        <p>In addition, Humanoid Agents have their default emotion set to neutral out of 7 possible emotions: angry, sad, afraid, surprise, happy, neutral and disgusted <cite class="ltx_citemacro_citep">(Ekman, <ref href="#bib.bib6" idref="bib.bib6" title="An argument for basic emotions">1992</ref>)</cite>. Each of their basic needs (fullness, fun, health, social and energy) is set to a mid level (i.e 5 out of 10 where 0 is not meeting their need at all and 10 is fully satisfying that need) except energy which is set to full (<text font="italic">i.e.</text> 10 out of 10), as we would expect at the start of an agent’s day. Finally, we set social relationships for each agent with other agents, with each social relationship having a closeness field set to an integer value between 0 and 30 where below 5 is distant, 5 to 9 is rather close, 10 to 14 is close and 15 and above is very close. Unless otherwise specified, the initial closeness value is set to 5 (rather close) to allow relationship closeness to develop over time.</p>
+      </para>
+    </subsection>
+    <subsection inlist="toc" xml:id="S3.SS2" labels="LABEL:sec:activity_planning" fragid="S3.SS2">
+      <tags>
+        <tag>3.2</tag>
+        <tag role="autoref">subsection 3.2</tag>
+        <tag role="refnum">3.2</tag>
+        <tag role="typerefnum">§3.2</tag>
+      </tags>
+      <title><tag close=" ">3.2</tag>Activity Planning</title>
+      <para xml:id="S3.SS2.p1" fragid="S3.SS2.p1">
+        <p>Briefly, we follow <cite class="ltx_citemacro_citet">Park<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib36" idref="bib.bib36" title="Generative agents: interactive simulacra of human behavior">2023</ref>)</cite> to determine the activities of an agent by first planning out an entire day at the start of the day, using their example day plan, personality traits and description. Then, the day plan is recursively decomposed into plans at 1 hour intervals and then 15 minute intervals to improve the logical consistency of activities over time. This plan can be updated based on observations of their environment. Every 15 minutes, agents carry out an activity in their plan, with their location determined based on their previous location, the nature of their activity and available locations in their world.</p>
+      </para>
+      <para xml:id="S3.SS2.p2" fragid="S3.SS2.p2">
+        <p>We supplement this activity planning by enabling Humanoid Agents to update plans in response to changes in their internal states (<text font="italic">i.e.</text> emotions and basic needs). If an agent’s emotion is not neutral or if any basic needs is unmet (<text font="italic">i.e.</text> 3 or below out of 10), we format the agent’s internal state into natural language based on a modifier (3 for slightly, 2 for &lt;no-modifier&gt;, 1 for very and 0 for extremely) and an adjective (hungry for fullness, bored for fun, unwell for health, tired for energy and lonely for social). We use this formatted internal state as well as their original plan from the current time onward to determine if they should change their plan, and if so, how they should change it in 1 sentence. If a plan change is given, we use the suggested change and their original plan from the current time onward to generate an updated plan. For instance, if the agent is very hungry currently but only plans to have a full meal in 3 hours, the agent can have a snack while continuing their current activity, similar to how people might act. After an agent engages in an activity, the agent evaluates if doing so changes its emotion and satisfies any of its basic needs, increasing the corresponding basic need status by one when applicable. Otherwise, each basic need has a set likelihood to decrease by one over time, similar to how people naturally get hungry when they are not eating.</p>
+      </para>
+      <figure inlist="lof" placement="h" xml:id="S3.F3" labels="LABEL:fig:game_interface" fragid="S3.F3">
+        <tags>
+          <tag>Figure 3</tag>
+          <tag role="autoref">Figure 3</tag>
+          <tag role="refnum">3</tag>
+          <tag role="typerefnum">Figure 3</tag>
+        </tags>
+        <graphics candidates="img/game_interface.png" graphic="img/game_interface.png" options="width=345.0pt,keepaspectratio=true" xml:id="S3.F3.g1" class="ltx_centering" fragid="S3.F3.g1"/>
+        <toccaption class="ltx_centering"><tag close=" ">3</tag>Unity WebGL Game Interface for visualizing Humanoid Agents situated in their world.</toccaption>
+        <caption class="ltx_centering"><tag close=": ">Figure 3</tag>Unity WebGL Game Interface for visualizing Humanoid Agents situated in their world.</caption>
+      </figure>
+    </subsection>
+    <subsection inlist="toc" xml:id="S3.SS3" labels="LABEL:sec:dialogue_generation" fragid="S3.SS3">
+      <tags>
+        <tag>3.3</tag>
+        <tag role="autoref">subsection 3.3</tag>
+        <tag role="refnum">3.3</tag>
+        <tag role="typerefnum">§3.3</tag>
+      </tags>
+      <title><tag close=" ">3.3</tag>Dialogue Generation</title>
+      <para xml:id="S3.SS3.p1" fragid="S3.SS3.p1">
+        <p>As with Generative Agents <cite class="ltx_citemacro_citep">(Park<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib36" idref="bib.bib36" title="Generative agents: interactive simulacra of human behavior">2023</ref>)</cite>, Humanoid Agents in the same location can decide if they want to engage in a conversation. An agent uses a variety of factors (<text font="italic">e.g.</text> its personality traits, core characteristics, current daily occupation as well as feelings towards their progress in life, the activity they are engaging in as well as the other’s agent’s activity) to determine if they want to have a dialogue with the other agent and if so, the topic they wish to talk about. The agent can then determine what they say, based on the decided topic. The other agent can uses this conversational history in addition to the same set of factors considered by the first agent, to determine if and how they would reply. This process alternates between the two agents until one of them decides not to respond. To mitigate the likelihood that the total length of factors considered as well as conversational history exceeding the maximum context window of 4096 tokens, we limit the max number of turns to 10.</p>
+      </para>
+      <para xml:id="S3.SS3.p2" fragid="S3.SS3.p2">
+        <p>Humanoid Agents can also make use of its emotion and basic needs status as well as the relationship closeness with the other agent converted into a natural language description (e.g. John Lin is feeling close to Eddy Lin) to determine if and how they want to engage with the other agent. At the end of the dialogue, each agent will use the conversation history to determine if they enjoyed the conversation. If so, their closeness to the other agent will increase by one, otherwise, their closeness will decrease by one. We allow the relationship closeness to gradually change (<text font="italic">i.e.</text> by one out of five points required to qualitatively change their closeness from rather close to close) to reflect how relationships between humans develop over time. Furthermore, we use the conversation history to determine if the emotions of the agents are affected by the conversation.</p>
+      </para>
+    </subsection>
+  </section>
+  <section inlist="toc" xml:id="S4" fragid="S4">
+    <tags>
+      <tag>4</tag>
+      <tag role="autoref">section 4</tag>
+      <tag role="refnum">4</tag>
+      <tag role="typerefnum">§4</tag>
+    </tags>
+    <title><tag close=" ">4</tag>Platform Implementation</title>
+    <para xml:id="S4.p1" fragid="S4.p1">
+      <p>In this section, we introduce how we build worlds and model the passage of time on our platform. Then, we describe how our Unity WebGL Game Interface and Interactive Analytics Dashboard can help users to visualize agent statuses.</p>
+    </para>
+    <figure inlist="lof" placement="h!" xml:id="S4.F4" labels="LABEL:fig:analytics_dashboard" fragid="S4.F4">
+      <tags>
+        <tag>Figure 4</tag>
+        <tag role="autoref">Figure 4</tag>
+        <tag role="refnum">4</tag>
+        <tag role="typerefnum">Figure 4</tag>
+      </tags>
+      <graphics candidates="img/analytics_dashboard.png" graphic="img/analytics_dashboard.png" options="height=166.2pt,width=433.6pt" xml:id="S4.F4.g1" class="ltx_centering" fragid="S4.F4.g1"/>
+      <toccaption class="ltx_centering"><tag close=" ">4</tag>Interactive Analytics Dashboard for visualizing basic needs satisfaction of Humanoid Agent over time.</toccaption>
+      <caption class="ltx_centering"><tag close=": ">Figure 4</tag>Interactive Analytics Dashboard for visualizing basic needs satisfaction of Humanoid Agent over time.</caption>
+    </figure>
+    <subsection inlist="toc" xml:id="S4.SS1" fragid="S4.SS1">
+      <tags>
+        <tag>4.1</tag>
+        <tag role="autoref">subsection 4.1</tag>
+        <tag role="refnum">4.1</tag>
+        <tag role="typerefnum">§4.1</tag>
+      </tags>
+      <title><tag close=" ">4.1</tag>Worlds</title>
+      <para xml:id="S4.SS1.p1" fragid="S4.SS1.p1">
+        <p>We use Lin’s Family World and two agents (John Lin and Eddy Lin) whose information can mostly be extracted from <cite class="ltx_citemacro_citet">Park<text class="ltx_bib_etal"> et al.</text> (<ref href="#bib.bib36" idref="bib.bib36" title="Generative agents: interactive simulacra of human behavior">2023</ref>)</cite>. Lin’s Family World also comes with a description of the locations within it, such as the Market and Pharmacy, College and Lin’s Family House with bedrooms for Eddy and John respectively. In addition, we create two other worlds - Friends and Big Bang Theory - and plan to support additional user-defined worlds on our platform. We choose these worlds because they contain personalities that are well-known to many (<text font="italic">e.g.</text> Sheldon, Leonard and Penny from Big Bang Theory; Rachel, Joey and Monica from Friends). Briefly, we used character information from <ref class="ltx_url" href="https://the-big-bang-theory.com/" font="typewriter">https://the-big-bang-theory.com/</ref> and <ref class="ltx_url" href="https://friends.fandom.com/wiki/" font="typewriter">https://friends.fandom.com/wiki/</ref> and prompted ChatGPT 3.5 to generate descriptions and an example day plan for each character, based on information only available before Season 1 Episode 1 of each series. For agents in the Big Bang Theory and Friends, the relationship closeness is initially set to between 1 and 5 to reflect how acquainted agents are at the start of the series.</p>
+      </para>
+    </subsection>
+    <subsection inlist="toc" xml:id="S4.SS2" fragid="S4.SS2">
+      <tags>
+        <tag>4.2</tag>
+        <tag role="autoref">subsection 4.2</tag>
+        <tag role="refnum">4.2</tag>
+        <tag role="typerefnum">§4.2</tag>
+      </tags>
+      <title><tag close=" ">4.2</tag>Time</title>
+      <para xml:id="S4.SS2.p1" fragid="S4.SS2.p1">
+        <p>We simulate each world for two weekdays at 15-minute intervals between 6:00 am to 12:00 midnight. Across various basic needs, fullness and health are expected to reduce by 1 every 5 hours while social and fun are expected to reduced by 4 and energy by 5 in the same time. These values are set based on the rate that agents satisfy these basic needs through their activities, such that basic needs can adequately influence agent behavior.</p>
+      </para>
+    </subsection>
+    <subsection inlist="toc" xml:id="S4.SS3" fragid="S4.SS3">
+      <tags>
+        <tag>4.3</tag>
+        <tag role="autoref">subsection 4.3</tag>
+        <tag role="refnum">4.3</tag>
+        <tag role="typerefnum">§4.3</tag>
+      </tags>
+      <title><tag close=" ">4.3</tag>Unity WebGL Game Interface</title>
+      <para xml:id="S4.SS3.p1" fragid="S4.SS3.p1">
+        <p>We create a sandbox HTML game environment using Unity WebGL game engine<note mark="1" role="footnote" xml:id="footnote1" fragid="footnote1"><tags><tag>1</tag><tag role="autoref">footnote 1</tag><tag role="refnum">1</tag><tag role="typerefnum">footnote 1</tag></tags><ref class="ltx_url" href="https://docs.unity3d.com/Manual/webgl-building.html" font="typewriter">https://docs.unity3d.com/Manual/webgl-building.html</ref></note> to visualize our humanoid agents in their worlds. Users can select from one of the three worlds to see the agent status (e.g. basic needs, emotion, activity, social relationships and conversation) and location at each time-step. Our game interface ingests JSON-structured files from our simulated worlds and transforms them into animations. The game interface also supports various functionalities for user interactions, as detailed in Fig. <ref labelref="LABEL:fig:game_interface" idref="S3.F3" href="#S3.F3" title="Figure 3 ‣ 3.2 Activity Planning ‣ 3 Humanoid Agents ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">3</text></ref>.</p>
+      </para>
+    </subsection>
+    <subsection inlist="toc" xml:id="S4.SS4" fragid="S4.SS4">
+      <tags>
+        <tag>4.4</tag>
+        <tag role="autoref">subsection 4.4</tag>
+        <tag role="refnum">4.4</tag>
+        <tag role="typerefnum">§4.4</tag>
+      </tags>
+      <title><tag close=" ">4.4</tag>Interactive Analytics Dashboard</title>
+      <para xml:id="S4.SS4.p1" fragid="S4.SS4.p1">
+        <p>Users can visualize the status of various humanoid agents over time using our interactive web dashboard built with Plotly Dash.<note mark="2" role="footnote" xml:id="footnote2" fragid="footnote2"><tags><tag>2</tag><tag role="autoref">footnote 2</tag><tag role="refnum">2</tag><tag role="typerefnum">footnote 2</tag></tags><ref class="ltx_url" href="https://github.com/plotly/dash" font="typewriter">https://github.com/plotly/dash</ref></note> Users can select an agent from a world to view time-series graphs relating to the satisfaction of their various basic needs, as shown in Fig. <ref labelref="LABEL:fig:analytics_dashboard" idref="S4.F4" href="#S4.F4" title="Figure 4 ‣ 4 Platform Implementation ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">4</text></ref>. Alternatively, users can view how the social relationships of agents develop over time, in terms of their closeness to one another. Users can further interact with the dashboard to see details of agents such as their emotions and activities while hovering over each point on the time-series trend-line. This can be helpful for researchers such as computational social scientists who are interested in understanding how various aspects of System 1 fluctuate over time. Other aspects of System 1 can also be visualized as they are supported by future Humanoid Agents.</p>
+      </para>
+    </subsection>
+  </section>
+  <section inlist="toc" xml:id="S5" fragid="S5">
+    <tags>
+      <tag>5</tag>
+      <tag role="autoref">section 5</tag>
+      <tag role="refnum">5</tag>
+      <tag role="typerefnum">§5</tag>
+    </tags>
+    <title><tag close=" ">5</tag>Experiments</title>
+    <para xml:id="S5.p1" fragid="S5.p1">
+      <p>We first investigate the effectiveness of Humanoid Agents in evaluating the effects of activities and conversations have on various aspects of System 1, by comparing its predictions with human annotations. Then, we study the effects that System 1 attributes have on activities and conversations. Due to page length limitations, we only present the effects of basic needs on activities, and leave the effects of emotions and relationship closeness to Appendices <ref labelref="LABEL:sec:effect_emotion" idref="A1.SS1" href="#A1.SS1" title="A.1 Effects of Emotions on Activities ‣ Appendix A Appendices ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">A.1</text></ref> and <ref labelref="LABEL:sec:effect_closeness" idref="A1.SS2" href="#A1.SS2" title="A.2 Effects of Closeness on Dialogues ‣ Appendix A Appendices ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">A.2</text></ref> respectively.</p>
+    </para>
+    <subsection inlist="toc" xml:id="S5.SS1" fragid="S5.SS1">
+      <tags>
+        <tag>5.1</tag>
+        <tag role="autoref">subsection 5.1</tag>
+        <tag role="refnum">5.1</tag>
+        <tag role="typerefnum">§5.1</tag>
+      </tags>
+      <title><tag close=" ">5.1</tag>Comparison with Human Annotations</title>
+      <para xml:id="S5.SS1.p1" fragid="S5.SS1.p1">
+        <p>To understand how well Humanoid Agents are able to predict 1. whether activities satisfy various basic needs; 2. emotions expressed in activities and; 3. if dialogues bring two agents closer, we compare our system’s predictions with human annotations. Three volunteer human annotators labelled the simulation of 1 day in Lin’s Family World using the same instructions given to the language model within our system (details in Appendix <ref labelref="LABEL:sec:evaluation_templates" idref="A1.SS3" href="#A1.SS3" title="A.3 Templates for Evaluating Basic Needs, Emotion, Closeness and Sentiment ‣ Appendix A Appendices ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">A.3</text></ref>). 144 activities are annotated independently by each annotator for emotions and each basic need, while there are 30 annotations for user-conversation pairs. We then take majority vote across all annotators and calculate micro-F1 between the majority vote and the system predictions.</p>
+      </para>
+      <para xml:id="S5.SS1.p2" fragid="S5.SS1.p2">
+        <p>Table <ref labelref="LABEL:tab:human_evaluation_classification" idref="S5.T1" href="#S5.T1" title="Table 1 ‣ 5.1 Comparison with Human Annotations ‣ 5 Experiments ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">1</text></ref> shows good inter-rater reliability (Fleiss’ <Math mode="inline" xml:id="S5.SS1.p2.m1" tex="\kappa&gt;=" text="kappa &gt;= absent" fragid="S5.SS1.p2.m1"><m:math alttext="\kappa&gt;=" display="inline"><m:semantics><m:mrow xml:id="S5.SS1.p2.m1.4" xref="S5.SS1.p2.m1.4.cmml"><m:mi xml:id="S5.SS1.p2.m1.1" xref="S5.SS1.p2.m1.1.cmml">κ</m:mi><m:mo xml:id="S5.SS1.p2.m1.2" xref="S5.SS1.p2.m1.2.cmml">&gt;=</m:mo><m:mi xml:id="S5.SS1.p2.m1.3" xref="S5.SS1.p2.m1.3.cmml"/></m:mrow><m:annotation-xml encoding="MathML-Content"><m:apply xml:id="S5.SS1.p2.m1.4.cmml" xref="S5.SS1.p2.m1.4"><m:geq xml:id="S5.SS1.p2.m1.2.cmml" xref="S5.SS1.p2.m1.2"/><m:ci xml:id="S5.SS1.p2.m1.1.cmml" xref="S5.SS1.p2.m1.1">𝜅</m:ci><m:csymbol cd="latexml" xml:id="S5.SS1.p2.m1.3.cmml" xref="S5.SS1.p2.m1.3">absent</m:csymbol></m:apply></m:annotation-xml><m:annotation encoding="application/x-tex">\kappa&gt;=</m:annotation></m:semantics></m:math></Math> 0.556) across all basic needs, emotion and relationship closeness. We find that our system is able to perform well (F1 <Math mode="inline" xml:id="S5.SS1.p2.m2" tex="&gt;=" text="&gt;=" fragid="S5.SS1.p2.m2"><m:math alttext="&gt;=" display="inline"><m:semantics><m:mo xml:id="S5.SS1.p2.m2.1" xref="S5.SS1.p2.m2.1.cmml">&gt;=</m:mo><m:annotation-xml encoding="MathML-Content"><m:geq xml:id="S5.SS1.p2.m2.1.cmml" xref="S5.SS1.p2.m2.1"/></m:annotation-xml><m:annotation encoding="application/x-tex">&gt;=</m:annotation></m:semantics></m:math></Math> 0.84) on classifying if an activity increases fullness and energy; the emotion expressed in an activity and; whether a conversation brings agents closer to one another. However, it slightly struggles in classifying whether activities satisfy basic needs of fun, health and social. One possible cause is that our system substantially over-predicts the number of activities contributing to these basic needs (health 34% of predicted activities vs 4.9% human-annotated activities, fun 44.4% vs 10.4% and social 47.2% vs 24.3%). More specifically, our system mispredicts activities relating to medication for others (since John Lin works at a Pharmacy) as contributing to the agent’s own physical health; common activities relating to agents’ occupation as enjoyable (<text font="italic">e.g.</text> receive feedback from professor or help regular customers with their medication needs); activities where the presence of other agents is unspecified as social (<text font="italic">e.g.</text> organize the counter and display areas or check the inventory and replenish any low stock). The use of language models with greater capabilities in commonsense understanding can potentially mitigate this issue <cite class="ltx_citemacro_citep">(Bosselut<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib32" idref="bib.bib32" title="COMET: commonsense transformers for automatic knowledge graph construction">2019</ref>; OpenAI, <ref href="#bib.bib7" idref="bib.bib7" title="GPT-4 technical report">2023</ref>)</cite>.</p>
+      </para>
+      <table inlist="lot" placement="t" xml:id="S5.T1" labels="LABEL:tab:human_evaluation_classification" fragid="S5.T1">
+        <tags>
+          <tag>Table 1</tag>
+          <tag role="autoref">Table 1</tag>
+          <tag role="refnum">1</tag>
+          <tag role="typerefnum">Table 1</tag>
+        </tags>
+        <inline-block depth="72.3pt" height="79.2pt" width="238.5pt" xscale="1.37237668430756" xtranslate="32.4pt" yscale="1.37237668430756" ytranslate="-20.6pt">
+          <tabular vattach="middle" class="ltx_centering ltx_guessed_headers">
+            <tbody>
+              <tr>
+                <td border="tt"/>
+                <td align="left" border="tt" thead="column">
+                  <text font="bold">Fleiss’ <Math mode="inline" xml:id="S5.T1.m1" tex="\kappa" text="kappa" fragid="S5.T1.m1"><m:math alttext="\kappa" display="inline"><m:semantics><m:mi xml:id="S5.T1.m1.1" xref="S5.T1.m1.1.cmml">κ</m:mi><m:annotation-xml encoding="MathML-Content"><m:ci xml:id="S5.T1.m1.1.cmml" xref="S5.T1.m1.1">𝜅</m:ci></m:annotation-xml><m:annotation encoding="application/x-tex">\kappa</m:annotation></m:semantics></m:math></Math></text>
+                </td>
+                <td align="left" border="tt" thead="column">
+                  <text font="bold">F1</text>
+                </td>
+              </tr>
+              <tr>
+                <td align="left" border="t" thead="column">
+                  <text font="bold">Basic Needs</text>
+                </td>
+                <td border="t" thead="column"/>
+                <td border="t"/>
+              </tr>
+              <tr>
+                <td align="left" border="t">fullness</td>
+                <td align="left" border="t">0.972</td>
+                <td align="left" border="t">0.972</td>
+              </tr>
+              <tr>
+                <td align="left">social</td>
+                <td align="left">0.833</td>
+                <td align="left">0.743</td>
+              </tr>
+              <tr>
+                <td align="left">fun</td>
+                <td align="left">0.806</td>
+                <td align="left">0.66</td>
+              </tr>
+              <tr>
+                <td align="left">health</td>
+                <td align="left">0.917</td>
+                <td align="left">0.694</td>
+              </tr>
+              <tr>
+                <td align="left">energy</td>
+                <td align="left">0.88</td>
+                <td align="left">0.861</td>
+              </tr>
+              <tr>
+                <td align="left" border="t">
+                  <text font="bold">Emotion</text>
+                </td>
+                <td align="left" border="t">0.823</td>
+                <td align="left" border="t">0.84</td>
+              </tr>
+              <tr>
+                <td align="left" border="bb t">
+                  <text font="bold">Closeness</text>
+                </td>
+                <td align="left" border="bb t">0.556</td>
+                <td align="left" border="bb t">0.9</td>
+              </tr>
+            </tbody>
+          </tabular>
+        </inline-block>
+        <toccaption><tag close=" ">1</tag>Human evaluation on the capability of our system to predict if activities satisfy various basic needs, emotions expressed in activities and whether a conversation brings two agents closer.</toccaption>
+        <caption><tag close=": ">Table 1</tag>Human evaluation on the capability of our system to predict if activities satisfy various basic needs, emotions expressed in activities and whether a conversation brings two agents closer.</caption>
+      </table>
+    </subsection>
+    <subsection inlist="toc" xml:id="S5.SS2" fragid="S5.SS2">
+      <tags>
+        <tag>5.2</tag>
+        <tag role="autoref">subsection 5.2</tag>
+        <tag role="refnum">5.2</tag>
+        <tag role="typerefnum">§5.2</tag>
+      </tags>
+      <title><tag close=" ">5.2</tag>Effects of Basic Needs on Activities</title>
+      <para xml:id="S5.SS2.p1" fragid="S5.SS2.p1">
+        <p>Given that humanoid agents operate as a dynamic system with many components, it can be challenging to isolate the effect of each basic need on agent activities. To investigate the contribution of each basic need, we simulate worlds with agents having one basic need initially set to zero, making agents extremely hungry, loneliness, tired, unwell or bored at the start of the day. We study the amount of time in one simulated day that agents spent performing activities to satisfy that basic need (<text font="italic">e.g.</text> eating food to overcome hunger or socializing to alleviate loneliness). Then, we compare it with the amount of time that agents spent performing such activities in normal settings (where every basic need is set to 5 and energy is set to 10), to calculate the percentage increase in time spent on fulfilling each basic need for our test conditions.</p>
+      </para>
+      <para xml:id="S5.SS2.p2" fragid="S5.SS2.p2">
+        <p>As shown in Table <ref labelref="LABEL:tab:effects_activities_basic_needs" idref="S5.T2" href="#S5.T2" title="Table 2 ‣ 5.2 Effects of Basic Needs on Activities ‣ 5 Experiments ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">2</text></ref>, humanoid agents adapt their activities most when the basic needs of health (156%), energy (56%) and fullness (35%) are initialized to zero. This supports their importance, as <cite class="ltx_citemacro_citet">Maslow (<ref href="#bib.bib3" idref="bib.bib3" title="A theory of human motivation">1943</ref>)</cite> grouped them into low-level physiological and safety needs that people need to satisfy before fulfilling other needs. In response to these conditions, agents typically look for medical support, get more rest or seek more food. On the other hand, when agents feel lonely due to the lack of social interactions, they only slightly adapt their behavior (+12%) to interact more with other agents.</p>
+      </para>
+      <table inlist="lot" placement="t" xml:id="S5.T2" labels="LABEL:tab:effects_activities_basic_needs" fragid="S5.T2">
+        <tags>
+          <tag>Table 2</tag>
+          <tag role="autoref">Table 2</tag>
+          <tag role="refnum">2</tag>
+          <tag role="typerefnum">Table 2</tag>
+        </tags>
+        <p align="center"><inline-block depth="46.1pt" height="51.1pt" width="333.5pt" xscale="1" xtranslate="0.0pt" yscale="1" ytranslate="0.0pt"><p><tabular vattach="middle"><tbody><tr><td border="tt"/><td align="center" border="tt" colspan="9">% change in time spent satisfying basic need</td></tr><tr><td align="left"><text font="bold">Basic</text></td><td align="left" colspan="2"><text font="bold">Lin’s Family</text></td><td align="center" colspan="3"><text font="bold">Friends</text></td><td align="center" colspan="3"><text font="bold">Big Bang Theory</text></td><td align="center"><text font="bold">Mean</text></td></tr><tr><td align="left"><text font="bold">Need</text></td><td align="center">JL</td><td align="center" border="r">EL</td><td align="center">MG</td><td align="center">RG</td><td align="center" border="r">JT</td><td align="center">SC</td><td align="center">LH</td><td align="center" border="r">P</td><td align="center"><Math mode="inline" xml:id="S5.T2.m1" tex="\mu" text="mu" fragid="S5.T2.m1"><m:math alttext="\mu" display="inline"><m:semantics><m:mi xml:id="S5.T2.m1.1" xref="S5.T2.m1.1.cmml">μ</m:mi><m:annotation-xml encoding="MathML-Content"><m:ci xml:id="S5.T2.m1.1.cmml" xref="S5.T2.m1.1">𝜇</m:ci></m:annotation-xml><m:annotation encoding="application/x-tex">\mu</m:annotation></m:semantics></m:math></Math></td></tr><tr><td align="left" border="t">health</td><td align="center" border="t">211</td><td align="center" border="r t">57</td><td align="center" border="t">53</td><td align="center" border="t">210</td><td align="center" border="r t">240</td><td align="center" border="t">207</td><td align="center" border="t">207</td><td align="center" border="r t">60</td><td align="center" border="t"><text font="bold">156</text></td></tr><tr><td align="left">fullness</td><td align="center">62</td><td align="center" border="r">36</td><td align="center">62</td><td align="center">-45</td><td align="center" border="r">50</td><td align="center">112</td><td align="center">0</td><td align="center" border="r">0</td><td align="center"><text framed="underline">35</text></td></tr><tr><td align="left">fun</td><td align="center">-10</td><td align="center" border="r">-22</td><td align="center">6</td><td align="center">12</td><td align="center" border="r">-24</td><td align="center">-12</td><td align="center">3</td><td align="center" border="r">-26</td><td align="center">-9</td></tr><tr><td align="left">social</td><td align="center">10</td><td align="center" border="r">31</td><td align="center">32</td><td align="center">-15</td><td align="center" border="r">-13</td><td align="center">4</td><td align="center">17</td><td align="center" border="r">34</td><td align="center">12</td></tr><tr><td align="left" border="bb">energy</td><td align="center" border="bb">38</td><td align="center" border="bb r">96</td><td align="center" border="bb">47</td><td align="center" border="bb">81</td><td align="center" border="bb r">80</td><td align="center" border="bb">-39</td><td align="center" border="bb">153</td><td align="center" border="bb r">-5</td><td align="center" border="bb"><text framed="underline">56</text></td></tr></tbody></tabular></p></inline-block></p>
+        <toccaption class="ltx_centering"><tag close=" ">2</tag>Effects of setting each basic need status to zero on percentage change in time spent on activities fulfilling those needs, relative to normal settings. <text font="italic">Initials of characters</text> - JL: John Lin, EL: Eddy Lin, MG: Monica Gellor, RG: Rachel Greene; JT: Joey Tribbiani, SC: Sheldon Cooper, LH: Leonard Hofstadter, P: Penny</toccaption>
+        <caption class="ltx_centering"><tag close=": ">Table 2</tag>Effects of setting each basic need status to zero on percentage change in time spent on activities fulfilling those needs, relative to normal settings. <text font="italic">Initials of characters</text> - JL: John Lin, EL: Eddy Lin, MG: Monica Gellor, RG: Rachel Greene; JT: Joey Tribbiani, SC: Sheldon Cooper, LH: Leonard Hofstadter, P: Penny</caption>
+      </table>
+      <para xml:id="S5.SS2.p3" fragid="S5.SS2.p3">
+        <p>Another contributory factor to the small changes for both social and fun is that agents in normal settings already spend a large amount of time doing activities that contribute to these basic needs: on average, they spend 11 (out of 18 simulated hours) doing something they enjoy, 8.75 hours on social interactions and only 5.75 hours for resting and 2.75 hours each for eating and doing something that improves their health.<note mark="3" role="footnote" xml:id="footnote3" fragid="footnote3"><tags><tag>3</tag><tag role="autoref">footnote 3</tag><tag role="refnum">3</tag><tag role="typerefnum">footnote 3</tag></tags>Activities such as meeting friends for lunch can be enjoyable, social and filling at the same time, so the total time across all basic needs can be more than 18 hours.</note> This means that the effects of setting either fun or social to zero initially dissipates very earlier in the day, giving way to other priorities including work obligations, such as Penny working at the Cheesecake Factory.</p>
+      </para>
+    </subsection>
+  </section>
+  <section inlist="toc" xml:id="S6" fragid="S6">
+    <tags>
+      <tag>6</tag>
+      <tag role="autoref">section 6</tag>
+      <tag role="refnum">6</tag>
+      <tag role="typerefnum">§6</tag>
+    </tags>
+    <title><tag close=" ">6</tag>Conclusion</title>
+    <para xml:id="S6.p1" fragid="S6.p1">
+      <p>We propose Humanoid Agents, a platform for human-like simulations of Generative Agents guided by System 1 processing including Basic Needs (e.g. hunger, health and energy), Emotion and Closeness in Relationships. Our platform also powers the immersive visualization of agents using our Unity WebGL Game Interface and an Interactive Analytics Dashboard.</p>
+    </para>
+  </section>
+  <section xml:id="Sx1" fragid="Sx1">
+    <title>Limitations</title>
+    <paragraph inlist="toc" xml:id="Sx1.SS0.SSS0.Px1" fragid="Sx1.SS0.SSS0.Px1">
+      <title>Multiparty Dialogue:</title>
+      <para xml:id="Sx1.SS0.SSS0.Px1.p1" fragid="Sx1.SS0.SSS0.Px1.p1">
+        <p>Our system currently only supports dialogue between two agents, even if there are more than two agents in the same location. We aim to support multi-party conversation in the future.</p>
+      </para>
+    </paragraph>
+    <paragraph inlist="toc" xml:id="Sx1.SS0.SSS0.Px2" fragid="Sx1.SS0.SSS0.Px2">
+      <title>Synchronization of activities between agents:</title>
+      <para xml:id="Sx1.SS0.SSS0.Px2.p1" fragid="Sx1.SS0.SSS0.Px2.p1">
+        <p>Activity planning is done by each agent independently and not forcibly synchronized with each other. For instance, John Lin can plan to watch a movie with Eddy Lin at 8:00pm but Eddy Lin can be calling his friends at 8:00pm. We plan to synchronize activities between agents in the future, by prompting one or more agents to update their plan if their plans are not coherent with one another.</p>
+      </para>
+    </paragraph>
+    <paragraph inlist="toc" xml:id="Sx1.SS0.SSS0.Px3" fragid="Sx1.SS0.SSS0.Px3">
+      <title>Variability in Natural Decline of Agent Basic Needs:</title>
+      <para xml:id="Sx1.SS0.SSS0.Px3.p1" fragid="Sx1.SS0.SSS0.Px3.p1">
+        <p>The rates of decrease for various basic needs is the same for all agents in our current implementation. We plan to allow these rates to be customized for each character to account for individual differences (<text font="italic">e.g.</text> extroverts have faster decline of social fulfillment and people who get hungry easily can have fullness reduced more quickly).</p>
+      </para>
+    </paragraph>
+  </section>
+  <section xml:id="Sx2" fragid="Sx2">
+    <title>Ethics Statement</title>
+    <paragraph inlist="toc" xml:id="Sx2.SS0.SSS0.Px1" fragid="Sx2.SS0.SSS0.Px1">
+      <title>Broader impacts:</title>
+      <para xml:id="Sx2.SS0.SSS0.Px1.p1" fragid="Sx2.SS0.SSS0.Px1.p1">
+        <p>Our system will help researchers such as computational social scientists to be better able to simulate human behavior in-silico before doing further studies in the real-world. This is particularly helpful if real-world studies are difficult or costly.</p>
+      </para>
+    </paragraph>
+    <paragraph inlist="toc" xml:id="Sx2.SS0.SSS0.Px2" fragid="Sx2.SS0.SSS0.Px2">
+      <title>Risk:</title>
+      <para xml:id="Sx2.SS0.SSS0.Px2.p1" fragid="Sx2.SS0.SSS0.Px2.p1">
+        <p>While our system allows simulated agents to behave more like humans, it is not perfect and should not be treated as so. Users of our simulation platform must be informed that they are working with a simulation that does not perfectly reflect human behavior in the real world, so that they do not overly trust the results of the simulation.</p>
+      </para>
+    </paragraph>
+  </section>
+  <section xml:id="Sx3" fragid="Sx3">
+    <title>Acknowledgements</title>
+    <para xml:id="Sx3.p1" fragid="Sx3.p1">
+      <p>We thank the anonymous reviewers for their helpful comments.</p>
+    </para>
+  </section>
+  <bibliography citestyle="authoryear" files="anthology,custom" xml:id="bib" fragid="bib">
+    <title>References</title>
+    <biblist xml:id="bib.L1" fragid="bib.L1">
+      <bibitem class="ltx_bib_article" key="10.3389/fpsyg.2017.00610" type="article" xml:id="bib.bib33" fragid="bib.bib33">
+        <tags>
+          <tag class="ltx_bib_number" role="number">1</tag>
+          <tag class="ltx_bib_author" role="authors">An<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">An, Ji, Marks,  and Zhang</tag>
+          <tag class="ltx_bib_year" role="year">2017</tag>
+          <tag class="ltx_bib_title" role="title">Two sides of emotion: exploring positivity and negativity in six basic emotions across cultures</tag>
+          <tag class="ltx_bib_author-year" role="refnum">S. An, L. Ji, M. Marks, and Z. Zhang (2017)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Two sides of emotion: exploring positivity and negativity in six basic emotions across cultures</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>Frontiers in Psychology</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">8</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://www.frontiersin.org/articles/10.3389/fpsyg.2017.00610">Link</ref>,
+<ref class="doi ltx_bib_external" href="https://dx.doi.org/10.3389/fpsyg.2017.00610">Document</ref>,
+<text class="issn ltx_bib_external">ISSN 1664-1078</text></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="A1.SS1.p3" show="typerefnum" href="#A1.SS1.p3" title="A.1 Effects of Emotions on Activities ‣ Appendix A Appendices ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§A.1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="Birditt2009" type="article" xml:id="bib.bib28" fragid="bib.bib28">
+        <tags>
+          <tag class="ltx_bib_number" role="number">2</tag>
+          <tag class="ltx_bib_author" role="authors">Birditt<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Birditt, Miller, Fingerman,  and Lefkowitz</tag>
+          <tag class="ltx_bib_year" role="year">2009</tag>
+          <tag class="ltx_bib_title" role="title">Tensions in the parent and adult child relationship: links to solidarity and ambivalence.</tag>
+          <tag class="ltx_bib_author-year" role="refnum">K. S. Birditt, L. M. Miller, K. L. Fingerman, and E. S. Lefkowitz (2009)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Tensions in the parent and adult child relationship: links to solidarity and ambivalence.</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>Psychology and Aging</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">24</bib-part></text> (<text class="ltx_bib_number"><bib-part role="number">2</bib-part></text>), <text class="ltx_bib_pages"> pp. <bib-part role="pages">287–295</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="doi ltx_bib_external" href="https://dx.doi.org/10.1037/a0015196">Document</ref>,
+<ref class="ltx_bib_external" href="https://doi.org/10.1037/a0015196">Link</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="A1.SS2.p4" show="typerefnum" href="#A1.SS2.p4" title="A.2 Effects of Closeness on Dialogues ‣ Appendix A Appendices ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§A.2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="bosselut-etal-2019-comet" type="inproceedings" xml:id="bib.bib32" fragid="bib.bib32">
+        <tags>
+          <tag class="ltx_bib_number" role="number">3</tag>
+          <tag class="ltx_bib_author" role="authors">Bosselut<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Bosselut, Rashkin, Sap, Malaviya, Celikyilmaz,  and Choi</tag>
+          <tag class="ltx_bib_year" role="year">2019</tag>
+          <tag class="ltx_bib_title" role="title">COMET: commonsense transformers for automatic knowledge graph construction</tag>
+          <tag class="ltx_bib_author-year" role="refnum">A. Bosselut, H. Rashkin, M. Sap, C. Malaviya, A. Celikyilmaz, and Y. Choi (2019)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>COMET: commonsense transformers for automatic knowledge graph construction</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_place"><bib-place>Florence, Italy</bib-place></text>, <text class="ltx_bib_pages"> pp. <bib-part role="pages">4762–4779</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://aclanthology.org/P19-1470">Link</ref>,
+<ref class="doi ltx_bib_external" href="https://dx.doi.org/10.18653/v1/P19-1470">Document</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S5.SS1.p2" show="typerefnum" href="#S5.SS1.p2" title="5.1 Comparison with Human Annotations ‣ 5 Experiments ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§5.1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_software" key="Chase_LangChain_2022" type="software" xml:id="bib.bib20" fragid="bib.bib20">
+        <tags>
+          <tag class="ltx_bib_number" role="number">4</tag>
+          <tag class="ltx_bib_author" role="authors">Chase</tag>
+          <tag class="ltx_bib_year" role="year">2022</tag>
+          <tag class="ltx_bib_title" role="title">LangChain</tag>
+          <tag class="ltx_bib_author-year" role="refnum">H. Chase (2022)</tag>
+        </tags>
+        <bibblock xml:space="preserve">
+          <text class="ltx_bib_title">
+            <bib-title>LangChain</bib-title>
+          </text>
+        </bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://github.com/hwchase17/langchain">Link</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S2.SS0.SSS0.Px1.p1" show="typerefnum" href="#S2.SS0.SSS0.Px1.p1" title="Building Agents using LLMs ‣ 2 Related Work ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="Dunbar2009" type="article" xml:id="bib.bib26" fragid="bib.bib26">
+        <tags>
+          <tag class="ltx_bib_number" role="number">5</tag>
+          <tag class="ltx_bib_author" role="authors">Dunbar</tag>
+          <tag class="ltx_bib_year" role="year">2009</tag>
+          <tag class="ltx_bib_title" role="title">The social brain hypothesis and its implications for social evolution</tag>
+          <tag class="ltx_bib_author-year" role="refnum">R.I.M. Dunbar (2009)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>The social brain hypothesis and its implications for social evolution</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>Annals of Human Biology</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">36</bib-part></text> (<text class="ltx_bib_number"><bib-part role="number">5</bib-part></text>), <text class="ltx_bib_pages"> pp. <bib-part role="pages">562–572</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="doi ltx_bib_external" href="https://dx.doi.org/10.1080/03014460902960289">Document</ref>,
+<ref class="ltx_bib_external" href="https://doi.org/10.1080/03014460902960289">Link</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p4" show="typerefnum" href="#S1.p4" title="1 Introduction ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="doi:10.1080/02699939208411068" type="article" xml:id="bib.bib6" fragid="bib.bib6">
+        <tags>
+          <tag class="ltx_bib_number" role="number">6</tag>
+          <tag class="ltx_bib_author" role="authors">Ekman</tag>
+          <tag class="ltx_bib_year" role="year">1992</tag>
+          <tag class="ltx_bib_title" role="title">An argument for basic emotions</tag>
+          <tag class="ltx_bib_author-year" role="refnum">P. Ekman (1992)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>An argument for basic emotions</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>Cognition and Emotion</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">6</bib-part></text> (<text class="ltx_bib_number"><bib-part role="number">3-4</bib-part></text>), <text class="ltx_bib_pages"> pp. <bib-part role="pages">169–200</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="doi ltx_bib_external" href="https://dx.doi.org/10.1080/02699939208411068">Document</ref>,
+<ref class="ltx_bib_external" href="https://doi.org/10.1080/02699939208411068">Link</ref>,
+<text class="ltx_bib_external">https://doi.org/10.1080/02699939208411068</text></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p3" show="typerefnum" href="#S1.p3" title="1 Introduction ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S3.SS1.p2" show="typerefnum" href="#S3.SS1.p2" title="3.1 Agent Initialization ‣ 3 Humanoid Agents ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§3.1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_incollection" key="Ginsberg1996" type="incollection" xml:id="bib.bib10" fragid="bib.bib10">
+        <tags>
+          <tag class="ltx_bib_number" role="number">7</tag>
+          <tag class="ltx_bib_author" role="authors">Ginsberg</tag>
+          <tag class="ltx_bib_year" role="year">1996</tag>
+          <tag class="ltx_bib_title" role="title">Together in group therapy: fathers and their adolescent sons.</tag>
+          <tag class="ltx_bib_author-year" role="refnum">B. G. Ginsberg (1996)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Together in group therapy: fathers and their adolescent sons.</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Men in groups: Insights, interventions, and psychoeducational work.</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_pages"> pp. <bib-part role="pages">269–282</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="doi ltx_bib_external" href="https://dx.doi.org/10.1037/10284-018">Document</ref>,
+<ref class="ltx_bib_external" href="https://doi.org/10.1037/10284-018">Link</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="A1.SS2.p2" show="typerefnum" href="#A1.SS2.p2" title="A.2 Effects of Closeness on Dialogues ‣ Appendix A Appendices ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§A.2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="doi:10.1080/10570318409374157" type="article" xml:id="bib.bib31" fragid="bib.bib31">
+        <tags>
+          <tag class="ltx_bib_number" role="number">8</tag>
+          <tag class="ltx_bib_author" role="authors">Hecht</tag>
+          <tag class="ltx_bib_year" role="year">1984</tag>
+          <tag class="ltx_bib_title" role="title">Satisfying communication and relationship labels: intimacy and length of relationship as perceptual frames of naturalistic conversations</tag>
+          <tag class="ltx_bib_author-year" role="refnum">M. L. Hecht (1984)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Satisfying communication and relationship labels: intimacy and length of relationship as perceptual frames of naturalistic conversations</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>Western Journal of Speech Communication</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">48</bib-part></text> (<text class="ltx_bib_number"><bib-part role="number">3</bib-part></text>), <text class="ltx_bib_pages"> pp. <bib-part role="pages">201–216</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="doi ltx_bib_external" href="https://dx.doi.org/10.1080/10570318409374157">Document</ref>,
+<ref class="ltx_bib_external" href="https://doi.org/10.1080/10570318409374157">Link</ref>,
+<text class="ltx_bib_external">https://doi.org/10.1080/10570318409374157</text></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="A1.SS2.p2" show="typerefnum" href="#A1.SS2.p2" title="A.2 Effects of Closeness on Dialogues ‣ Appendix A Appendices ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§A.2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_misc" key="jiang2022machines" type="misc" xml:id="bib.bib23" fragid="bib.bib23">
+        <tags>
+          <tag class="ltx_bib_number" role="number">9</tag>
+          <tag class="ltx_bib_author" role="authors">Jiang<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Jiang, Hwang, Bhagavatula, Bras, Liang, Dodge, Sakaguchi, Forbes, Borchardt, Gabriel, Tsvetkov, Etzioni, Sap, Rini,  and Choi</tag>
+          <tag class="ltx_bib_year" role="year">2022</tag>
+          <tag class="ltx_bib_title" role="title">Can machines learn morality? the delphi experiment</tag>
+          <tag class="ltx_bib_author-year" role="refnum">L. Jiang, J. D. Hwang, C. Bhagavatula, R. L. Bras, J. Liang, J. Dodge, K. Sakaguchi, M. Forbes, J. Borchardt, S. Gabriel, Y. Tsvetkov, O. Etzioni, M. Sap, R. Rini, and Y. Choi (2022)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Can machines learn morality? the delphi experiment</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><text class="ltx_bib_external">2110.07574</text></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p5" show="typerefnum" href="#S1.p5" title="1 Introduction ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_book" key="kahneman2011thinking" type="book" xml:id="bib.bib25" fragid="bib.bib25">
+        <tags>
+          <tag class="ltx_bib_number" role="number">10</tag>
+          <tag class="ltx_bib_author" role="authors">Kahneman</tag>
+          <tag class="ltx_bib_year" role="year">2011</tag>
+          <tag class="ltx_bib_title" role="title">Thinking, fast and slow</tag>
+          <tag class="ltx_bib_author-year" role="refnum">D. Kahneman (2011)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Thinking, fast and slow</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"> <text class="ltx_bib_publisher"><bib-publisher>Farrar, Straus and Giroux</bib-publisher></text>, <text class="ltx_bib_place"><bib-place>New York</bib-place></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><text class="isbn ltx_bib_external">ISBN 9780374275631 0374275637</text>,
+<ref class="ltx_bib_external" href="https://www.amazon.de/Thinking-Fast-Slow-Daniel-Kahneman/dp/0374275637/ref=wl_it_dp_o_pdT1_nS_nC?ie=UTF8&amp;colid=151193SNGKJT9&amp;coliid=I3OCESLZCVDFL7">Link</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p2" show="typerefnum" href="#S1.p2" title="1 Introduction ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_misc" key="li2023camel" type="misc" xml:id="bib.bib9" fragid="bib.bib9">
+        <tags>
+          <tag class="ltx_bib_number" role="number">11</tag>
+          <tag class="ltx_bib_author" role="authors">Li<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Li, Hammoud, Itani, Khizbullin,  and Ghanem</tag>
+          <tag class="ltx_bib_year" role="year">2023</tag>
+          <tag class="ltx_bib_title" role="title">CAMEL: communicative agents for "mind" exploration of large scale language model society</tag>
+          <tag class="ltx_bib_author-year" role="refnum">G. Li, H. A. A. K. Hammoud, H. Itani, D. Khizbullin, and B. Ghanem (2023)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>CAMEL: communicative agents for "mind" exploration of large scale language model society</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><text class="ltx_bib_external">2303.17760</text></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S2.SS0.SSS0.Px1.p1" show="typerefnum" href="#S2.SS0.SSS0.Px1.p1" title="Building Agents using LLMs ‣ 2 Related Work ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="liu-etal-2021-visually" type="inproceedings" xml:id="bib.bib21" fragid="bib.bib21">
+        <tags>
+          <tag class="ltx_bib_number" role="number">12</tag>
+          <tag class="ltx_bib_author" role="authors">Liu<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Liu, Bugliarello, Ponti, Reddy, Collier,  and Elliott</tag>
+          <tag class="ltx_bib_year" role="year">2021</tag>
+          <tag class="ltx_bib_title" role="title">Visually grounded reasoning across languages and cultures</tag>
+          <tag class="ltx_bib_author-year" role="refnum">F. Liu, E. Bugliarello, E. M. Ponti, S. Reddy, N. Collier, and D. Elliott (2021)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Visually grounded reasoning across languages and cultures</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Proceedings of the 2021 Conference on Empirical Methods in Natural Language Processing</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_place"><bib-place>Online and Punta Cana, Dominican Republic</bib-place></text>, <text class="ltx_bib_pages"> pp. <bib-part role="pages">10467–10485</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://aclanthology.org/2021.emnlp-main.818">Link</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p5" show="typerefnum" href="#S1.p5" title="1 Introduction ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_misc" key="liu2023sociallyaligned" type="misc" xml:id="bib.bib5" fragid="bib.bib5">
+        <tags>
+          <tag class="ltx_bib_number" role="number">13</tag>
+          <tag class="ltx_bib_author" role="authors">Liu<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Liu, Yang, Jia, Zhang, Zhou, Dai, Yang,  and Vosoughi</tag>
+          <tag class="ltx_bib_year" role="year">2023</tag>
+          <tag class="ltx_bib_title" role="title">Training socially aligned language models in simulated human society</tag>
+          <tag class="ltx_bib_author-year" role="refnum">R. Liu, R. Yang, C. Jia, G. Zhang, D. Zhou, A. M. Dai, D. Yang, and S. Vosoughi (2023)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Training socially aligned language models in simulated human society</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><text class="ltx_bib_external">2305.16960</text></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S2.SS0.SSS0.Px1.p1" show="typerefnum" href="#S2.SS0.SSS0.Px1.p1" title="Building Agents using LLMs ‣ 2 Related Work ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="maslow:motivation" type="article" xml:id="bib.bib3" fragid="bib.bib3">
+        <tags>
+          <tag class="ltx_bib_number" role="number">14</tag>
+          <tag class="ltx_bib_author" role="authors">Maslow</tag>
+          <tag class="ltx_bib_year" role="year">1943</tag>
+          <tag class="ltx_bib_title" role="title">A theory of human motivation</tag>
+          <tag class="ltx_bib_author-year" role="refnum">A. H. Maslow (1943)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>A theory of human motivation</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>Psychological Review</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">50</bib-part></text>, <text class="ltx_bib_pages"> pp. <bib-part role="pages">370–396</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="http://doi.apa.org/index.cfm?fuseaction=showUIDAbstract&amp;uid=1943-03751-001">Link</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p3" show="typerefnum" href="#S1.p3" title="1 Introduction ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S5.SS2.p2" show="typerefnum" href="#S5.SS2.p2" title="5.2 Effects of Basic Needs on Activities ‣ 5 Experiments ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§5.2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_book" key="Miller_2012" type="book" xml:id="bib.bib30" fragid="bib.bib30">
+        <tags>
+          <tag class="ltx_bib_number" role="number">15</tag>
+          <tag class="ltx_bib_author" role="authors">Miller</tag>
+          <tag class="ltx_bib_year" role="year">2012</tag>
+          <tag class="ltx_bib_title" role="title">Intimate relationships</tag>
+          <tag class="ltx_bib_author-year" role="refnum">R. S. Miller (2012)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Intimate relationships</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"> <text class="ltx_bib_publisher"><bib-publisher>McGraw-Hill</bib-publisher></text>.</bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="A1.SS2.p3" show="typerefnum" href="#A1.SS2.p3" title="A.2 Effects of Closeness on Dialogues ‣ Appendix A Appendices ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§A.2</text></ref>,
+<ref idref="S1.p4" show="typerefnum" href="#S1.p4" title="1 Introduction ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="https://doi.org/10.1002/ejsp.2420150303" type="article" xml:id="bib.bib29" fragid="bib.bib29">
+        <tags>
+          <tag class="ltx_bib_number" role="number">16</tag>
+          <tag class="ltx_bib_author" role="authors">Nederhof</tag>
+          <tag class="ltx_bib_year" role="year">1985</tag>
+          <tag class="ltx_bib_title" role="title">Methods of coping with social desirability bias: a review</tag>
+          <tag class="ltx_bib_author-year" role="refnum">A. J. Nederhof (1985)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Methods of coping with social desirability bias: a review</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>European Journal of Social Psychology</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">15</bib-part></text> (<text class="ltx_bib_number"><bib-part role="number">3</bib-part></text>), <text class="ltx_bib_pages"> pp. <bib-part role="pages">263–280</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="doi ltx_bib_external" href="https://dx.doi.org/https%3A//doi.org/10.1002/ejsp.2420150303">Document</ref>,
+<ref class="ltx_bib_external" href="https://onlinelibrary.wiley.com/doi/abs/10.1002/ejsp.2420150303">Link</ref>,
+<text class="ltx_bib_external">https://onlinelibrary.wiley.com/doi/pdf/10.1002/ejsp.2420150303</text></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="A1.SS2.p4" show="typerefnum" href="#A1.SS2.p4" title="A.2 Effects of Closeness on Dialogues ‣ Appendix A Appendices ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§A.2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_misc" key="openai2023gpt4" type="misc" xml:id="bib.bib7" fragid="bib.bib7">
+        <tags>
+          <tag class="ltx_bib_number" role="number">17</tag>
+          <tag class="ltx_bib_author" role="authors">OpenAI</tag>
+          <tag class="ltx_bib_year" role="year">2023</tag>
+          <tag class="ltx_bib_title" role="title">GPT-4 technical report</tag>
+          <tag class="ltx_bib_author-year" role="refnum">OpenAI (2023)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>GPT-4 technical report</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><text class="ltx_bib_external">2303.08774</text></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S5.SS1.p2" show="typerefnum" href="#S5.SS1.p2" title="5.1 Comparison with Human Annotations ‣ 5 Experiments ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§5.1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_software" key="agentverse_2023" type="software" xml:id="bib.bib17" fragid="bib.bib17">
+        <tags>
+          <tag class="ltx_bib_number" role="number">18</tag>
+          <tag class="ltx_bib_author" role="authors">OpenBMB</tag>
+          <tag class="ltx_bib_year" role="year">2023</tag>
+          <tag class="ltx_bib_title" role="title">AgentVerse</tag>
+          <tag class="ltx_bib_author-year" role="refnum">OpenBMB (2023)</tag>
+        </tags>
+        <bibblock xml:space="preserve">
+          <text class="ltx_bib_title">
+            <bib-title>AgentVerse</bib-title>
+          </text>
+        </bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://github.com/OpenBMB/AgentVerse">Link</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S2.SS0.SSS0.Px1.p1" show="typerefnum" href="#S2.SS0.SSS0.Px1.p1" title="Building Agents using LLMs ‣ 2 Related Work ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_misc" key="park2023generative" type="misc" xml:id="bib.bib36" fragid="bib.bib36">
+        <tags>
+          <tag class="ltx_bib_number" role="number">19</tag>
+          <tag class="ltx_bib_author" role="authors">Park<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Park, O’Brien, Cai, Morris, Liang,  and Bernstein</tag>
+          <tag class="ltx_bib_year" role="year">2023</tag>
+          <tag class="ltx_bib_title" role="title">Generative agents: interactive simulacra of human behavior</tag>
+          <tag class="ltx_bib_author-year" role="refnum">J. S. Park, J. C. O’Brien, C. J. Cai, M. R. Morris, P. Liang, and M. S. Bernstein (2023)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Generative agents: interactive simulacra of human behavior</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><text class="ltx_bib_external">2304.03442</text></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p1" show="typerefnum" href="#S1.p1" title="1 Introduction ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§1</text></ref>,
+<ref idref="S2.SS0.SSS0.Px1.p1" show="typerefnum" href="#S2.SS0.SSS0.Px1.p1" title="Building Agents using LLMs ‣ 2 Related Work ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§2</text></ref>,
+<ref idref="S3.SS1.p1" show="typerefnum" href="#S3.SS1.p1" title="3.1 Agent Initialization ‣ 3 Humanoid Agents ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§3.1</text></ref>,
+<ref idref="S3.SS2.p1" show="typerefnum" href="#S3.SS2.p1" title="3.2 Activity Planning ‣ 3 Humanoid Agents ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§3.2</text></ref>,
+<ref idref="S3.SS3.p1" show="typerefnum" href="#S3.SS3.p1" title="3.3 Dialogue Generation ‣ 3 Humanoid Agents ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§3.3</text></ref>,
+<ref idref="S4.SS1.p1" show="typerefnum" href="#S4.SS1.p1" title="4.1 Worlds ‣ 4 Platform Implementation ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§4.1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="rashkin-etal-2019-towards" type="inproceedings" xml:id="bib.bib37" fragid="bib.bib37">
+        <tags>
+          <tag class="ltx_bib_number" role="number">20</tag>
+          <tag class="ltx_bib_author" role="authors">Rashkin<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Rashkin, Smith, Li,  and Boureau</tag>
+          <tag class="ltx_bib_year" role="year">2019</tag>
+          <tag class="ltx_bib_title" role="title">Towards empathetic open-domain conversation models: a new benchmark and dataset</tag>
+          <tag class="ltx_bib_author-year" role="refnum">H. Rashkin, E. M. Smith, M. Li, and Y. Boureau (2019)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Towards empathetic open-domain conversation models: a new benchmark and dataset</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_place"><bib-place>Florence, Italy</bib-place></text>, <text class="ltx_bib_pages"> pp. <bib-part role="pages">5370–5381</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://aclanthology.org/P19-1534">Link</ref>,
+<ref class="doi ltx_bib_external" href="https://dx.doi.org/10.18653/v1/P19-1534">Document</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S2.SS0.SSS0.Px2.p1" show="typerefnum" href="#S2.SS0.SSS0.Px2.p1" title="Persona-Grounded Dialogue ‣ 2 Related Work ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="ROBERTS2011186" type="article" xml:id="bib.bib18" fragid="bib.bib18">
+        <tags>
+          <tag class="ltx_bib_number" role="number">21</tag>
+          <tag class="ltx_bib_author" role="authors">Roberts and Dunbar</tag>
+          <tag class="ltx_bib_year" role="year">2011</tag>
+          <tag class="ltx_bib_title" role="title">The costs of family and friends: an 18-month longitudinal study of relationship maintenance and decay</tag>
+          <tag class="ltx_bib_author-year" role="refnum">S. G.B. Roberts and R. I.M. Dunbar (2011)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>The costs of family and friends: an 18-month longitudinal study of relationship maintenance and decay</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>Evolution and Human Behavior</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">32</bib-part></text> (<text class="ltx_bib_number"><bib-part role="number">3</bib-part></text>), <text class="ltx_bib_pages"> pp. <bib-part role="pages">186–197</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><text class="issn ltx_bib_external">ISSN 1090-5138</text>,
+<ref class="doi ltx_bib_external" href="https://dx.doi.org/https%3A//doi.org/10.1016/j.evolhumbehav.2010.08.005">Document</ref>,
+<ref class="ltx_bib_external" href="https://www.sciencedirect.com/science/article/pii/S1090513810000966">Link</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="A1.SS2.p2" show="typerefnum" href="#A1.SS2.p2" title="A.2 Effects of Closeness on Dialogues ‣ Appendix A Appendices ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§A.2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="Ryan2001" type="article" xml:id="bib.bib16" fragid="bib.bib16">
+        <tags>
+          <tag class="ltx_bib_number" role="number">22</tag>
+          <tag class="ltx_bib_author" role="authors">Ryan and Deci</tag>
+          <tag class="ltx_bib_year" role="year">2001</tag>
+          <tag class="ltx_bib_title" role="title">On happiness and human potentials: a review of research on hedonic and eudaimonic well-being</tag>
+          <tag class="ltx_bib_author-year" role="refnum">R. M. Ryan and E. L. Deci (2001)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>On happiness and human potentials: a review of research on hedonic and eudaimonic well-being</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>Annual Review of Psychology</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">52</bib-part></text> (<text class="ltx_bib_number"><bib-part role="number">1</bib-part></text>), <text class="ltx_bib_pages"> pp. <bib-part role="pages">141–166</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="doi ltx_bib_external" href="https://dx.doi.org/10.1146/annurev.psych.52.1.141">Document</ref>,
+<ref class="ltx_bib_external" href="https://doi.org/10.1146/annurev.psych.52.1.141">Link</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="A1.SS1.p3" show="typerefnum" href="#A1.SS1.p3" title="A.1 Effects of Emotions on Activities ‣ Appendix A Appendices ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§A.1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="sharma-etal-2020-computational" type="inproceedings" xml:id="bib.bib8" fragid="bib.bib8">
+        <tags>
+          <tag class="ltx_bib_number" role="number">23</tag>
+          <tag class="ltx_bib_author" role="authors">Sharma<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Sharma, Miner, Atkins,  and Althoff</tag>
+          <tag class="ltx_bib_year" role="year">2020</tag>
+          <tag class="ltx_bib_title" role="title">A computational approach to understanding empathy expressed in text-based mental health support</tag>
+          <tag class="ltx_bib_author-year" role="refnum">A. Sharma, A. Miner, D. Atkins, and T. Althoff (2020)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>A computational approach to understanding empathy expressed in text-based mental health support</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_place"><bib-place>Online</bib-place></text>, <text class="ltx_bib_pages"> pp. <bib-part role="pages">5263–5276</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://aclanthology.org/2020.emnlp-main.425">Link</ref>,
+<ref class="doi ltx_bib_external" href="https://dx.doi.org/10.18653/v1/2020.emnlp-main.425">Document</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p5" show="typerefnum" href="#S1.p5" title="1 Introduction ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_software" key="autogpt_2023" type="software" xml:id="bib.bib12" fragid="bib.bib12">
+        <tags>
+          <tag class="ltx_bib_number" role="number">24</tag>
+          <tag class="ltx_bib_author" role="authors">Significant</tag>
+          <tag class="ltx_bib_year" role="year">2023</tag>
+          <tag class="ltx_bib_title" role="title">Auto GPT</tag>
+          <tag class="ltx_bib_author-year" role="refnum">G. Significant (2023)</tag>
+        </tags>
+        <bibblock xml:space="preserve">
+          <text class="ltx_bib_title">
+            <bib-title>Auto GPT</bib-title>
+          </text>
+        </bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://github.com/Significant-Gravitas/Auto-GPT">Link</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S2.SS0.SSS0.Px1.p1" show="typerefnum" href="#S2.SS0.SSS0.Px1.p1" title="Building Agents using LLMs ‣ 2 Related Work ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="urbanek2019light" type="inproceedings" xml:id="bib.bib35" fragid="bib.bib35">
+        <tags>
+          <tag class="ltx_bib_number" role="number">25</tag>
+          <tag class="ltx_bib_author" role="authors">Urbanek<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Urbanek, Fan, Karamcheti, Jain, Humeau, Dinan, Rocktäschel, Kiela, Szlam,  and Weston</tag>
+          <tag class="ltx_bib_year" role="year">2019</tag>
+          <tag class="ltx_bib_title" role="title">Learning to speak and act in a fantasy text adventure game</tag>
+          <tag class="ltx_bib_author-year" role="refnum">J. Urbanek, A. Fan, S. Karamcheti, S. Jain, S. Humeau, E. Dinan, T. Rocktäschel, D. Kiela, A. Szlam, and J. Weston (2019)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Learning to speak and act in a fantasy text adventure game</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_place"><bib-place>Hong Kong, China</bib-place></text>, <text class="ltx_bib_pages"> pp. <bib-part role="pages">673–683</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://aclanthology.org/D19-1062">Link</ref>,
+<ref class="doi ltx_bib_external" href="https://dx.doi.org/10.18653/v1/D19-1062">Document</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S2.SS0.SSS0.Px2.p1" show="typerefnum" href="#S2.SS0.SSS0.Px2.p1" title="Persona-Grounded Dialogue ‣ 2 Related Work ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_misc" key="wang2023voyager" type="misc" xml:id="bib.bib19" fragid="bib.bib19">
+        <tags>
+          <tag class="ltx_bib_number" role="number">26</tag>
+          <tag class="ltx_bib_author" role="authors">Wang<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Wang, Xie, Jiang, Mandlekar, Xiao, Zhu, Fan,  and Anandkumar</tag>
+          <tag class="ltx_bib_year" role="year">2023</tag>
+          <tag class="ltx_bib_title" role="title">Voyager: an open-ended embodied agent with large language models</tag>
+          <tag class="ltx_bib_author-year" role="refnum">G. Wang, Y. Xie, Y. Jiang, A. Mandlekar, C. Xiao, Y. Zhu, L. Fan, and A. Anandkumar (2023)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Voyager: an open-ended embodied agent with large language models</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><text class="ltx_bib_external">2305.16291</text></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S2.SS0.SSS0.Px1.p1" show="typerefnum" href="#S2.SS0.SSS0.Px1.p1" title="Building Agents using LLMs ‣ 2 Related Work ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="wang-torres-2022-helpful" type="inproceedings" xml:id="bib.bib15" fragid="bib.bib15">
+        <tags>
+          <tag class="ltx_bib_number" role="number">27</tag>
+          <tag class="ltx_bib_author" role="authors">Wang and Torres</tag>
+          <tag class="ltx_bib_year" role="year">2022</tag>
+          <tag class="ltx_bib_title" role="title">How to be helpful on online support forums?</tag>
+          <tag class="ltx_bib_author-year" role="refnum">Z. Wang and P. E. Torres (2022)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>How to be helpful on online support forums?</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Proceedings of the 4th Workshop of Narrative Understanding (WNU2022)</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_place"><bib-place>Seattle, United States</bib-place></text>, <text class="ltx_bib_pages"> pp. <bib-part role="pages">20–28</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://aclanthology.org/2022.wnu-1.3">Link</ref>,
+<ref class="doi ltx_bib_external" href="https://dx.doi.org/10.18653/v1/2022.wnu-1.3">Document</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p5" show="typerefnum" href="#S1.p5" title="1 Introduction ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_inproceedings" key="wang-etal-2022-extracting" type="inproceedings" xml:id="bib.bib14" fragid="bib.bib14">
+        <tags>
+          <tag class="ltx_bib_number" role="number">28</tag>
+          <tag class="ltx_bib_author" role="authors">Wang<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Wang, Zhou, Koncel-Kedziorski, Marin,  and Xia</tag>
+          <tag class="ltx_bib_year" role="year">2022</tag>
+          <tag class="ltx_bib_title" role="title">Extracting and inferring personal attributes from dialogue</tag>
+          <tag class="ltx_bib_author-year" role="refnum">Z. Wang, X. Zhou, R. Koncel-Kedziorski, A. Marin, and F. Xia (2022)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Extracting and inferring personal attributes from dialogue</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">In <text class="ltx_bib_inbook"><bib-title>Proceedings of the 4th Workshop on NLP for Conversational AI</bib-title></text>,</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_place"><bib-place>Dublin, Ireland</bib-place></text>, <text class="ltx_bib_pages"> pp. <bib-part role="pages">58–69</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://aclanthology.org/2022.nlp4convai-1.6">Link</ref>,
+<ref class="doi ltx_bib_external" href="https://dx.doi.org/10.18653/v1/2022.nlp4convai-1.6">Document</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p5" show="typerefnum" href="#S1.p5" title="1 Introduction ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_misc" key="wu2020author2vec" type="misc" xml:id="bib.bib13" fragid="bib.bib13">
+        <tags>
+          <tag class="ltx_bib_number" role="number">29</tag>
+          <tag class="ltx_bib_author" role="authors">Wu<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Wu, Lin, Wang,  and Rastorgueva</tag>
+          <tag class="ltx_bib_year" role="year">2020</tag>
+          <tag class="ltx_bib_title" role="title">Author2Vec: a framework for generating user embedding</tag>
+          <tag class="ltx_bib_author-year" role="refnum">X. Wu, W. Lin, Z. Wang, and E. Rastorgueva (2020)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Author2Vec: a framework for generating user embedding</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><text class="ltx_bib_external">2003.11627</text></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p5" show="typerefnum" href="#S1.p5" title="1 Introduction ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_software" key="babyagi_2022" type="software" xml:id="bib.bib11" fragid="bib.bib11">
+        <tags>
+          <tag class="ltx_bib_number" role="number">30</tag>
+          <tag class="ltx_bib_author" role="authors">Yohei</tag>
+          <tag class="ltx_bib_year" role="year">2022</tag>
+          <tag class="ltx_bib_title" role="title">BabyAGI</tag>
+          <tag class="ltx_bib_author-year" role="refnum">N. Yohei (2022)</tag>
+        </tags>
+        <bibblock xml:space="preserve">
+          <text class="ltx_bib_title">
+            <bib-title>BabyAGI</bib-title>
+          </text>
+        </bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="ltx_bib_external" href="https://github.com/yoheinakajima/babyagi">Link</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S2.SS0.SSS0.Px1.p1" show="typerefnum" href="#S2.SS0.SSS0.Px1.p1" title="Building Agents using LLMs ‣ 2 Related Work ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_misc" key="zhang2018personalizing" type="misc" xml:id="bib.bib4" fragid="bib.bib4">
+        <tags>
+          <tag class="ltx_bib_number" role="number">31</tag>
+          <tag class="ltx_bib_author" role="authors">Zhang<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Zhang, Dinan, Urbanek, Szlam, Kiela,  and Weston</tag>
+          <tag class="ltx_bib_year" role="year">2018</tag>
+          <tag class="ltx_bib_title" role="title">Personalizing dialogue agents: i have a dog, do you have pets too?</tag>
+          <tag class="ltx_bib_author-year" role="refnum">S. Zhang, E. Dinan, J. Urbanek, A. Szlam, D. Kiela, and J. Weston (2018)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Personalizing dialogue agents: i have a dog, do you have pets too?</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><text class="ltx_bib_external">1801.07243</text></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S2.SS0.SSS0.Px2.p1" show="typerefnum" href="#S2.SS0.SSS0.Px2.p1" title="Persona-Grounded Dialogue ‣ 2 Related Work ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§2</text></ref>.</bibblock>
+      </bibitem>
+      <bibitem class="ltx_bib_article" key="Zhou2005" type="article" xml:id="bib.bib27" fragid="bib.bib27">
+        <tags>
+          <tag class="ltx_bib_number" role="number">32</tag>
+          <tag class="ltx_bib_author" role="authors">Zhou<text class="ltx_bib_etal"> et al.</text></tag>
+          <tag class="ltx_bib_author" role="fullauthors">Zhou, Sornette, Hill,  and Dunbar</tag>
+          <tag class="ltx_bib_year" role="year">2005</tag>
+          <tag class="ltx_bib_title" role="title">Discrete hierarchical organization of social group sizes</tag>
+          <tag class="ltx_bib_author-year" role="refnum">W.-X. Zhou, D. Sornette, R. A. Hill, and R. I. M. Dunbar (2005)</tag>
+        </tags>
+        <bibblock xml:space="preserve"><text class="ltx_bib_title"><bib-title>Discrete hierarchical organization of social group sizes</bib-title></text>.</bibblock>
+        <bibblock xml:space="preserve"><text class="ltx_bib_journal"><bib-title>Proceedings of the Royal Society B: Biological Sciences</bib-title></text> <text class="ltx_bib_volume"><bib-part role="volume">272</bib-part></text> (<text class="ltx_bib_number"><bib-part role="number">1561</bib-part></text>), <text class="ltx_bib_pages"> pp. <bib-part role="pages">439–444</bib-part></text>.</bibblock>
+        <bibblock xml:space="preserve">External Links: <text class="ltx_bib_links"><ref class="doi ltx_bib_external" href="https://dx.doi.org/10.1098/rspb.2004.2970">Document</ref>,
+<ref class="ltx_bib_external" href="https://doi.org/10.1098/rspb.2004.2970">Link</ref></text></bibblock>
+        <bibblock class="ltx_bib_cited">Cited by: <ref idref="S1.p4" show="typerefnum" href="#S1.p4" title="1 Introduction ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">§1</text></ref>.</bibblock>
+      </bibitem>
+    </biblist>
+  </bibliography>
+  <appendix inlist="toc" xml:id="A1" labels="LABEL:sec:appendix" fragid="A1">
+    <tags>
+      <tag>Appendix A</tag>
+      <tag role="autoref">Appendix A</tag>
+      <tag role="refnum">A</tag>
+      <tag role="typerefnum">Appendix A</tag>
+    </tags>
+    <title><tag close=" ">Appendix A</tag>Appendices</title>
+    <toctitle><tag close=" ">A</tag>Appendices</toctitle>
+    <subsection inlist="toc" xml:id="A1.SS1" labels="LABEL:sec:effect_emotion" fragid="A1.SS1">
+      <tags>
+        <tag>A.1</tag>
+        <tag role="autoref">subsection A.1</tag>
+        <tag role="refnum">A.1</tag>
+        <tag role="typerefnum">§A.1</tag>
+      </tags>
+      <title><tag close=" ">A.1</tag>Effects of Emotions on Activities</title>
+      <para xml:id="A1.SS1.p1" fragid="A1.SS1.p1">
+        <p>To understand the effects of emotions on the activity of agents, we apply a similar approach as we do with basic needs in setting the initial emotion to one other than neutral. Unlike basic needs however, emotion does not contain gradation and therefore changes much more quickly than basic needs statuses. An agent who wakes up sad can become neutral right after washing up, severely limiting the effects of setting the initial emotion on activities over the rest of the day. To overcome this issue, we disable the updating of emotions based on activities and dialogues for agents in this part of the study, making the agents resemble humans who are stuck in a particular emotion over the entire day.</p>
+      </para>
+      <para xml:id="A1.SS1.p2" fragid="A1.SS1.p2">
+        <p>We study the number of times in one simulated day to which agents perform activities (at 15-min intervals) that express each emotion. For instance, when agents are <text font="italic">angry</text>, they go for a run to release anger; when <text font="italic">sad</text>, they seek support from a trusted friend; when <text font="italic">disgusted</text>, they practice deep breathing exercises and meditation techniques; and when <text font="italic">surprised</text>, they take time to process and reflect on the surprising findings. Then, we calculate the difference to the number of times that agents perform such activities in normal settings (initialized with neutral and allowed to update based on activities and dialogues). Because agents in normal settings typically do not perform activities that express sadness, anger, fear, disgust or surprise, we report the increase in number of activities expressing those emotions, compared to agents in normal settings.</p>
+      </para>
+      <para xml:id="A1.SS1.p3" fragid="A1.SS1.p3">
+        <p>As shown in Table <ref labelref="LABEL:tab:effects_activities_emotions" idref="A1.T3" href="#A1.T3" title="Table 3 ‣ A.1 Effects of Emotions on Activities ‣ Appendix A Appendices ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">3</text></ref>, anger influences agent behavior most (+15 activities) followed by sadness and fear (+10 each), then disgust (+4) and surprise (+1) and finally happiness (-2). Negative emotions seem to influence agents much more than positive emotions (<text font="italic">i.e.</text> happiness), as agents often do not plan for activities with negative emotions and hence have to significantly adjust their plans to manage their negative emotions, as with converging evidence in humans <cite class="ltx_citemacro_citep">(An<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib33" idref="bib.bib33" title="Two sides of emotion: exploring positivity and negativity in six basic emotions across cultures">2017</ref>)</cite>. Among the negative emotions, disgust and surprise are transient emotions that humans and agents do not typically experience for a long time, therefore limiting their influence compared to persistent ones (sadness, fear and anger) that can affect their activity over the entire day. It is interesting to observe that agents do slightly fewer (-2) activities to make themselves happy when they are already happy, possibly because feeling happy empowers them to pursue activities serving other longer term goals, even if these activities are not immediately joy-inducing <cite class="ltx_citemacro_citep">(Ryan and Deci, <ref href="#bib.bib16" idref="bib.bib16" title="On happiness and human potentials: a review of research on hedonic and eudaimonic well-being">2001</ref>)</cite>. For instance, when emotion is set at happy, Joey Tribbiani devotes more time to practicing his craft as an actor and Sheldon Cooper spends more time doing research.</p>
+      </para>
+      <table inlist="lot" placement="t" xml:id="A1.T3" labels="LABEL:tab:effects_activities_emotions" fragid="A1.T3">
+        <tags>
+          <tag>Table 3</tag>
+          <tag role="autoref">Table 3</tag>
+          <tag role="refnum">3</tag>
+          <tag role="typerefnum">Table 3</tag>
+        </tags>
+        <p align="center"><inline-block depth="52.1pt" height="57.1pt" width="342.4pt" xscale="1" xtranslate="0.0pt" yscale="1" ytranslate="0.0pt"><p><tabular vattach="middle"><tbody><tr><td border="tt"/><td align="center" border="tt" colspan="9">change in no. of activities expressing emotion</td></tr><tr><td/><td align="left" colspan="2"><text font="bold">Lin’s Family</text></td><td align="center" colspan="3"><text font="bold">Friends</text></td><td align="center" colspan="3"><text font="bold">Big Bang Theory</text></td><td align="center"><text font="bold">Mean</text></td></tr><tr><td align="left"><text font="bold">Emotion</text></td><td align="center">JL</td><td align="center" border="r">EL</td><td align="center">MG</td><td align="center">RG</td><td align="center" border="r">JT</td><td align="center">SC</td><td align="center">LH</td><td align="center" border="r">P</td><td align="center"><Math mode="inline" xml:id="A1.T3.m1" tex="\mu" text="mu" fragid="A1.T3.m1"><m:math alttext="\mu" display="inline"><m:semantics><m:mi xml:id="A1.T3.m1.1" xref="A1.T3.m1.1.cmml">μ</m:mi><m:annotation-xml encoding="MathML-Content"><m:ci xml:id="A1.T3.m1.1.cmml" xref="A1.T3.m1.1">𝜇</m:ci></m:annotation-xml><m:annotation encoding="application/x-tex">\mu</m:annotation></m:semantics></m:math></Math></td></tr><tr><td align="left" border="t">angry</td><td align="center" border="t">7</td><td align="center" border="r t">15</td><td align="center" border="t">18</td><td align="center" border="t">18</td><td align="center" border="r t">12</td><td align="center" border="t">22</td><td align="center" border="t">23</td><td align="center" border="r t">8</td><td align="center" border="t"><text font="bold">15</text></td></tr><tr><td align="left">sad</td><td align="center">6</td><td align="center" border="r">22</td><td align="center">8</td><td align="center">8</td><td align="center" border="r">15</td><td align="center">9</td><td align="center">8</td><td align="center" border="r">6</td><td align="center"><text framed="underline">10</text></td></tr><tr><td align="left">afraid</td><td align="center">3</td><td align="center" border="r">16</td><td align="center">4</td><td align="center">1</td><td align="center" border="r">12</td><td align="center">5</td><td align="center">14</td><td align="center" border="r">24</td><td align="center"><text framed="underline">10</text></td></tr><tr><td align="left">disgusted</td><td align="center">5</td><td align="center" border="r">1</td><td align="center">16</td><td align="center">0</td><td align="center" border="r">2</td><td align="center">4</td><td align="center">0</td><td align="center" border="r">5</td><td align="center">4</td></tr><tr><td align="left">surprised</td><td align="center">0</td><td align="center" border="r">1</td><td align="center">0</td><td align="center">0</td><td align="center" border="r">0</td><td align="center">3</td><td align="center">4</td><td align="center" border="r">2</td><td align="center">1</td></tr><tr><td align="left" border="bb">happy</td><td align="center" border="bb">6</td><td align="center" border="bb r">0</td><td align="center" border="bb">-9</td><td align="center" border="bb">-9</td><td align="center" border="bb r">-18</td><td align="center" border="bb">-4</td><td align="center" border="bb">-6</td><td align="center" border="bb r">16</td><td align="center" border="bb">-3</td></tr></tbody></tabular></p></inline-block></p>
+        <toccaption class="ltx_centering"><tag close=" ">3</tag>Effects of fixing agent emotion on the change in number of activities (in 15-minute intervals) that agents perform expressing set emotion, relative to normal settings. <text font="italic">Initials of characters</text> - JL: John Lin, EL: Eddy Lin, MG: Monica Gellor, RG: Rachel Greene; JT: Joey Tribbiani, SC: Sheldon Cooper, LH: Leonard Hofstadter, P: Penny</toccaption>
+        <caption class="ltx_centering"><tag close=": ">Table 3</tag>Effects of fixing agent emotion on the change in number of activities (in 15-minute intervals) that agents perform expressing set emotion, relative to normal settings. <text font="italic">Initials of characters</text> - JL: John Lin, EL: Eddy Lin, MG: Monica Gellor, RG: Rachel Greene; JT: Joey Tribbiani, SC: Sheldon Cooper, LH: Leonard Hofstadter, P: Penny</caption>
+      </table>
+    </subsection>
+    <subsection inlist="toc" xml:id="A1.SS2" labels="LABEL:sec:effect_closeness" fragid="A1.SS2">
+      <tags>
+        <tag>A.2</tag>
+        <tag role="autoref">subsection A.2</tag>
+        <tag role="refnum">A.2</tag>
+        <tag role="typerefnum">§A.2</tag>
+      </tags>
+      <title><tag close=" ">A.2</tag>Effects of Closeness on Dialogues</title>
+      <para xml:id="A1.SS2.p1" fragid="A1.SS2.p1">
+        <p>We investigate the effects of initial relationship closeness on dialogue between two agents. We set the closeness between all pairs of characters to either 0 (distant), 5 (rather close), 10 (close) or 15 (very close). We consider only the first five conversations between all agents in each simulation, in order to ensure that the closeness values between two agents are kept at the initial set level.
+We report the effects on the mean number of turns in each conversation as well as the proportion of turns that our system rates to have positive sentiments, since closeness between agents can influence their willingness to express positive/negative sentiment in their conversations with one another.</p>
+      </para>
+      <para xml:id="A1.SS2.p2" fragid="A1.SS2.p2">
+        <p>As shown in Table <ref labelref="LABEL:tab:effects_dialogue_closeness" idref="A1.T4" href="#A1.T4" title="Table 4 ‣ A.2 Effects of Closeness on Dialogues ‣ Appendix A Appendices ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">4</text></ref>, the mean number of conversation turns typically follow an inverse U shape as closeness increases. Agents talk less when they are distant, more when they get closer, but then tapers off when they get very close. This is supported by converging evidence in human conversations where we feel less of a need to engage in politeness talk when we feel very close to others <cite class="ltx_citemacro_citep">(Hecht, <ref href="#bib.bib31" idref="bib.bib31" title="Satisfying communication and relationship labels: intimacy and length of relationship as perceptual frames of naturalistic conversations">1984</ref>)</cite>. In Lin’s Family (LF), the turning point is at Rather Close while in Friends (F) and Big Bang Theory (BBT), it is at Close. This is likely between the two agents in LF have a father-son relationship where agents feel comfortable communicating less at a lower level of closeness without straining the relationship <cite class="ltx_citemacro_citep">(Ginsberg, <ref href="#bib.bib10" idref="bib.bib10" title="Together in group therapy: fathers and their adolescent sons.">1996</ref>)</cite> while in F and BBT, agents are friends and neighbours who require more active communication to maintain as non-kin relationships <cite class="ltx_citemacro_citep">(Roberts and Dunbar, <ref href="#bib.bib18" idref="bib.bib18" title="The costs of family and friends: an 18-month longitudinal study of relationship maintenance and decay">2011</ref>)</cite>.</p>
+      </para>
+      <table inlist="lot" placement="t" xml:id="A1.T4" labels="LABEL:tab:effects_dialogue_closeness" fragid="A1.T4">
+        <tags>
+          <tag>Table 4</tag>
+          <tag role="autoref">Table 4</tag>
+          <tag role="refnum">4</tag>
+          <tag role="typerefnum">Table 4</tag>
+        </tags>
+        <p align="center"><inline-block depth="34.1pt" height="39.1pt" width="275.1pt" xscale="1" xtranslate="0.0pt" yscale="1" ytranslate="0.0pt"><p><tabular vattach="middle" class="ltx_guessed_headers"><thead><tr><td border="tt" thead="column"/><td align="left" border="tt" colspan="3" thead="column"><text font="bold">Mean turns</text></td><td align="center" border="tt" colspan="3" thead="column"><text font="bold">% positive sentiment</text></td></tr><tr><td align="left" thead="column"><text font="bold">Closeness</text></td><td align="center" thead="column">LF</td><td align="center" thead="column">F</td><td align="center" border="r" thead="column">BBT</td><td align="center" thead="column">LF</td><td align="center" thead="column">F</td><td align="center" thead="column">BBT</td></tr></thead><tbody><tr><td align="left" border="t">Distant</td><td align="center" border="t">5.4</td><td align="center" border="t">6.8</td><td align="center" border="r t">8.33</td><td align="center" border="t">88.9</td><td align="center" border="t"><text font="bold">100</text></td><td align="center" border="t"><text font="bold">100</text></td></tr><tr><td align="left">Rather Close</td><td align="center"><text font="bold">7.25</text></td><td align="center">7.8</td><td align="center" border="r">8.8</td><td align="center">93.1</td><td align="center">97.4</td><td align="center"><text font="bold">100</text></td></tr><tr><td align="left">Close</td><td align="center">6.2</td><td align="center"><text font="bold">8.2</text></td><td align="center" border="r"><text font="bold">9.8</text></td><td align="center"><text font="bold">96.8</text></td><td align="center">97.5</td><td align="center">98.0</td></tr><tr><td align="left" border="bb">Very Close</td><td align="center" border="bb">6.0</td><td align="center" border="bb">7.2</td><td align="center" border="bb r">8.0</td><td align="center" border="bb">90.0</td><td align="center" border="bb">97.2</td><td align="center" border="bb">97.5</td></tr></tbody></tabular></p></inline-block></p>
+        <toccaption class="ltx_centering"><tag close=" ">4</tag>Effects of closeness between agents on the mean number of turns in their conversations and the proportion of turns with positive sentiments. <text font="italic">Initials to World </text> - <text font="italic">LF</text>: Lin’s Family, <text font="italic">F</text>: Friends, <text font="italic">BBT</text>: Big Bang Theory</toccaption>
+        <caption class="ltx_centering"><tag close=": ">Table 4</tag>Effects of closeness between agents on the mean number of turns in their conversations and the proportion of turns with positive sentiments. <text font="italic">Initials to World </text> - <text font="italic">LF</text>: Lin’s Family, <text font="italic">F</text>: Friends, <text font="italic">BBT</text>: Big Bang Theory</caption>
+      </table>
+      <para xml:id="A1.SS2.p3" fragid="A1.SS2.p3">
+        <p>Proportion of conversational turns with positive sentiment generally goes down in Table <ref labelref="LABEL:tab:effects_dialogue_closeness" idref="A1.T4" href="#A1.T4" title="Table 4 ‣ A.2 Effects of Closeness on Dialogues ‣ Appendix A Appendices ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">4</text></ref> when closeness is higher, akin to how people feel less of a need to praise others in order to be liked when very close to others <cite class="ltx_citemacro_citep">(Miller, <ref href="#bib.bib30" idref="bib.bib30" title="Intimate relationships">2012</ref>)</cite>. For instance, when Joey feels distant from Monica, he says <text font="typewriter">‘Hey Monica, I saw you having a blast at that restaurant with your friends! The food looked incredible. What’s the secret to finding such amazing places to eat? I could use some recommendations for my next date night.’</text> When he feels very close, he instead says <text font="typewriter">‘Hey Monica! I saw you having lunch at that nearby restaurant. How was the food? I’m always on the lookout for new culinary trends to try out in my cooking. Any recommendations or standout dishes you enjoyed?’</text></p>
+      </para>
+      <para xml:id="A1.SS2.p4" fragid="A1.SS2.p4">
+        <p>In LF, the proportion of turns with positive sentiment is also lower (88.9%) when agents feel distant from each other. This is possibly because when a father-child pair feel distant from each other, they can be more likely to argue with each other out of dissatisfaction with the strained relationship <cite class="ltx_citemacro_citep">(Birditt<text class="ltx_bib_etal"> et al.</text>, <ref href="#bib.bib28" idref="bib.bib28" title="Tensions in the parent and adult child relationship: links to solidarity and ambivalence.">2009</ref>)</cite>. For instance, after dinner, Eddy Lin says to John Lin <text font="typewriter">‘Hey John, I noticed you had someone else clean up the dinner dishes tonight. Everything okay? Is there a reason for that?’</text> when he feels distant but says <text font="typewriter">‘I noticed how much you enjoyed that cup of tea while we were talking and bonding, and it made me appreciate our connection even more.’</text> when he feels very close. On the other hand, F/BBT agents entirely refrain from demonstrating negative sentiments when they are distant from their acquaintances/neighbours to maintain a positive social image, similar to humans <cite class="ltx_citemacro_citep">(Nederhof, <ref href="#bib.bib29" idref="bib.bib29" title="Methods of coping with social desirability bias: a review">1985</ref>)</cite>. Overall, this suggests that the effect of relationship closeness on agents’ conversations is substantially moderated by their relationship type, as supported by converging evidence from human conversations.</p>
+      </para>
+    </subsection>
+    <subsection inlist="toc" xml:id="A1.SS3" labels="LABEL:sec:evaluation_templates" fragid="A1.SS3">
+      <tags>
+        <tag>A.3</tag>
+        <tag role="autoref">subsection A.3</tag>
+        <tag role="refnum">A.3</tag>
+        <tag role="typerefnum">§A.3</tag>
+      </tags>
+      <title><tag close=" ">A.3</tag>Templates for Evaluating Basic Needs, Emotion, Closeness and Sentiment</title>
+      <paragraph inlist="toc" xml:id="A1.SS3.SSS0.Px1" fragid="A1.SS3.SSS0.Px1">
+        <title>Basic Needs</title>
+        <para xml:id="A1.SS3.SSS0.Px1.p1" fragid="A1.SS3.SSS0.Px1.p1">
+          <p>
+            <text font="typewriter">Does the activity {activity} involve {satisfaction-action}? Please respond only with either yes or no.</text>
+          </p>
+        </para>
+        <para xml:id="A1.SS3.SSS0.Px1.p2" fragid="A1.SS3.SSS0.Px1.p2">
+          <p>where satisfaction-action for each basic need is based on Table <ref labelref="LABEL:tab:basic_need_evaluation_template" idref="A1.T5" href="#A1.T5" title="Table 5 ‣ Sentiment ‣ A.3 Templates for Evaluating Basic Needs, Emotion, Closeness and Sentiment ‣ Appendix A Appendices ‣ Humanoid Agents: Platform for Simulating Human-like Generative Agents"><text class="ltx_ref_tag">5</text></ref></p>
+        </para>
+      </paragraph>
+      <paragraph inlist="toc" xml:id="A1.SS3.SSS0.Px2" fragid="A1.SS3.SSS0.Px2">
+        <title>Emotion</title>
+        <para xml:id="A1.SS3.SSS0.Px2.p1" fragid="A1.SS3.SSS0.Px2.p1">
+          <p>
+            <text font="typewriter">In the following activity {activity}, what emotion is expressed? Please respond only with one word from this list ["neutral", "disgusted", "afraid", "sad", "surprised", "happy", "angry"].</text>
+          </p>
+        </para>
+      </paragraph>
+      <paragraph inlist="toc" xml:id="A1.SS3.SSS0.Px3" fragid="A1.SS3.SSS0.Px3">
+        <title>Closeness</title>
+        <para xml:id="A1.SS3.SSS0.Px3.p1" fragid="A1.SS3.SSS0.Px3.p1">
+          <p>
+            <text font="typewriter">Given this conversation {conversation}, did {name} enjoy the conversation? Please respond with either yes or no.</text>
+          </p>
+        </para>
+      </paragraph>
+      <paragraph inlist="toc" xml:id="A1.SS3.SSS0.Px4" fragid="A1.SS3.SSS0.Px4">
+        <title>Sentiment</title>
+        <para xml:id="A1.SS3.SSS0.Px4.p1" fragid="A1.SS3.SSS0.Px4.p1">
+          <p>
+            <text font="typewriter">In the following utterance {utterance}, is the sentiment positive? Please respond only with either yes or no.</text>
+          </p>
+        </para>
+        <table inlist="lot" placement="ht!" xml:id="A1.T5" labels="LABEL:tab:basic_need_evaluation_template" fragid="A1.T5">
+          <tags>
+            <tag>Table 5</tag>
+            <tag role="autoref">Table 5</tag>
+            <tag role="refnum">5</tag>
+            <tag role="typerefnum">Table 5</tag>
+          </tags>
+          <p align="center"><inline-block depth="40.1pt" height="45.1pt" width="236.1pt" xscale="1" xtranslate="0.0pt" yscale="1" ytranslate="0.0pt"><p><tabular vattach="middle" class="ltx_guessed_headers"><thead><tr><td align="left" border="tt" thead="column"><text font="bold">Basic Need</text></td><td align="left" border="tt" thead="column"><text font="bold">Satisfaction-action</text></td></tr></thead><tbody><tr><td align="left" border="t">fullness</td><td align="left" border="t">eating food</td></tr><tr><td align="left">social</td><td align="left">interacting with other people</td></tr><tr><td align="left">fun</td><td align="left">doing something enjoyable</td></tr><tr><td align="left">health</td><td align="left">doing something that</td></tr><tr><td/><td align="left">improves their own physical health</td></tr><tr><td align="left" border="bb">energy</td><td align="left" border="bb">resting or having a break</td></tr></tbody></tabular></p></inline-block></p>
+          <toccaption class="ltx_centering"><tag close=" ">5</tag>Satisfaction-action for each basic need</toccaption>
+          <caption class="ltx_centering"><tag close=": ">Table 5</tag>Satisfaction-action for each basic need</caption>
+        </table>
+      </paragraph>
+    </subsection>
+  </appendix>
+  <navigation>
+    <title>Humanoid Agents: Platform for Simulating Human-like Generative Agents</title>
+  </navigation>
+</document>

@@ -20,73 +20,36 @@ def survey(
     depth: str = typer.Option("standard", "--depth", "-d", help="standard or full"),
     limit: int = typer.Option(20, "--limit", "-n", help="Max papers to include"),
 ):
-    """Full research survey: RAG search -> graph query -> classify -> timeline -> structured output."""
-    from .. import rag
+    """Full research survey: keyword search -> classify -> timeline -> structured output."""
     from .. import classify as cl
 
     console.print(f"[cyan]Surveying:[/] {topic}  (depth={depth})\n")
 
-    # 1. Hybrid RAG search
-    console.print("[bold]Step 1: Hybrid RAG Search[/]")
+    # 1. Keyword search across parsed JSON
+    console.print("[bold]Step 1: Keyword Search[/]")
     seen_ids: list[str] = []
-    rag_worked = False
     try:
-        results = rag.search_rag_hybrid(topic, limit=limit)
-        for r in results:
-            pid = r.get("paper_id") or r.get("ulid") or ""
+        kw_results: list[str] = []
+        topic_lower = topic.lower()
+        for ppath in config.PARSED_DIR.glob("*.json"):
+            try:
+                pdata = json.loads(ppath.read_text(encoding="utf-8"))
+                title = (pdata.get("title") or "").lower()
+                abstract = (pdata.get("abstract") or "").lower()
+                if topic_lower in title or topic_lower in abstract:
+                    kw_results.append(ppath.stem)
+                    if len(kw_results) >= limit:
+                        break
+            except Exception:
+                continue
+        for pid in kw_results:
             if pid and pid not in seen_ids:
                 seen_ids.append(pid)
-        console.print(f"  Found {len(seen_ids)} unique papers via hybrid search")
-        rag_worked = True
     except Exception as e:
-        console.print(
-            f"  [yellow]RAG unavailable ({e}), falling back to keyword search[/]"
-        )
+        console.print(f"  [yellow]Keyword search failed: {e}[/]")
 
-    if not rag_worked:
-        try:
-            kw_results: list[str] = []
-            topic_lower = topic.lower()
-            for ppath in config.PARSED_DIR.glob("*.json"):
-                try:
-                    pdata = json.loads(ppath.read_text(encoding="utf-8"))
-                    title = (pdata.get("title") or "").lower()
-                    abstract = (pdata.get("abstract") or "").lower()
-                    if topic_lower in title or topic_lower in abstract:
-                        kw_results.append(ppath.stem)
-                        if len(kw_results) >= limit:
-                            break
-                except Exception:
-                    continue
-            for pid in kw_results:
-                if pid and pid not in seen_ids:
-                    seen_ids.append(pid)
-        except Exception as e:
-            console.print(f"  [yellow]Keyword fallback failed: {e}[/]")
-
-    # 2. Graph query for related concepts
-    console.print("\n[bold]Step 2: Graph Concept Query[/]")
-    try:
-        from .. import graph_mem
-
-        gm = graph_mem.ensure_graph()
-        topic_low = topic.lower().replace("_", " ")
-        matched = {
-            c
-            for cs in gm.concepts.values()
-            for c in cs
-            if topic_low in c.lower() or topic_low in c.lower().replace("_", " ")
-        }
-        concept_ids = [u for u, cs in gm.concepts.items() if matched & cs][:limit]
-        for cid in concept_ids:
-            if cid and cid not in seen_ids:
-                seen_ids.append(cid)
-        console.print(f"  {len(concept_ids)} papers from concept graph")
-    except Exception as e:
-        console.print(f"  [yellow]Graph unavailable ({e})[/]")
-
-    # 3. Enrich with metadata
-    console.print("\n[bold]Step 3: Enrich & Classify[/]")
+    # 2. Enrich with metadata
+    console.print("\n[bold]Step 2: Enrich & Classify[/]")
     papers_data: list[dict] = []
     for pid in seen_ids[:limit]:
         ppath = config.PARSED_DIR / f"{pid}.json"
@@ -105,8 +68,8 @@ def survey(
         for d in tags.get("domains", []):
             tag_summary[d] = tag_summary.get(d, 0) + 1
 
-    # 4. Timeline
-    console.print("\n[bold]Step 4: Timeline & Summary[/]")
+    # 3. Timeline
+    console.print("\n[bold]Step 3: Timeline & Summary[/]")
     by_year: dict[int, list] = {}
     for p in papers_data:
         y = p.get("year", 0)
@@ -162,7 +125,7 @@ def landscape(
         help="Research field or domain (e.g., NLP, RL, Safety)"
     ),
 ):
-    """Field landscape analysis: classify tags -> graph centrality -> year distribution -> key papers."""
+    """Field landscape analysis: classify tags -> year distribution -> key papers."""
     from .. import classify as cl
 
     console.print(f"[cyan]Landscape Analysis:[/] {topic}\n")
@@ -214,21 +177,8 @@ def landscape(
         bar = "█" * min(year_dist[y], 40)
         console.print(f"  {y}: {bar} {year_dist[y]}")
 
-    # 4. Graph centrality
-    console.print("\n[bold]Step 4: Key Papers (Centrality)[/]")
-    try:
-        from .. import graph_mem
-
-        gm = graph_mem.ensure_graph()
-        st = gm.stats()
-        console.print(
-            f"  Graph: {st['papers']} papers, {st['cites_edges']} citation edges"
-        )
-    except Exception as e:
-        console.print(f"  [yellow]Graph unavailable ({e})[/]")
-
-    # 5. Quality distribution
-    console.print("\n[bold]Step 5: Quality Distribution[/]")
+    # 4. Quality distribution
+    console.print("\n[bold]Step 4: Quality Distribution[/]")
     grades: dict[str, int] = {}
     for p in domain_papers:
         g = p.get("quality", {}).get("grade", "N/A")
